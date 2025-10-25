@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2, Notebook } from 'lucide-vue-next'
+import { ChevronsUpDown, Loader2, Notebook } from 'lucide-vue-next'
 import { FieldArray, useForm } from 'vee-validate'
 import { h, ref, onMounted } from 'vue'
 import * as z from 'zod'
@@ -28,6 +28,8 @@ import {
   today,
 } from '@internationalized/date'
 import { toDate } from 'date-fns'
+import Combobox from '../ui/combobox/Combobox.vue'
+import { ComboboxAnchor, ComboboxInput, ComboboxTrigger } from 'radix-vue'
 
 const emit = defineEmits(['dataAdded'])
 
@@ -53,6 +55,7 @@ const profileFormSchema = toTypedSchema(
     ppn: z.number(),
     tanggal: z.string().datetime(),
     tglPengiriman: z.string().datetime(),
+    jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
   })
 )
 
@@ -147,6 +150,8 @@ async function fetchData() {
     proyekList.value = []
   }
 }
+
+const listJenisPayment = [{ nama: 'Cash' }, { nama: 'Tempo' }]
 
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
@@ -420,6 +425,63 @@ const onSubmit = handleSubmit(async (values: any) => {
                 <FormControl>
                   <Textarea v-bind="componentField" rows="3"></Textarea>
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ value }" name="jenisPayment">
+              <FormItem class="flex flex-col">
+                <FormLabel>Jenis Payment</FormLabel>
+                <Popover v-model:open="openPayment">
+                  <PopoverTrigger as-child>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        :aria-expanded="openPayment"
+                        :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      >
+                        {{
+                          value
+                            ? listJenisPayment.find(item => item.nama === value)?.nama
+                            : 'Select Payment...'
+                        }}
+                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent class="p-0">
+                    <Command>
+                      <CommandInput placeholder="Search payment..." />
+                      <CommandEmpty>No payment found.</CommandEmpty>
+                      <CommandList>
+                        <CommandGroup>
+                          <CommandItem
+                            v-for="item in listJenisPayment"
+                            :key="item.nama"
+                            :value="item.nama"
+                            @select="
+                              () => {
+                                setFieldValue('jenisPayment', item.nama)
+                                openPayment = false
+                              }
+                            "
+                          >
+                            <Check
+                              :class="
+                                cn(
+                                  'mr-2 h-4 w-4',
+                                  value === item.nama ? 'opacity-100' : 'opacity-0'
+                                )
+                              "
+                            />
+                            {{ item.nama }}
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             </FormField>

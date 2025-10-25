@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
+import { DownloadCloud, FileDown, Loader2, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
+import DetailPo from './DetailPo.vue'
 import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
@@ -93,9 +94,51 @@ function handleDataEdited() {
     fetchData()
   }, 500)
 }
+function handleDetailPo() {
+  console.log('Event detailPo diterima, menunggu 500ms sebelum refresh data...')
+
+  setTimeout(() => {
+    console.log('Melakukan fetch data setelah DetilPo...')
+    fetchData()
+  }, 500)
+}
+
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+}
 
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
+}
+
+const isDownloading = ref(false)
+const downloadPdf = async item => {
+  try {
+    isDownloading.value = true
+
+    const res = await fetch(`${baseUrl}/po/generatePO/${item.id}/pdf`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!res.ok) throw new Error('Gagal mengunduh file')
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `PO_${item.noPo}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('Download gagal:', err)
+    alert('Gagal mengunduh file PO!')
+  } finally {
+    isDownloading.value = false
+  }
 }
 </script>
 <template>
@@ -120,9 +163,10 @@ function handleDataDeleted(deletedItemId) {
               <TableHead>No PO</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Tujuan PO</TableHead>
-              <TableHead>No Telepon</TableHead>
-              <TableHead>Penerima</TableHead>
+              <!-- <TableHead>No Telepon</TableHead> -->
               <TableHead>Tanggal Pengiriman</TableHead>
+              <TableHead>PPN %</TableHead>
+              <TableHead>Grand Total</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -139,17 +183,39 @@ function handleDataDeleted(deletedItemId) {
                 {{ item.tujuanPo }}
               </TableCell>
 
-              <TableCell class="font-medium">
+              <!-- <TableCell class="font-medium">
                 {{ item.noTelepon }}
+              </TableCell> -->
+              <TableCell>{{ formatTanggal(item.tglPengiriman) }}</TableCell>
+              <TableCell class="font-medium">
+                {{ item.ppn }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.penerima }}
+                {{ formatRupiah(item.grandTotal) }}
               </TableCell>
-              <TableCell>{{ formatTanggal(item.tglPengiriman) }}</TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
+                  <DetailPo :id="item.id" @detailPo="handleDetailPo" />
                   <EditData :id="item.id" @dataEdited="handleDataEdited" />
                   <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button :disabled="isDownloading" @click="downloadPdf(item)" size="sm">
+                          <template v-if="isDownloading">
+                            <Loader2 class="w-4 h-4 animate-spin" />
+                          </template>
+                          <template v-else>
+                            <FileDown class="w-4 h-4" />
+                          </template>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span v-if="isDownloading">Mengunduh...</span>
+                        <span v-else>Download PDF</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </TableCell>
             </TableRow>

@@ -1,20 +1,18 @@
 <script setup lang="ts">
 defineProps<{
-  x?: string | number
+  label?: string | number
   data?: { name: string; value: number; color?: string }[]
 }>()
+
+// onMounted(console.log(data))
 </script>
 
 <template>
   <div
     class="rounded-lg border bg-background/80 backdrop-blur-sm p-2 shadow-md text-sm min-w-[150px]"
   >
-    <!-- Label (misal: nama bulan) -->
-    <div class="font-medium text-foreground mb-1">
-      {{ x }}
-    </div>
-
-    <!-- Daftar nilai (misal total / predicted) -->
+    <!-- <div class="font-medium text-foreground mb-1">Judul: {{ label }}</div> -->
+    <!-- <pre>{{ data }}</pre> -->
     <div v-for="(d, i) in data" :key="i" class="flex items-center gap-2">
       <div
         class="w-3 h-3 rounded-full shrink-0"

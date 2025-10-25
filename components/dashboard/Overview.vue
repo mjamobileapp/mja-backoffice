@@ -21,7 +21,7 @@ const dataBarchart = ref<{ name: string; total: number }[]>([])
 
 // Ambil base URL dari runtime config (Nuxt) atau bisa juga langsung string
 const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase || 'http://localhost:5000/api'
+const baseUrl = config.public.apiBase || 'http://localhost:4000'
 
 // Fungsi ambil data dari API
 async function fetchDataBarchart() {

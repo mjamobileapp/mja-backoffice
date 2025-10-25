@@ -44,7 +44,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // const editedItem = ref({ ...props.item })
-console.log(props.id)
+// console.log(props.id)
 // onMounted(() => {
 //   fetchData()
 //   // console.log(props.item.code)

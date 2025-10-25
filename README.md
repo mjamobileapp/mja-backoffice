@@ -7,32 +7,19 @@ Project Monitoring Application adalah sebuah sistem terintegrasi yang dirancang 
 Aplikasi ini dibangun di atas beberapa modul utama yang saling terhubung untuk memberikan gambaran proyek yang komprehensif:
 
 1. Modul Transaksi Proyek
-
-Modul ini berfungsi sebagai pusat pencatatan seluruh aktivitas finansial dan administratif proyek, meliputi:
-
-Nilai Proyek (Project Value): Pencatatan nilai total awal dari setiap proyek.
-
-Kas Masuk (Cash Inflow): Pencatatan penerimaan dana secara berkala dari klien atau sumber terkait.
-
-Kontrak Subkontraktor (Subcontractor Contracts): Manajemen dan pelacakan detail kontrak dengan pihak ketiga.
-
-Kontrak Adendum (Addendum Contracts): Pencatatan setiap perubahan atau penambahan lingkup proyek yang memengaruhi nilai atau jadwal.
-
-Purchase Order (PO): Manajemen pemesanan barang dan jasa yang dibutuhkan untuk pelaksanaan proyek.
-
-[Tambahkan Modul Transaksi Lain jika ada, contoh: Kas Keluar, Invoice Klien]
+   -Modul ini berfungsi sebagai pusat pencatatan seluruh aktivitas finansial dan administratif proyek, meliputi:
+   -Nilai Proyek (Project Value): Pencatatan nilai total awal dari setiap proyek.
+   -Kas Masuk (Cash Inflow): Pencatatan penerimaan dana secara berkala dari klien atau sumber terkait.
+   -Kontrak Subkontraktor (Subcontractor Contracts): Manajemen dan pelacakan detail kontrak dengan pihak ketiga.
+   -Kontrak Adendum (Addendum Contracts): Pencatatan setiap perubahan atau penambahan lingkup proyek yang memengaruhi nilai atau jadwal.
+   -Purchase Order (PO): Manajemen pemesanan barang dan jasa yang dibutuhkan untuk pelaksanaan proyek.
+   dll
 
 2. Dashboard Monitoring
-
-Menyajikan visualisasi data kunci (KPIs) proyek secara real-time sehingga manajemen dapat mengambil keputusan berdasarkan data yang akurat dan terkini. Dasbor mencakup:
-
-Perkembangan Proyek: Status kemajuan proyek (misalnya: On Schedule, At Risk, Complete).
-
-Analisis Keuangan: Visualisasi arus kas (Kas Masuk vs. Pengeluaran).
-
-Status Administrasi: Tinjauan cepat terhadap status Kontrak Subkon, Adendum, dan PO yang belum/sudah disetujui.
-
-[Tambahkan Metrik Dashboard Lain]
+   -Menyajikan visualisasi data kunci (KPIs) proyek secara real-time sehingga manajemen dapat mengambil keputusan berdasarkan data yang akurat dan terkini. Dasbor mencakup:
+   -Perkembangan Proyek: Status kemajuan proyek (misalnya: On Schedule, At Risk, Complete).
+   -Analisis Keuangan: Visualisasi arus kas (Kas Masuk vs. Pengeluaran).
+   -Status Administrasi: Tinjauan cepat terhadap status Kontrak Subkon, Adendum, dan PO yang belum/sudah disetujui.
 
 ## 🛠️ Teknologi yang Digunakan
 
