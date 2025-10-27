@@ -23,7 +23,7 @@ import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { toTypedSchema } from '@vee-validate/zod'
 import { toast } from '@/components/ui/toast'
-import { PencilIcon } from 'lucide-vue-next'
+import { Loader2, PencilIcon } from 'lucide-vue-next'
 
 const props = defineProps<{
   id: {
@@ -36,14 +36,13 @@ const emit = defineEmits(['dataUpdated'])
 
 const isDialogOpen = ref(false)
 const userData = ref<any>(null)
-const roleOptions = ref([])
 
 const formSchema = toTypedSchema(
   z.object({
-    username: z.string().min(1),
-    email: z.string().email(),
-    roleId: z.string().min(1),
-    isActive: z.boolean(),
+    username: z.string(),
+    nama: z.string(),
+    password: z.string().optional(),
+    roleId: z.string(),
   })
 )
 
@@ -67,18 +66,19 @@ async function fetchUserData() {
       },
     })
     const data = await response.json()
-    console.log(data.data)
+    // console.log(data.data)
     userData.value = data.data
     setValues({
       username: data.data.username,
-      email: data.data.email,
-      roleId: String(data.data.roleId),
-      isActive: true,
+      nama: data.data.nama,
+      roleId: String(data.data.idRole),
+      password: data.data.password,
     })
   } catch (error) {
     console.error('Gagal mengambil data user:', error)
   }
 }
+const dataRole = ref([])
 
 async function fetchRoles() {
   try {
@@ -88,10 +88,14 @@ async function fetchRoles() {
         Authorization: `Bearer ${token}`,
       },
     })
-    const data = await response.json()
-    roleOptions.value = data.data
+    if (response.ok) {
+      const data = await response.json()
+      dataRole.value = data.data
+    } else {
+      console.error('Failed to fetch roles')
+    }
   } catch (error) {
-    console.error('Gagal mengambil data role:', error)
+    console.error('Fetch roles error:', error)
   }
 }
 
@@ -116,11 +120,11 @@ const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
   const dataForm = {
     username: values.username,
-    email: values.email,
+    nama: values.nama,
+    password: values.password,
     roleId: values.roleId,
     createdBy: email.value,
     createdDate: new Date(),
-    isActive: values.isActive,
   }
   // console.log(JSON.stringify(dataForm))
   try {
@@ -150,66 +154,68 @@ const onSubmit = handleSubmit(async (values: any) => {
 <template>
   <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button class="mr-2" @click="openDialog"
-        ><PencilIcon class="w-4 h-4 mr-2" /> Edit Data</Button
-      >
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Edit Data</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </DialogTrigger>
     <DialogContent class="sm:max-w-[600px] [&>button]:hidden">
       <DialogHeader>
         <DialogTitle>Edit Data User</DialogTitle>
       </DialogHeader>
       <form class="space-y-4" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="nama">
+          <FormItem>
+            <FormLabel>Nama</FormLabel>
+            <FormControl>
+              <Input type="text" placeholder="Nama Lengkap" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
         <FormField v-slot="{ componentField }" name="username">
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>Username/Email</FormLabel>
             <FormControl>
-              <Input type="text" v-bind="componentField" />
+              <Input type="text" placeholder="Username" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="email">
+        <FormField v-slot="{ componentField }" name="password">
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>Password</FormLabel>
             <FormControl>
-              <Input type="email" v-bind="componentField" />
+              <Input type="password" placeholder="Password" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="roleId">
+        <FormField v-slot="{ field }" name="roleId">
           <FormItem>
             <FormLabel>Role Akses</FormLabel>
-            <Select v-bind="componentField">
+            <Select :modelValue="field.value" @update:modelValue="field.onChange">
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih Role" />
+                  <SelectValue placeholder="Pilih Role/Peran" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem v-for="item in roleOptions" :key="item.id" :value="String(item.id)">
+                  <SelectItem v-for="item in dataRole" :key="item.id" :value="String(item.id)">
                     {{ item.namaRole }}
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <FormMessage />
-          </FormItem>
-        </FormField>
-
-        <FormField v-slot="{ componentField }" name="isActive">
-          <FormItem>
-            <FormLabel>Is Active</FormLabel>
-            <FormControl>
-              <Checkbox
-                :checked="componentField.modelValue"
-                @update:checked="componentField.onChange"
-              />
-            </FormControl>
-
             <FormMessage />
           </FormItem>
         </FormField>

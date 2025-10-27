@@ -99,7 +99,6 @@ function prevPage() {
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role Akses</TableHead>
-              <TableHead>Status User</TableHead>
               <TableHead class="text-center w-[300px]"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -109,18 +108,18 @@ function prevPage() {
                 {{ index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.username }}
+                {{ item.nama }}
               </TableCell>
-              <TableCell>{{ item.email }}</TableCell>
+              <TableCell>{{ item.username }}</TableCell>
               <TableCell>
                 {{ item.namaRole }}
               </TableCell>
-              <TableCell>
-                {{ item.isActive === true ? 'Aktif' : 'Tidak Aktif' }}
-              </TableCell>
+
               <TableCell class="text-center">
-                <EditData :id="item.id" @dataUpdated="fetchData" />
-                <!-- <DeleteData :item="item" @dataDeleted="fetchData" /> -->
+                <div class="flex items-center justify-center gap-2">
+                  <EditData :id="item.id" @dataUpdated="fetchData" />
+                  <DeleteData :item="item" @dataDeleted="fetchData" />
+                </div>
               </TableCell>
             </TableRow>
           </TableBody>

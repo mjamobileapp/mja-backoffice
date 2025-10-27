@@ -37,8 +37,9 @@ const token = accessToken.value.token
 const formSchema = toTypedSchema(
   z.object({
     username: z.string(),
+    nama: z.string(),
+    password: z.string(),
     roleId: z.string(),
-    email: z.string().email(),
   })
 )
 
@@ -79,7 +80,7 @@ function closeDialog() {
 }
 
 const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.email || 'no-email@example.com')
+const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
 
@@ -87,7 +88,8 @@ const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
   const dataForm = {
     username: values.username,
-    email: values.email,
+    nama: values.nama,
+    password: values.password,
     roleId: values.roleId,
     createdBy: email.value,
     createdDate: new Date(),
@@ -129,9 +131,18 @@ const onSubmit = handleSubmit(async (values: any) => {
         <DialogTitle>Add Data Master User</DialogTitle>
       </DialogHeader>
       <form class="space-y-5" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="nama">
+          <FormItem>
+            <FormLabel>Nama</FormLabel>
+            <FormControl>
+              <Input type="text" placeholder="Nama Lengkap" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
         <FormField v-slot="{ componentField }" name="username">
           <FormItem>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>Username/Email</FormLabel>
             <FormControl>
               <Input type="text" placeholder="Username" v-bind="componentField" />
             </FormControl>
@@ -139,11 +150,11 @@ const onSubmit = handleSubmit(async (values: any) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="email">
+        <FormField v-slot="{ componentField }" name="password">
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>Password</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Email" v-bind="componentField" />
+              <Input type="password" placeholder="Password" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>

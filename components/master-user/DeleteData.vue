@@ -49,10 +49,18 @@ async function deleteItem() {
 <template>
   <AlertDialog>
     <AlertDialogTrigger>
-      <Button>
-        <TrashIcon class="w-4 h-4 mr-2" />
-        Delete Data
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button size="sm">
+              <TrashIcon class="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Delete Data</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
