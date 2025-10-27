@@ -160,6 +160,7 @@ const downloadPdf = async item => {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
+              <TableHead>Nama Proyek</TableHead>
               <TableHead>No PO</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Tujuan PO</TableHead>
@@ -174,6 +175,9 @@ const downloadPdf = async item => {
             <TableRow v-for="(item, index) in paginatedData" :key="item.id">
               <TableCell>
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ item.namaPekerjaan }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.noPo }}
