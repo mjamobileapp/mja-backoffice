@@ -6,8 +6,10 @@ import PasswordInput from '~/components/PasswordInput.vue'
 const username = ref('')
 const password = ref('')
 const isLoading = ref(false)
-const baseUrl = 'http://localhost:4000/Login'
-const urlToken = 'http://localhost:9000/login'
+// const baseUrl = 'http://localhost:4000/Login'
+
+const config = useRuntimeConfig()
+const baseUrl = config.public.apiBase
 
 async function onSubmit(event: Event) {
   event.preventDefault()
@@ -20,7 +22,7 @@ async function onSubmit(event: Event) {
   // isLoading.value = true;
 
   try {
-    const { data, error } = await useFetch(`${baseUrl}`, {
+    const { data, error } = await useFetch(`${baseUrl}/Login`, {
       method: 'POST',
       body: {
         username: username.value,
