@@ -110,14 +110,16 @@ const isDialogOpen = ref(false)
 
 async function openDialog() {
   isDialogOpen.value = true
-  // await fetchData()
+  await fetchData()
 }
 
 onMounted(() => {
   fetchData()
 })
+const open = ref(false)
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 
@@ -182,6 +184,8 @@ const onSubmit = handleSubmit(async (values: any) => {
 
       // console.log('[AddData] Emitting dataAdded...')
       emit('dataAdded') // kirim emit dulu
+      open.value = false
+
       resetForm() // reset form
       isDialogOpen.value = false // baru tutup dialog
     } else {
@@ -237,7 +241,13 @@ const onSubmit = handleSubmit(async (values: any) => {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent class="p-0">
+                  <PopoverContent
+                    class="p-0 z-[9999]"
+                    :modal="false"
+                    :teleport-to="'body'"
+                    side="bottom"
+                    align="start"
+                  >
                     <Command>
                       <CommandInput placeholder="Search Proyek..." />
                       <CommandEmpty>No Proyek found.</CommandEmpty>

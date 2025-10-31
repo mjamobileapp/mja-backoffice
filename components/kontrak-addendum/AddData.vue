@@ -111,15 +111,24 @@ const isDialogOpen = ref(false)
 
 async function openDialog() {
   isDialogOpen.value = true
-  // await fetchData()
+  await fetchData()
 }
 
 onMounted(() => {
   fetchData()
 })
+
+const open = ref(false)
+// const dateMulai = ref<DateValue | undefined>(undefined)
+// const placeholder = today(getLocalTimeZone())
+
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
+
+  open.value = false
+  // dateMulai.value = undefined
+  // setFieldValue('tanggal', undefined)
 }
 
 // get token====================
@@ -183,8 +192,8 @@ const onSubmit = handleSubmit(async (values: any) => {
         description: 'Data berhasil disimpan.',
       })
 
-      console.log('[AddData] Emitting dataAdded...')
       emit('dataAdded') // kirim emit dulu
+      open.value = false
       resetForm() // reset form
       isDialogOpen.value = false // baru tutup dialog
     } else {

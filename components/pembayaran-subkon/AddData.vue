@@ -110,14 +110,17 @@ const isDialogOpen = ref(false)
 
 async function openDialog() {
   isDialogOpen.value = true
-  // await fetchData()
+  await fetchData()
 }
 
 onMounted(() => {
   fetchData()
 })
+
+const open = ref(false)
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 
@@ -183,6 +186,7 @@ const onSubmit = handleSubmit(async (values: any) => {
 
       console.log('[AddData] Emitting dataAdded...')
       emit('dataAdded') // kirim emit dulu
+      open.value = false
       resetForm() // reset form
       isDialogOpen.value = false // baru tutup dialog
     } else {

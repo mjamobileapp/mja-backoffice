@@ -65,7 +65,7 @@ async function fetchData() {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData)
+    console.log('Data yang diterima dari server:', fetchedData)
 
     if (Array.isArray(fetchedData.data)) {
       data.value = fetchedData.data
@@ -108,8 +108,11 @@ function formatRupiah(value: number | Ref<number>) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
-function handleDataDeleted(deletedItemId) {
-  data.value = data.value.filter(item => item.id !== deletedItemId)
+function handleDataDeleted() {
+  setTimeout(() => {
+    console.log('Melakukan fetch data setelah delete...')
+    fetchData()
+  }, 500)
 }
 
 const isDownloading = ref(false)
@@ -195,7 +198,7 @@ const downloadPdf = async item => {
                 {{ item.ppn }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ formatRupiah(item.grandTotal) }}
+                {{ formatRupiah(item.grandTotal ?? 0) }}
               </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
