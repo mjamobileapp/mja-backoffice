@@ -12,6 +12,8 @@ const props = defineProps({
   },
 })
 
+console.log(props.idProyek)
+
 // get token====================
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token

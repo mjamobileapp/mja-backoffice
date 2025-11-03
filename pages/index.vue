@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
-import { Activity, CreditCard, DollarSign, Users } from 'lucide-vue-next'
+import { Activity } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 import NumberFlowRp from '~/components/ui/number-flow/NumberFlow.vue'
+import CustomChartTooltip from '~/components/dashboard/CustomChartTooltip.vue'
+import CustomBarChart from '~/components/dashboard/CustomBarChart.vue'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
+// ==================== STATE ====================
 const dataCard = ref({
   totalKnowledge: 0,
   totalMasterCode: 0,
@@ -14,109 +17,92 @@ const dataCard = ref({
 })
 
 const dataProyekTerbaru = ref([])
-
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-
-onMounted(() => {
-  // dataCard.value = {
-  //   totalRevenue: 45231.89,
-  //   totalRevenueDesc: 20.1 / 100,
-  //   subscriptions: 2350,
-  //   subscriptionsDesc: 180.5 / 100,
-  //   sales: 12234,
-  //   salesDesc: 45 / 100,
-  //   activeNow: 89,
-  //   activeNowDesc: 201,
-  //   nilaiProyek: 12000000,
-  // }
-
-  fetchDataProyek()
-  fetchListTopProyek()
-  fetchDataBarchart(selectedProyek.value)
-  fetchDataProyekById(selectedProyek.value)
-  // console.log(selectedProyek.value)
-  // fetchData()
-})
-
 const proyekList = ref([])
 const selectedProyek = ref(1)
+
+const jumlahProyek = ref(0)
+const totalNilaiKontrak = ref(0)
+const objProyek = ref({})
+const dataBarchart = ref<{ name: string; total: number }[]>([])
+
+const searchQuery = ref('')
+const accessToken = useCookie('accessToken')
+const token = accessToken.value?.token
+
+// ==================== FETCH FUNCTIONS ====================
+
 async function fetchListTopProyek() {
   try {
     const timestamp = new Date().getTime()
     const response = await fetch(`${baseUrl}/topProyek?t=${timestamp}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
     const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
-    // const result = fetchedData.data
-    dataProyekTerbaru.value = fetchedData.data
+    dataProyekTerbaru.value = fetchedData.data || []
   } catch (error) {
-    console.error('Gagal mengambil data:', error)
+    console.error('Gagal mengambil data proyek terbaru:', error)
   }
 }
 
 async function fetchDataProyek() {
   try {
     const response = await fetch(`${baseUrl}/proyek`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
     const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
-
-    if (Array.isArray(fetchedData.data)) {
-      proyekList.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      proyekList.value = []
-    }
+    proyekList.value = Array.isArray(fetchedData.data) ? fetchedData.data : []
   } catch (error) {
-    console.error('Gagal mengambil data:', error)
+    console.error('Gagal mengambil data proyek:', error)
     proyekList.value = []
   }
 }
 
-const objProyek = ref({})
 async function fetchDataProyekById(idProyek) {
   try {
     const response = await fetch(`${baseUrl}/proyek/${idProyek}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
     const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
-    objProyek.value = fetchedData.data
+    objProyek.value = fetchedData.data || {}
   } catch (error) {
-    console.error('Gagal mengambil data:', error)
-    proyekList.value = []
+    console.error('Gagal mengambil data proyek by id:', error)
+    objProyek.value = {}
   }
 }
 
-async function handleSelectProyek(proyekId: string) {
-  selectedProyek.value = proyekId
-  fetchDataBarchart(selectedProyek.value)
-  fetchDataProyekById(selectedProyek.value)
+// ✅ Fungsi Barchart yang sudah diperbaiki
+async function fetchDataBarchart(idProyek) {
+  try {
+    const response = await fetch(`${baseUrl}/getDataBarChart/${idProyek}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const result = await response.json()
+
+    if (!result.success) throw new Error(result.message || 'Gagal mengambil data')
+
+    jumlahProyek.value = result.jumlahProyek
+    totalNilaiKontrak.value = result.totalNilaiKontrak
+
+    // ✅ Isi data chart di sini
+    dataBarchart.value = Array.isArray(result.data)
+      ? result.data.map(item => ({
+          name: item.name,
+          total: Number(item.total) || 0,
+          color: item.color || null,
+        }))
+      : []
+  } catch (error) {
+    console.error('Error fetching barchart:', error)
+    dataBarchart.value = []
+  }
 }
 
-const searchQuery = ref('')
+// ==================== HANDLER ====================
+
+async function handleSelectProyek(proyekId) {
+  selectedProyek.value = proyekId
+  await Promise.all([fetchDataBarchart(proyekId), fetchDataProyekById(proyekId)])
+}
 
 function onSearchInput(value: string) {
   searchQuery.value = value
@@ -131,39 +117,33 @@ const filteredProyekList = computed(() => {
   )
 })
 
-const jumlahProyek = ref(0)
-const totalNilaiKontrak = ref(0)
-async function fetchDataBarchart(idProyek) {
-  try {
-    const response = await fetch(`${baseUrl}/getDataBarChart/${idProyek}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    const result = await response.json()
-    // console.log(result)
-    if (!result.success) throw new Error(result.message || 'Gagal mengambil data')
-    jumlahProyek.value = result.jumlahProyek
-    totalNilaiKontrak.value = result.totalNilaiKontrak
-    // console.log('Jumlah Proyek:' + jumlahProyek.value)
-  } catch (error) {
-    console.error('Error fetching barchart:', error)
-    dataBarchart.value = []
-  }
-}
-
+// ==================== FORMATTED VALUE ====================
 const formattedValue = computed(() =>
   new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     currencyDisplay: 'symbol',
     minimumFractionDigits: 0,
-  }).format(objProyek.nilaiKontrak)
+  }).format(objProyek.value?.nilaiKontrak || 0)
 )
-// definePageMeta({
-//   middleware: 'auth',
-// })
+
+// ==================== LIFECYCLE ====================
+onMounted(async () => {
+  await Promise.all([
+    fetchDataProyek(),
+    fetchListTopProyek(),
+    fetchDataProyekById(selectedProyek.value),
+    fetchDataBarchart(selectedProyek.value),
+  ])
+})
+
+// ✅ Optional: gunakan watch supaya otomatis refresh chart kalau selectedProyek berubah
+watch(selectedProyek, newId => {
+  if (newId) {
+    fetchDataBarchart(newId)
+    fetchDataProyekById(newId)
+  }
+})
 </script>
 
 <template>
@@ -258,7 +238,7 @@ const formattedValue = computed(() =>
             <CardTitle>Monitoring Project</CardTitle>
           </CardHeader>
           <CardContent class="pl-2">
-            <DashboardOverview :idProyek="selectedProyek" />
+            <CustomBarChart v-if="dataBarchart.length > 0" :data="dataBarchart" />
           </CardContent>
         </Card>
         <Card>
