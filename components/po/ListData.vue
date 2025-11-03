@@ -115,10 +115,10 @@ function handleDataDeleted() {
   }, 500)
 }
 
-const isDownloading = ref(false)
+const downloadingId = ref<number | null>(null)
 const downloadPdf = async item => {
   try {
-    isDownloading.value = true
+    downloadingId.value = item.id
 
     const res = await fetch(`${baseUrl}/po/generatePO/${item.id}/pdf`, {
       method: 'GET',
@@ -140,7 +140,7 @@ const downloadPdf = async item => {
     console.error('Download gagal:', err)
     alert('Gagal mengunduh file PO!')
   } finally {
-    isDownloading.value = false
+    downloadingId.value = null
   }
 }
 </script>
@@ -208,8 +208,12 @@ const downloadPdf = async item => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger as-child>
-                        <Button :disabled="isDownloading" @click="downloadPdf(item)" size="sm">
-                          <template v-if="isDownloading">
+                        <Button
+                          :disabled="downloadingId === item.id"
+                          @click="downloadPdf(item)"
+                          size="sm"
+                        >
+                          <template v-if="downloadingId === item.id">
                             <Loader2 class="w-4 h-4 animate-spin" />
                           </template>
                           <template v-else>
