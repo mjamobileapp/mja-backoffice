@@ -49,7 +49,7 @@ function formatTanggal(tanggal: any) {
 // get token=====
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
-
+console.log(token)
 async function fetchData() {
   isLoading.value = true
   try {

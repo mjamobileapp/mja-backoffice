@@ -62,6 +62,7 @@ const profileFormSchema = toTypedSchema(
     ppn: z.number(),
     tanggal: z.string().datetime(),
     tglPengiriman: z.string().datetime(),
+    jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
   })
 )
 
@@ -70,6 +71,7 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   initialValues: {
     idProyek: 0,
     tujuanPo: '',
+    jenisPayment: '',
     noTelepon: '',
     alamat: '',
     penerima: '',
@@ -159,6 +161,7 @@ async function fetchData() {
         ppn: nilaiNumber,
         alamat: data.alamat,
         penerima: data.penerima,
+        jenisPayment: data.jenisPayment,
         tanggal: dateObj ? dateObj.toISOString() : undefined,
         tglPengiriman: datePengirimanObj ? datePengirimanObj.toISOString() : undefined,
       })
@@ -187,14 +190,19 @@ async function fetchData() {
   }
 }
 
+const listJenisPayment = [{ nama: 'Cash' }, { nama: 'Tempo' }]
+
 async function openDialog() {
   isDialogOpen.value = true
   await fetchData()
   await fetchDataProyek()
 }
 
+const open = ref(false)
+
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 
@@ -255,7 +263,7 @@ const onSubmit = handleSubmit(async () => {
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
-          <DialogTitle>Edit Data Kas Pemasukan</DialogTitle>
+          <DialogTitle>Edit Data PO</DialogTitle>
         </DialogHeader>
 
         <div class="max-h-[60vh] overflow-y-auto pr-2">
@@ -470,6 +478,63 @@ const onSubmit = handleSubmit(async () => {
                 <FormControl>
                   <Textarea v-bind="componentField" rows="3"></Textarea>
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ value }" name="jenisPayment">
+              <FormItem class="flex flex-col">
+                <FormLabel>Jenis Payment</FormLabel>
+                <Popover v-model:open="openPayment">
+                  <PopoverTrigger as-child>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        :aria-expanded="openPayment"
+                        :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      >
+                        {{
+                          value
+                            ? listJenisPayment.find(item => item.nama === value)?.nama
+                            : 'Select Payment...'
+                        }}
+                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent class="p-0">
+                    <Command>
+                      <CommandInput placeholder="Search payment..." />
+                      <CommandEmpty>No payment found.</CommandEmpty>
+                      <CommandList>
+                        <CommandGroup>
+                          <CommandItem
+                            v-for="item in listJenisPayment"
+                            :key="item.nama"
+                            :value="item.nama"
+                            @select="
+                              () => {
+                                setFieldValue('jenisPayment', item.nama)
+                                openPayment = false
+                              }
+                            "
+                          >
+                            <Check
+                              :class="
+                                cn(
+                                  'mr-2 h-4 w-4',
+                                  value === item.nama ? 'opacity-100' : 'opacity-0'
+                                )
+                              "
+                            />
+                            {{ item.nama }}
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             </FormField>

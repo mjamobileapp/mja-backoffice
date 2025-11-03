@@ -54,7 +54,7 @@ const username = computed(() => currentUser.value?.username || 'no-email@example
 
 const profileFormSchema = toTypedSchema(
   z.object({
-    idProyek: z.number(),
+    idSubkon: z.number(),
     keterangan: z.string(),
     nilai: z.number(),
     tanggal: z.string().datetime(),
@@ -64,7 +64,7 @@ const profileFormSchema = toTypedSchema(
 const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
-    idProyek: 0,
+    idSubkon: 0,
     nilai: 0,
     tanggal: '',
     keterangan: '', // Use prop value directly as fallback
@@ -80,11 +80,11 @@ const isDialogOpen = ref(false)
 const dateMulai = ref<DateValue | undefined>()
 const dateSelesai = ref<DateValue | undefined>()
 
-const proyekList = ref([])
+const kontrakSubkonList = ref([])
 
-async function fetchDataProyek() {
+async function fetchDatakontrakSubkon() {
   try {
-    const response = await fetch(`${baseUrl}/proyek`, {
+    const response = await fetch(`${baseUrl}/kontrakSubkon`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -97,14 +97,14 @@ async function fetchDataProyek() {
     // console.log('Data yang diterima dari server:', fetchedData.data)
 
     if (Array.isArray(fetchedData.data)) {
-      proyekList.value = fetchedData.data
+      kontrakSubkonList.value = fetchedData.data
     } else {
       console.error('Data yang diterima bukan array:', fetchedData)
-      proyekList.value = []
+      kontrakSubkonList.value = []
     }
   } catch (error) {
     console.error('Gagal mengambil data:', error)
-    proyekList.value = []
+    kontrakSubkonList.value = []
   }
 }
 
@@ -140,7 +140,7 @@ async function fetchData() {
 
       // --- 3. setValues ke VeeValidate ---
       setValues({
-        idProyek: data.idProyek,
+        idSubkon: data.idSubkon,
         // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
         nilai: nilaiNumber,
         keterangan: data.keterangan,
@@ -168,11 +168,14 @@ async function fetchData() {
 async function openDialog() {
   isDialogOpen.value = true
   await fetchData()
-  await fetchDataProyek()
+  await fetchDatakontrakSubkon()
 }
+
+const open = ref(false)
 
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 
@@ -185,7 +188,7 @@ const onSubmit = handleSubmit(async () => {
   isSubmitting.value = true
   try {
     const dataForm = {
-      idProyek: values.idProyek,
+      idSubkon: values.idSubkon,
       nilai: values.nilai,
       tanggal: values.tanggal,
       keterangan: values.keterangan,
@@ -193,7 +196,7 @@ const onSubmit = handleSubmit(async () => {
       createdDate: new Date(),
     }
 
-    console.log(JSON.stringify(dataForm))
+    // console.log(JSON.stringify(dataForm))
     const response = await fetch(`${baseUrl}/pembayaranSubkon/${props.id}`, {
       method: 'PUT',
       headers: {
@@ -240,10 +243,10 @@ const onSubmit = handleSubmit(async () => {
         </DialogHeader>
 
         <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
-          <!-- 🧱 Field: Proyek -->
-          <FormField v-slot="{ value }" name="idProyek">
+          <!-- 🧱 Field: kontrakSubkon -->
+          <FormField v-slot="{ value }" name="idSubkon">
             <FormItem class="flex flex-col">
-              <FormLabel>Pilih Proyek</FormLabel>
+              <FormLabel>Pilih Subkon</FormLabel>
 
               <Popover v-model:open="open">
                 <PopoverTrigger as-child>
@@ -256,8 +259,8 @@ const onSubmit = handleSubmit(async () => {
                     >
                       {{
                         value
-                          ? proyekList.find(item => item.id === value)?.namaPekerjaan
-                          : 'Select Proyek...'
+                          ? kontrakSubkonList.find(item => item.id === value)?.namaSubkon
+                          : 'Select kontrakSubkon...'
                       }}
 
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -266,17 +269,17 @@ const onSubmit = handleSubmit(async () => {
                 </PopoverTrigger>
                 <PopoverContent class="p-0">
                   <Command>
-                    <CommandInput placeholder="Search Proyek..." />
-                    <CommandEmpty>No Proyek found.</CommandEmpty>
+                    <CommandInput placeholder="Search kontrakSubkon..." />
+                    <CommandEmpty>No Kontrak Subkon found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
                         <CommandItem
-                          v-for="item in proyekList"
+                          v-for="item in kontrakSubkonList"
                           :key="item.id"
-                          :value="item.namaPekerjaan"
+                          :value="item.namaSubkon"
                           @select="
                             () => {
-                              setFieldValue('idProyek', item.id)
+                              setFieldValue('idSubkon', item.id)
                               open = false
                             }
                           "
@@ -286,7 +289,7 @@ const onSubmit = handleSubmit(async () => {
                               cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
                             "
                           />
-                          {{ item.namaPekerjaan }}
+                          {{ item.namaSubkon }}
                         </CommandItem>
                       </CommandGroup>
                     </CommandList>

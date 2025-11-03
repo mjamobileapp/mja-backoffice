@@ -47,6 +47,7 @@ const profileFormSchema = toTypedSchema(
   z.object({
     idProyek: z.number(),
     keterangan: z.string(),
+    namaSubkon: z.string(),
     nilaiKontrak: z.number(),
     tanggal: z.string().datetime(),
   })
@@ -160,6 +161,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   const dataForm = {
     idProyek: values.idProyek,
     keterangan: values.keterangan,
+    namaSubkon: values.namaSubkon,
     nilaiKontrak: values.nilaiKontrak,
     tanggal: values.tanggal,
     createdBy: username.value,
@@ -273,6 +275,15 @@ const onSubmit = handleSubmit(async (values: any) => {
                   </Command>
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <FormField v-slot="{ componentField }" name="namaSubkon">
+            <FormItem>
+              <FormLabel>Nama Subkon</FormLabel>
+              <FormControl>
+                <Input type="text" v-bind="componentField" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

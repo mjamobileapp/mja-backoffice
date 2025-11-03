@@ -41,11 +41,11 @@ const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
 
-const proyekList = ref([])
+const kontrakSubkonList = ref([])
 
 const profileFormSchema = toTypedSchema(
   z.object({
-    idProyek: z.number(),
+    idSubkon: z.number(),
     keterangan: z.string(),
     nilai: z.number(),
     tanggal: z.string().datetime(),
@@ -98,7 +98,7 @@ const isSubmitting = ref(false)
 const { handleSubmit, resetForm, setFieldValue } = useForm({
   validationSchema: profileFormSchema,
   // initialValues: {
-  //   idProyek: 0,
+  //   idSubkon: 0,
   //   noKontrak: '',
   //   nilaiKontrak: 0,
   //   tglMulai: '',
@@ -110,11 +110,11 @@ const isDialogOpen = ref(false)
 
 async function openDialog() {
   isDialogOpen.value = true
-  await fetchData()
+  await fetchDataKontrakSukon()
 }
 
 onMounted(() => {
-  fetchData()
+  fetchDataKontrakSukon()
 })
 
 const open = ref(false)
@@ -128,9 +128,9 @@ function closeDialog() {
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
 
-async function fetchData() {
+async function fetchDataKontrakSukon() {
   try {
-    const response = await fetch(`${baseUrl}/proyek`, {
+    const response = await fetch(`${baseUrl}/kontrakSubkon`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -143,21 +143,21 @@ async function fetchData() {
     // console.log('Data yang diterima dari server:', fetchedData.data)
 
     if (Array.isArray(fetchedData.data)) {
-      proyekList.value = fetchedData.data
+      kontrakSubkonList.value = fetchedData.data
     } else {
       console.error('Data yang diterima bukan array:', fetchedData)
-      proyekList.value = []
+      kontrakSubkonList.value = []
     }
   } catch (error) {
     console.error('Gagal mengambil data:', error)
-    proyekList.value = []
+    kontrakSubkonList.value = []
   }
 }
 
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
   const dataForm = {
-    idProyek: values.idProyek,
+    idSubkon: values.idSubkon,
     keterangan: values.keterangan,
     nilai: values.nilai,
     tanggal: values.tanggal,
@@ -219,10 +219,10 @@ const onSubmit = handleSubmit(async (values: any) => {
         </DialogHeader>
 
         <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
-          <!-- 🧱 Field: Proyek -->
-          <FormField v-slot="{ value }" name="idProyek">
+          <!-- 🧱 Field: Subkon -->
+          <FormField v-slot="{ value }" name="idSubkon">
             <FormItem class="flex flex-col">
-              <FormLabel>Pilih Proyek</FormLabel>
+              <FormLabel>Pilih Subkon</FormLabel>
 
               <Popover v-model:open="open">
                 <PopoverTrigger as-child>
@@ -235,8 +235,8 @@ const onSubmit = handleSubmit(async (values: any) => {
                     >
                       {{
                         value
-                          ? proyekList.find(item => item.id === value)?.namaPekerjaan
-                          : 'Select Proyek...'
+                          ? kontrakSubkonList.find(item => item.id === value)?.namaSubkon
+                          : 'Select Subkon...'
                       }}
 
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -245,17 +245,17 @@ const onSubmit = handleSubmit(async (values: any) => {
                 </PopoverTrigger>
                 <PopoverContent class="p-0">
                   <Command>
-                    <CommandInput placeholder="Search Proyek..." />
-                    <CommandEmpty>No Proyek found.</CommandEmpty>
+                    <CommandInput placeholder="Search Subkon..." />
+                    <CommandEmpty>No Subkon found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
                         <CommandItem
-                          v-for="item in proyekList"
+                          v-for="item in kontrakSubkonList"
                           :key="item.id"
-                          :value="item.namaPekerjaan"
+                          :value="item.namaSubkon"
                           @select="
                             () => {
-                              setFieldValue('idProyek', item.id)
+                              setFieldValue('idSubkon', item.id)
                               open = false
                             }
                           "
@@ -265,7 +265,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                               cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
                             "
                           />
-                          {{ item.namaPekerjaan }}
+                          {{ item.namaSubkon }}
                         </CommandItem>
                       </CommandGroup>
                     </CommandList>

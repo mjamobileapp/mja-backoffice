@@ -188,8 +188,10 @@ async function openDialog() {
   await fetchDataProyek()
 }
 
+const open = ref(false)
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 

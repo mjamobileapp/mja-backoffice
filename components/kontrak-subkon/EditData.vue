@@ -44,7 +44,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // const editedItem = ref({ ...props.item })
-console.log(props.id)
+// console.log(props.id)
 // onMounted(() => {
 //   fetchData()
 //   // console.log(props.item.code)
@@ -55,6 +55,7 @@ const username = computed(() => currentUser.value?.username || 'no-email@example
 const profileFormSchema = toTypedSchema(
   z.object({
     idProyek: z.number(),
+    namaSubkon: z.string(),
     keterangan: z.string(),
     nilaiKontrak: z.number(),
     tanggal: z.string().datetime(),
@@ -66,12 +67,14 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   initialValues: {
     idProyek: 0,
     nilaiKontrak: 0,
+    namaSubkon: '',
     tanggal: '',
     keterangan: '', // Use prop value directly as fallback
   },
 })
 
 const isDialogOpen = ref(false)
+const open = ref(false)
 
 // Asumsi: dateMulai dan dateSelesai adalah ref() untuk Calendar
 // Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
@@ -141,6 +144,7 @@ async function fetchData() {
       // --- 3. setValues ke VeeValidate ---
       setValues({
         idProyek: data.idProyek,
+        namaSubkon: data.namaSubkon,
         // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
         nilaiKontrak: nilaiKontrakNumber,
         keterangan: data.keterangan,
@@ -173,6 +177,7 @@ async function openDialog() {
 
 function closeDialog() {
   isDialogOpen.value = false
+  open.value = false
   resetForm()
 }
 
@@ -186,6 +191,7 @@ const onSubmit = handleSubmit(async () => {
   try {
     const dataForm = {
       idProyek: values.idProyek,
+      namaSubkon: values.namaSubkon,
       nilaiKontrak: values.nilaiKontrak,
       tanggal: values.tanggal,
       keterangan: values.keterangan,
@@ -293,6 +299,15 @@ const onSubmit = handleSubmit(async () => {
                   </Command>
                 </PopoverContent>
               </Popover>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <FormField v-slot="{ componentField }" name="namaSubkon">
+            <FormItem>
+              <FormLabel>Nama Subkon</FormLabel>
+              <FormControl>
+                <Input type="text" v-bind="componentField" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

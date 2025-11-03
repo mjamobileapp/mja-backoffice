@@ -118,7 +118,7 @@ function handleDataDeleted(deletedItemId) {
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Nama Pekerjaan</TableHead>
-              <!-- <TableHead>No Kontrak</TableHead> -->
+              <TableHead>Nama Subkon/Kontrak</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Nilai Kontrak</TableHead>
               <TableHead>Keterangan</TableHead>
@@ -133,9 +133,9 @@ function handleDataDeleted(deletedItemId) {
               <TableCell class="font-medium">
                 {{ item.namaPekerjaan }}
               </TableCell>
-              <!-- <TableCell class="font-medium">
-                {{ item.noKontrak }}
-              </TableCell> -->
+              <TableCell class="font-medium">
+                {{ item.namaSubkon }}
+              </TableCell>
               <TableCell>{{ formatTanggal(item.tanggal) }}</TableCell>
 
               <TableCell class="font-medium">
