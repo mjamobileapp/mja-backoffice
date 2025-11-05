@@ -265,7 +265,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                               cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
                             "
                           />
-                          {{ item.namaSubkon }}
+                          {{ item.namaSubkon }} - {{ item.namaPekerjaan }}
                         </CommandItem>
                       </CommandGroup>
                     </CommandList>
@@ -323,11 +323,22 @@ const onSubmit = handleSubmit(async (values: any) => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ componentField }" name="nilai">
+          <FormField v-slot="{ field }" name="nilai">
             <FormItem>
               <FormLabel>Nilai / Jumlah Pembayaran</FormLabel>
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

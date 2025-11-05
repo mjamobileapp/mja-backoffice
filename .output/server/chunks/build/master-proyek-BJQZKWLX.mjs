@@ -1,0 +1,5445 @@
+import { defineComponent, mergeProps, ref, computed, withCtx, createVNode, createTextVNode, toDisplayString, createBlock, openBlock, Fragment, renderList, createCommentVNode, resolveComponent, unref, withModifiers, useSSRContext } from 'vue';
+import { ssrRenderAttrs, ssrRenderComponent, ssrRenderList, ssrInterpolate } from 'vue/server-renderer';
+import { _ as _sfc_main$5, a as _sfc_main$1$1, b as _sfc_main$6, c as _sfc_main$4$1 } from './CardTitle-C5Xy3z8Z.mjs';
+import { _ as _sfc_main$7 } from './Input-CDkjoebz.mjs';
+import { _ as _sfc_main$7$1, a as _sfc_main$8, b as _sfc_main$3$1, c as _sfc_main$1$2, d as _sfc_main$6$1, e as _sfc_main$4$2 } from './TableHeader-DPsbKB96.mjs';
+import { d as useRuntimeConfig, e as useCookie, a as _sfc_main$2$1, t as toast, c as cn } from './server.mjs';
+import { _ as _sfc_main$2$2, a as _sfc_main$1$4, b as _sfc_main$4$3, d as _sfc_main$a } from './FormMessage-D5Wcp1o-.mjs';
+import { useForm, Field } from 'vee-validate';
+import { _ as _sfc_main$b } from './Textarea-U1r39FPM.mjs';
+import { _ as _sfc_main$2$3, a as _sfc_main$c, b as _sfc_main$1$5 } from './PopoverTrigger-ldvWFHWS.mjs';
+import { _ as _sfc_main$b$1 } from './CalendarPrevButton-B7sdA_QV.mjs';
+import { _ as _sfc_main$8$1, a as _sfc_main$9, b as _sfc_main$6$2, c as _sfc_main$3$2, d as _sfc_main$1$3, e as _sfc_main$4$4, f as _sfc_main$7$2 } from './DialogTrigger-BW6jyQ7n.mjs';
+import { toTypedSchema } from '@vee-validate/zod';
+import { Loader2, PencilIcon, TrashIcon } from 'lucide-vue-next';
+import * as z from 'zod';
+import { DateFormatter, getLocalTimeZone, CalendarDate } from '@internationalized/date';
+import { toDate, formatDate } from 'date-fns';
+import { _ as _sfc_main$2$4, a as _sfc_main$e, b as _sfc_main$1$6 } from './TooltipTrigger-BcDIeLJj.mjs';
+import { _ as _sfc_main$d } from './TooltipProvider-CFR98U-_.mjs';
+import { _ as _sfc_main$8$2, a as _sfc_main$f, b as _sfc_main$5$1, c as _sfc_main$2$5, d as _sfc_main$1$7, e as _sfc_main$4$5, f as _sfc_main$3$3, g as _sfc_main$6$3, h as _sfc_main$7$3 } from './AlertDialogTrigger-DibbDHY2.mjs';
+import { toast as toast$1 } from 'vue-sonner';
+import '../nitro/nitro.mjs';
+import 'node:http';
+import 'node:https';
+import 'node:events';
+import 'node:buffer';
+import 'node:fs';
+import 'node:path';
+import 'node:crypto';
+import 'node:url';
+import '@iconify/utils';
+import 'consola';
+import 'vue-router';
+import '@iconify/vue';
+import 'class-variance-authority';
+import 'clsx';
+import 'tailwind-merge';
+import 'radix-vue';
+import '@iconify/utils/lib/css/icon';
+import '../routes/renderer.mjs';
+import 'vue-bundle-renderer/runtime';
+import 'unhead/server';
+import 'devalue';
+import 'unhead/plugins';
+import 'unhead/utils';
+import './Label-BBvFeqSn.mjs';
+
+const _sfc_main$4 = /* @__PURE__ */ defineComponent({
+  __name: "AddData",
+  __ssrInlineRender: true,
+  emits: ["dataAdded"],
+  setup(__props, { emit: __emit }) {
+    const emit = __emit;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.apiBase;
+    const currentUser = useCookie("currentUser");
+    const username = computed(() => {
+      var _a;
+      return ((_a = currentUser.value) == null ? void 0 : _a.username) || "no-username@example.com";
+    });
+    const df = new DateFormatter("en-US", {
+      dateStyle: "long"
+    });
+    const profileFormSchema = toTypedSchema(
+      z.object({
+        namaPekerjaan: z.string(),
+        noKontrak: z.string(),
+        nilaiKontrak: z.number(),
+        lokasi: z.string(),
+        tglMulai: z.string().datetime(),
+        tglSelesai: z.string().datetime()
+      })
+    );
+    ref("");
+    const isSubmitting = ref(false);
+    const { handleSubmit, resetForm, setFieldValue } = useForm({
+      validationSchema: profileFormSchema
+    });
+    const isDialogOpen = ref(false);
+    function openDialog() {
+      isDialogOpen.value = true;
+    }
+    function closeDialog() {
+      isDialogOpen.value = false;
+      resetForm();
+    }
+    const accessToken = useCookie("accessToken");
+    const token = accessToken.value.token;
+    const onSubmit = handleSubmit(async (values) => {
+      isSubmitting.value = true;
+      const dataForm = {
+        namaPekerjaan: values.namaPekerjaan,
+        noKontrak: values.noKontrak,
+        nilaiKontrak: values.nilaiKontrak,
+        lokasi: values.lokasi,
+        tglMulai: values.tglMulai,
+        tglSelesai: values.tglSelesai,
+        createdBy: username.value,
+        createdDate: /* @__PURE__ */ new Date()
+      };
+      isDialogOpen.value = false;
+      console.log(JSON.stringify(dataForm));
+      try {
+        const response = await fetch(`${baseUrl}/proyek`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(dataForm)
+        });
+        if (response.ok) {
+          toast({
+            title: "Success",
+            description: "Data berhasil disimpan."
+          });
+          console.log("[AddData] Emitting dataAdded...");
+          emit("dataAdded");
+          resetForm();
+          isDialogOpen.value = false;
+        } else {
+          toast({
+            title: "Error",
+            description: "Gagal menyimpan data. Silakan coba lagi."
+          });
+        }
+      } catch (error) {
+        console.error("Error submitting data:", error);
+        toast({
+          title: "Error",
+          description: "Terjadi kesalahan saat mengirim data."
+        });
+      } finally {
+        isSubmitting.value = false;
+      }
+    });
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_FormField = Field;
+      const _component_FormItem = _sfc_main$2$2;
+      const _component_FormLabel = _sfc_main$1$4;
+      const _component_FormControl = _sfc_main$4$3;
+      const _component_FormMessage = _sfc_main$a;
+      const _component_Textarea = _sfc_main$b;
+      const _component_Popover = _sfc_main$2$3;
+      const _component_PopoverTrigger = _sfc_main$c;
+      const _component_RadixIconsCalendar = resolveComponent("RadixIconsCalendar");
+      const _component_PopoverContent = _sfc_main$1$5;
+      const _component_Calendar = _sfc_main$b$1;
+      _push(ssrRenderComponent(unref(_sfc_main$8$1), mergeProps({
+        open: isDialogOpen.value,
+        onOpenChange: ($event) => isDialogOpen.value = $event
+      }, _attrs), {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(unref(_sfc_main$9), { "as-child": "" }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(unref(_sfc_main$2$1), { onClick: openDialog }, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(`Add Data`);
+                      } else {
+                        return [
+                          createTextVNode("Add Data")
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(unref(_sfc_main$2$1), { onClick: openDialog }, {
+                      default: withCtx(() => [
+                        createTextVNode("Add Data")
+                      ]),
+                      _: 1
+                    })
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(unref(_sfc_main$6$2), { class: "sm:max-w-[800px] [&>button]:hidden" }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(`<form class="space-y-8"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(unref(_sfc_main$3$2), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$1$3), null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`Add Data Proyek`);
+                            } else {
+                              return [
+                                createTextVNode("Add Data Proyek")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$1$3), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Add Data Proyek")
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`<div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(_component_FormField, { name: "namaPekerjaan" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nama Pekerjaan`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nama Pekerjaan")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormControl, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nama Pekerjaan")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nama Pekerjaan")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_FormField, { name: "noKontrak" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nomor Kontrak`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nomor Kontrak")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormControl, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nomor Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nomor Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_FormField, { name: "nilaiKontrak" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nilai Kontrak`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nilai Kontrak")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormControl, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nilai Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nilai Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_FormField, { name: "lokasi" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Lokasi`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Lokasi")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormControl, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_Textarea, componentField, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_Textarea, componentField, null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Lokasi")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_Textarea, componentField, null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Lokasi")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_Textarea, componentField, null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_FormField, { name: "tglMulai" }, {
+                    default: withCtx(({ field, value }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, { class: "flex flex-col" }, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Tanggal Mulai`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Tanggal Mulai")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_Popover, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_FormControl, null, {
+                                            default: withCtx((_6, _push8, _parent8, _scopeId7) => {
+                                              if (_push8) {
+                                                _push8(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx((_7, _push9, _parent9, _scopeId8) => {
+                                                    if (_push9) {
+                                                      _push9(ssrRenderComponent(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }, null, _parent9, _scopeId8));
+                                                      _push9(`<span${_scopeId8}>${ssrInterpolate(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date")}</span>`);
+                                                    } else {
+                                                      return [
+                                                        createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                        createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                      ];
+                                                    }
+                                                  }),
+                                                  _: 2
+                                                }, _parent8, _scopeId7));
+                                              } else {
+                                                return [
+                                                  createVNode(unref(_sfc_main$2$1), {
+                                                    variant: "outline",
+                                                    class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                  }, {
+                                                    default: withCtx(() => [
+                                                      createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                      createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                    ]),
+                                                    _: 2
+                                                  }, 1032, ["class"])
+                                                ];
+                                              }
+                                            }),
+                                            _: 2
+                                          }, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_FormControl, null, {
+                                              default: withCtx(() => [
+                                                createVNode(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx(() => [
+                                                    createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                    createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                  ]),
+                                                  _: 2
+                                                }, 1032, ["class"])
+                                              ]),
+                                              _: 2
+                                            }, 1024)
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: _ctx.dateMulai,
+                                            "onUpdate:modelValue": [
+                                              ($event) => _ctx.dateMulai = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  _ctx.dateMulai = v;
+                                                  unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  _ctx.dateMulai = void 0;
+                                                  unref(setFieldValue)("tglMulai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Mulai",
+                                            "initial-focus": ""
+                                          }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_Calendar, {
+                                              placeholder: _ctx.placeholder,
+                                              "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                              modelValue: _ctx.dateMulai,
+                                              "onUpdate:modelValue": [
+                                                ($event) => _ctx.dateMulai = $event,
+                                                (v) => {
+                                                  if (v) {
+                                                    _ctx.dateMulai = v;
+                                                    unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                  } else {
+                                                    _ctx.dateMulai = void 0;
+                                                    unref(setFieldValue)("tglMulai", void 0);
+                                                  }
+                                                }
+                                              ],
+                                              "calendar-label": "Tanggal Mulai",
+                                              "initial-focus": ""
+                                            }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_FormControl, null, {
+                                            default: withCtx(() => [
+                                              createVNode(unref(_sfc_main$2$1), {
+                                                variant: "outline",
+                                                class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                              }, {
+                                                default: withCtx(() => [
+                                                  createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                  createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                ]),
+                                                _: 2
+                                              }, 1032, ["class"])
+                                            ]),
+                                            _: 2
+                                          }, 1024)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: _ctx.dateMulai,
+                                            "onUpdate:modelValue": [
+                                              ($event) => _ctx.dateMulai = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  _ctx.dateMulai = v;
+                                                  unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  _ctx.dateMulai = void 0;
+                                                  unref(setFieldValue)("tglMulai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Mulai",
+                                            "initial-focus": ""
+                                          }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Mulai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_FormControl, null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: _ctx.dateMulai,
+                                          "onUpdate:modelValue": [
+                                            ($event) => _ctx.dateMulai = $event,
+                                            (v) => {
+                                              if (v) {
+                                                _ctx.dateMulai = v;
+                                                unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                _ctx.dateMulai = void 0;
+                                                unref(setFieldValue)("tglMulai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Mulai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                        _push4(`<input${ssrRenderAttrs(mergeProps({ type: "hidden" }, field))}${_scopeId3}>`);
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Mulai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_FormControl, null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: _ctx.dateMulai,
+                                        "onUpdate:modelValue": [
+                                          ($event) => _ctx.dateMulai = $event,
+                                          (v) => {
+                                            if (v) {
+                                              _ctx.dateMulai = v;
+                                              unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              _ctx.dateMulai = void 0;
+                                              unref(setFieldValue)("tglMulai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Mulai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(_component_FormField, { name: "tglSelesai" }, {
+                    default: withCtx(({ field, value }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_FormItem, { class: "flex flex-col" }, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_FormLabel, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Tanggal Selesai`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Tanggal Selesai")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_Popover, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_FormControl, null, {
+                                            default: withCtx((_6, _push8, _parent8, _scopeId7) => {
+                                              if (_push8) {
+                                                _push8(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx((_7, _push9, _parent9, _scopeId8) => {
+                                                    if (_push9) {
+                                                      _push9(ssrRenderComponent(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }, null, _parent9, _scopeId8));
+                                                      _push9(`<span${_scopeId8}>${ssrInterpolate(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date")}</span>`);
+                                                    } else {
+                                                      return [
+                                                        createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                        createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                      ];
+                                                    }
+                                                  }),
+                                                  _: 2
+                                                }, _parent8, _scopeId7));
+                                              } else {
+                                                return [
+                                                  createVNode(unref(_sfc_main$2$1), {
+                                                    variant: "outline",
+                                                    class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                  }, {
+                                                    default: withCtx(() => [
+                                                      createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                      createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                    ]),
+                                                    _: 2
+                                                  }, 1032, ["class"])
+                                                ];
+                                              }
+                                            }),
+                                            _: 2
+                                          }, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_FormControl, null, {
+                                              default: withCtx(() => [
+                                                createVNode(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx(() => [
+                                                    createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                    createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                  ]),
+                                                  _: 2
+                                                }, 1032, ["class"])
+                                              ]),
+                                              _: 2
+                                            }, 1024)
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: _ctx.dateSelesai,
+                                            "onUpdate:modelValue": [
+                                              ($event) => _ctx.dateSelesai = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  _ctx.dateSelesai = v;
+                                                  unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  _ctx.dateSelesai = void 0;
+                                                  unref(setFieldValue)("tglSelesai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Selesai",
+                                            "initial-focus": ""
+                                          }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_Calendar, {
+                                              placeholder: _ctx.placeholder,
+                                              "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                              modelValue: _ctx.dateSelesai,
+                                              "onUpdate:modelValue": [
+                                                ($event) => _ctx.dateSelesai = $event,
+                                                (v) => {
+                                                  if (v) {
+                                                    _ctx.dateSelesai = v;
+                                                    unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                  } else {
+                                                    _ctx.dateSelesai = void 0;
+                                                    unref(setFieldValue)("tglSelesai", void 0);
+                                                  }
+                                                }
+                                              ],
+                                              "calendar-label": "Tanggal Selesai",
+                                              "initial-focus": ""
+                                            }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_FormControl, null, {
+                                            default: withCtx(() => [
+                                              createVNode(unref(_sfc_main$2$1), {
+                                                variant: "outline",
+                                                class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                              }, {
+                                                default: withCtx(() => [
+                                                  createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                  createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                ]),
+                                                _: 2
+                                              }, 1032, ["class"])
+                                            ]),
+                                            _: 2
+                                          }, 1024)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: _ctx.dateSelesai,
+                                            "onUpdate:modelValue": [
+                                              ($event) => _ctx.dateSelesai = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  _ctx.dateSelesai = v;
+                                                  unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  _ctx.dateSelesai = void 0;
+                                                  unref(setFieldValue)("tglSelesai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Selesai",
+                                            "initial-focus": ""
+                                          }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_FormMessage, null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Selesai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_FormControl, null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: _ctx.dateSelesai,
+                                          "onUpdate:modelValue": [
+                                            ($event) => _ctx.dateSelesai = $event,
+                                            (v) => {
+                                              if (v) {
+                                                _ctx.dateSelesai = v;
+                                                unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                _ctx.dateSelesai = void 0;
+                                                unref(setFieldValue)("tglSelesai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Selesai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                        _push4(`<input${ssrRenderAttrs(mergeProps({ type: "hidden" }, field))}${_scopeId3}>`);
+                      } else {
+                        return [
+                          createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Selesai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_FormControl, null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: _ctx.dateSelesai,
+                                        "onUpdate:modelValue": [
+                                          ($event) => _ctx.dateSelesai = $event,
+                                          (v) => {
+                                            if (v) {
+                                              _ctx.dateSelesai = v;
+                                              unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              _ctx.dateSelesai = void 0;
+                                              unref(setFieldValue)("tglSelesai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Selesai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                  _push3(ssrRenderComponent(unref(_sfc_main$4$4), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$7$2), { "as-child": "" }, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(` Close `);
+                                  } else {
+                                    return [
+                                      createTextVNode(" Close ")
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$2$1), {
+                                  type: "button",
+                                  variant: "secondary",
+                                  onClick: closeDialog
+                                }, {
+                                  default: withCtx(() => [
+                                    createTextVNode(" Close ")
+                                  ]),
+                                  _: 1
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                        if (isSubmitting.value) {
+                          _push4(`<span${_scopeId3}>`);
+                          _push4(ssrRenderComponent(unref(_sfc_main$2$1), { disabled: "" }, {
+                            default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                              if (_push5) {
+                                _push5(ssrRenderComponent(unref(Loader2), { class: "w-4 h-4 mr-2 animate-spin" }, null, _parent5, _scopeId4));
+                                _push5(` Saving.. `);
+                              } else {
+                                return [
+                                  createVNode(unref(Loader2), { class: "w-4 h-4 mr-2 animate-spin" }),
+                                  createTextVNode(" Saving.. ")
+                                ];
+                              }
+                            }),
+                            _: 1
+                          }, _parent4, _scopeId3));
+                          _push4(`</span>`);
+                        } else {
+                          _push4(ssrRenderComponent(unref(_sfc_main$2$1), { type: "submit" }, {
+                            default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                              if (_push5) {
+                                _push5(`Save `);
+                              } else {
+                                return [
+                                  createTextVNode("Save ")
+                                ];
+                              }
+                            }),
+                            _: 1
+                          }, _parent4, _scopeId3));
+                        }
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" Close ")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                            createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                              default: withCtx(() => [
+                                createVNode(unref(Loader2), { class: "w-4 h-4 mr-2 animate-spin" }),
+                                createTextVNode(" Saving.. ")
+                              ]),
+                              _: 1
+                            })
+                          ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                            key: 1,
+                            type: "submit"
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode("Save ")
+                            ]),
+                            _: 1
+                          }))
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</form>`);
+                } else {
+                  return [
+                    createVNode("form", {
+                      class: "space-y-8",
+                      onSubmit: withModifiers(unref(onSubmit), ["prevent"])
+                    }, [
+                      createVNode(unref(_sfc_main$3$2), null, {
+                        default: withCtx(() => [
+                          createVNode(unref(_sfc_main$1$3), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Add Data Proyek")
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      }),
+                      createVNode("div", { class: "max-h-[60vh] overflow-y-auto pr-4 space-y-6" }, [
+                        createVNode(_component_FormField, { name: "namaPekerjaan" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(_component_FormItem, null, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nama Pekerjaan")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_FormField, { name: "noKontrak" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(_component_FormItem, null, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nomor Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_FormField, { name: "nilaiKontrak" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(_component_FormItem, null, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nilai Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_FormField, { name: "lokasi" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(_component_FormItem, null, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Lokasi")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_FormControl, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_Textarea, componentField, null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_FormField, { name: "tglMulai" }, {
+                          default: withCtx(({ field, value }) => [
+                            createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Mulai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_FormControl, null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: _ctx.dateMulai,
+                                          "onUpdate:modelValue": [
+                                            ($event) => _ctx.dateMulai = $event,
+                                            (v) => {
+                                              if (v) {
+                                                _ctx.dateMulai = v;
+                                                unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                _ctx.dateMulai = void 0;
+                                                unref(setFieldValue)("tglMulai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Mulai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024),
+                            createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_FormField, { name: "tglSelesai" }, {
+                          default: withCtx(({ field, value }) => [
+                            createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                              default: withCtx(() => [
+                                createVNode(_component_FormLabel, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Selesai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_FormControl, null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: _ctx.dateSelesai,
+                                          "onUpdate:modelValue": [
+                                            ($event) => _ctx.dateSelesai = $event,
+                                            (v) => {
+                                              if (v) {
+                                                _ctx.dateSelesai = v;
+                                                unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                _ctx.dateSelesai = void 0;
+                                                unref(setFieldValue)("tglSelesai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Selesai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(_component_FormMessage)
+                              ]),
+                              _: 2
+                            }, 1024),
+                            createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      createVNode(unref(_sfc_main$4$4), null, {
+                        default: withCtx(() => [
+                          createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" Close ")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                            createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                              default: withCtx(() => [
+                                createVNode(unref(Loader2), { class: "w-4 h-4 mr-2 animate-spin" }),
+                                createTextVNode(" Saving.. ")
+                              ]),
+                              _: 1
+                            })
+                          ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                            key: 1,
+                            type: "submit"
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode("Save ")
+                            ]),
+                            _: 1
+                          }))
+                        ]),
+                        _: 1
+                      })
+                    ], 40, ["onSubmit"])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(unref(_sfc_main$9), { "as-child": "" }, {
+                default: withCtx(() => [
+                  createVNode(unref(_sfc_main$2$1), { onClick: openDialog }, {
+                    default: withCtx(() => [
+                      createTextVNode("Add Data")
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              }),
+              createVNode(unref(_sfc_main$6$2), { class: "sm:max-w-[800px] [&>button]:hidden" }, {
+                default: withCtx(() => [
+                  createVNode("form", {
+                    class: "space-y-8",
+                    onSubmit: withModifiers(unref(onSubmit), ["prevent"])
+                  }, [
+                    createVNode(unref(_sfc_main$3$2), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$1$3), null, {
+                          default: withCtx(() => [
+                            createTextVNode("Add Data Proyek")
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    }),
+                    createVNode("div", { class: "max-h-[60vh] overflow-y-auto pr-4 space-y-6" }, [
+                      createVNode(_component_FormField, { name: "namaPekerjaan" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nama Pekerjaan")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_FormField, { name: "noKontrak" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nomor Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_FormField, { name: "nilaiKontrak" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nilai Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_FormField, { name: "lokasi" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(_component_FormItem, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Lokasi")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_FormControl, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_Textarea, componentField, null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_FormField, { name: "tglMulai" }, {
+                        default: withCtx(({ field, value }) => [
+                          createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Mulai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_FormControl, null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateMulai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: _ctx.dateMulai,
+                                        "onUpdate:modelValue": [
+                                          ($event) => _ctx.dateMulai = $event,
+                                          (v) => {
+                                            if (v) {
+                                              _ctx.dateMulai = v;
+                                              unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              _ctx.dateMulai = void 0;
+                                              unref(setFieldValue)("tglMulai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Mulai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(_component_FormField, { name: "tglSelesai" }, {
+                        default: withCtx(({ field, value }) => [
+                          createVNode(_component_FormItem, { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_FormLabel, null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Selesai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_FormControl, null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: unref(cn)("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(_ctx.dateSelesai, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: _ctx.dateSelesai,
+                                        "onUpdate:modelValue": [
+                                          ($event) => _ctx.dateSelesai = $event,
+                                          (v) => {
+                                            if (v) {
+                                              _ctx.dateSelesai = v;
+                                              unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              _ctx.dateSelesai = void 0;
+                                              unref(setFieldValue)("tglSelesai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Selesai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(_component_FormMessage)
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    createVNode(unref(_sfc_main$4$4), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                          default: withCtx(() => [
+                            createVNode(unref(_sfc_main$2$1), {
+                              type: "button",
+                              variant: "secondary",
+                              onClick: closeDialog
+                            }, {
+                              default: withCtx(() => [
+                                createTextVNode(" Close ")
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          _: 1
+                        }),
+                        isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                          createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(Loader2), { class: "w-4 h-4 mr-2 animate-spin" }),
+                              createTextVNode(" Saving.. ")
+                            ]),
+                            _: 1
+                          })
+                        ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                          key: 1,
+                          type: "submit"
+                        }, {
+                          default: withCtx(() => [
+                            createTextVNode("Save ")
+                          ]),
+                          _: 1
+                        }))
+                      ]),
+                      _: 1
+                    })
+                  ], 40, ["onSubmit"])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup$4 = _sfc_main$4.setup;
+_sfc_main$4.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/master-proyek/AddData.vue");
+  return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
+};
+const _sfc_main$3 = /* @__PURE__ */ defineComponent({
+  __name: "DeleteData",
+  __ssrInlineRender: true,
+  props: ["item"],
+  emits: ["dataDeleted"],
+  setup(__props, { emit: __emit }) {
+    const props = __props;
+    const emit = __emit;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.apiBase;
+    const accessToken = useCookie("accessToken");
+    const token = accessToken.value.token;
+    async function deleteItem() {
+      try {
+        const response = await fetch(`${baseUrl}/proyek/${props.item.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          emit("dataDeleted", props.item.id);
+          toast({
+            title: "Success",
+            description: "Data berhasil dihapus."
+          });
+        } else {
+          const errorData = await response.json();
+          const message = (errorData == null ? void 0 : errorData.message) || "Gagal Menghapus Data";
+          toast({
+            title: "Gagal",
+            description: message,
+            variant: "destructive"
+          });
+          console.error("Gagal menghapus:", message);
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Terjadi kesalahan saat menghapus data.",
+          variant: "destructive"
+        });
+        console.error("Error:", error);
+      }
+    }
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_TooltipProvider = _sfc_main$d;
+      const _component_Tooltip = _sfc_main$2$4;
+      const _component_TooltipTrigger = _sfc_main$e;
+      const _component_Button = _sfc_main$2$1;
+      const _component_TooltipContent = _sfc_main$1$6;
+      _push(ssrRenderComponent(unref(_sfc_main$8$2), _attrs, {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(unref(_sfc_main$f), null, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_TooltipProvider, null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_Tooltip, null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_TooltipTrigger, { "as-child": "" }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_Button, { size: "sm" }, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(unref(TrashIcon), { class: "w-4 h-4" }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_Button, { size: "sm" }, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_TooltipContent, null, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`<p${_scopeId5}>Delete Data</p>`);
+                                  } else {
+                                    return [
+                                      createVNode("p", null, "Delete Data")
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_Button, { size: "sm" }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TooltipContent, null, {
+                                  default: withCtx(() => [
+                                    createVNode("p", null, "Delete Data")
+                                  ]),
+                                  _: 1
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_Tooltip, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_Button, { size: "sm" }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_TooltipContent, null, {
+                                default: withCtx(() => [
+                                  createVNode("p", null, "Delete Data")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_TooltipProvider, null, {
+                      default: withCtx(() => [
+                        createVNode(_component_Tooltip, null, {
+                          default: withCtx(() => [
+                            createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                              default: withCtx(() => [
+                                createVNode(_component_Button, { size: "sm" }, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_TooltipContent, null, {
+                              default: withCtx(() => [
+                                createVNode("p", null, "Delete Data")
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    })
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(unref(_sfc_main$5$1), null, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(unref(_sfc_main$2$5), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$1$7), null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`Apakah anda yakin menghapus data ini ? `);
+                            } else {
+                              return [
+                                createTextVNode("Apakah anda yakin menghapus data ini ? ")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                        _push4(ssrRenderComponent(unref(_sfc_main$4$5), null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(` data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus data ini. `);
+                            } else {
+                              return [
+                                createTextVNode(" data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus data ini. ")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$1$7), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Apakah anda yakin menghapus data ini ? ")
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(unref(_sfc_main$4$5), null, {
+                            default: withCtx(() => [
+                              createTextVNode(" data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus data ini. ")
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(_sfc_main$3$3), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$6$3), null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`Cancel`);
+                            } else {
+                              return [
+                                createTextVNode("Cancel")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                        _push4(ssrRenderComponent(unref(_sfc_main$7$3), { onClick: deleteItem }, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`Delete`);
+                            } else {
+                              return [
+                                createTextVNode("Delete")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$6$3), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Cancel")
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(unref(_sfc_main$7$3), { onClick: deleteItem }, {
+                            default: withCtx(() => [
+                              createTextVNode("Delete")
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(unref(_sfc_main$2$5), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$1$7), null, {
+                          default: withCtx(() => [
+                            createTextVNode("Apakah anda yakin menghapus data ini ? ")
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(_sfc_main$4$5), null, {
+                          default: withCtx(() => [
+                            createTextVNode(" data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus data ini. ")
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    }),
+                    createVNode(unref(_sfc_main$3$3), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$6$3), null, {
+                          default: withCtx(() => [
+                            createTextVNode("Cancel")
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(_sfc_main$7$3), { onClick: deleteItem }, {
+                          default: withCtx(() => [
+                            createTextVNode("Delete")
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    })
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(unref(_sfc_main$f), null, {
+                default: withCtx(() => [
+                  createVNode(_component_TooltipProvider, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_Tooltip, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_Button, { size: "sm" }, {
+                                default: withCtx(() => [
+                                  createVNode(unref(TrashIcon), { class: "w-4 h-4" })
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_TooltipContent, null, {
+                            default: withCtx(() => [
+                              createVNode("p", null, "Delete Data")
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              }),
+              createVNode(unref(_sfc_main$5$1), null, {
+                default: withCtx(() => [
+                  createVNode(unref(_sfc_main$2$5), null, {
+                    default: withCtx(() => [
+                      createVNode(unref(_sfc_main$1$7), null, {
+                        default: withCtx(() => [
+                          createTextVNode("Apakah anda yakin menghapus data ini ? ")
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(_sfc_main$4$5), null, {
+                        default: withCtx(() => [
+                          createTextVNode(" data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus data ini. ")
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  }),
+                  createVNode(unref(_sfc_main$3$3), null, {
+                    default: withCtx(() => [
+                      createVNode(unref(_sfc_main$6$3), null, {
+                        default: withCtx(() => [
+                          createTextVNode("Cancel")
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(_sfc_main$7$3), { onClick: deleteItem }, {
+                        default: withCtx(() => [
+                          createTextVNode("Delete")
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup$3 = _sfc_main$3.setup;
+_sfc_main$3.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/master-proyek/DeleteData.vue");
+  return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
+};
+const _sfc_main$2 = /* @__PURE__ */ defineComponent({
+  __name: "EditData",
+  __ssrInlineRender: true,
+  props: {
+    id: {}
+  },
+  emits: ["dataEdited"],
+  setup(__props, { emit: __emit }) {
+    const df = new DateFormatter("en-US", {
+      dateStyle: "long"
+    });
+    const props = __props;
+    const emit = __emit;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.apiBase;
+    console.log(props.id);
+    const currentUser = useCookie("currentUser");
+    const username = computed(() => {
+      var _a;
+      return ((_a = currentUser.value) == null ? void 0 : _a.username) || "no-email@example.com";
+    });
+    const profileFormSchema = toTypedSchema(
+      z.object({
+        namaPekerjaan: z.string(),
+        noKontrak: z.string(),
+        nilaiKontrak: z.number(),
+        lokasi: z.string(),
+        tglMulai: z.string().datetime(),
+        tglSelesai: z.string().datetime()
+      })
+    );
+    const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
+      validationSchema: profileFormSchema,
+      initialValues: {
+        namaPekerjaan: "",
+        noKontrak: "",
+        nilaiKontrak: 0,
+        lokasi: "",
+        tglMulai: "",
+        tglSelesai: ""
+        // Use prop value directly as fallback
+      }
+    });
+    const isDialogOpen = ref(false);
+    const dateMulai = ref();
+    const dateSelesai = ref();
+    async function fetchData() {
+      try {
+        const response = await fetch(`${baseUrl}/proyek/${props.id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const { data } = await response.json();
+          console.log(data);
+          const nilaiKontrakNumber = parseFloat(data.nilaiKontrak);
+          const tglMulaiString = data.tglMulai;
+          const tglSelesaiString = data.tglSelesai;
+          const dateMulaiObj = tglMulaiString ? toDate(tglMulaiString) : void 0;
+          const dateSelesaiObj = tglSelesaiString ? toDate(tglSelesaiString) : void 0;
+          if (dateMulaiObj && isNaN(dateMulaiObj.getTime())) {
+            throw new Error("Invalid dateMulai value received from API.");
+          }
+          setValues({
+            namaPekerjaan: data.namaPekerjaan,
+            noKontrak: data.noKontrak,
+            // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
+            nilaiKontrak: nilaiKontrakNumber,
+            lokasi: data.lokasi,
+            // Kirim Date Object yang sudah valid atau undefined/null
+            tglMulai: dateMulaiObj ? dateMulaiObj.toISOString() : void 0,
+            tglSelesai: dateSelesaiObj ? dateSelesaiObj.toISOString() : void 0
+          });
+          if (dateMulaiObj) {
+            dateMulai.value = new CalendarDate(
+              dateMulaiObj.getFullYear(),
+              dateMulaiObj.getMonth() + 1,
+              // Month + 1 karena CalendarDate berbasis 1
+              dateMulaiObj.getDate()
+            );
+          }
+          if (dateSelesaiObj) {
+            dateSelesai.value = new CalendarDate(
+              dateSelesaiObj.getFullYear(),
+              dateSelesaiObj.getMonth() + 1,
+              dateSelesaiObj.getDate()
+            );
+          }
+        } else {
+          console.error("Gagal mengambil data. Status:", response.status);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error.message);
+      }
+    }
+    async function openDialog() {
+      isDialogOpen.value = true;
+      await fetchData();
+    }
+    function closeDialog() {
+      isDialogOpen.value = false;
+      resetForm();
+    }
+    const isSubmitting = ref(false);
+    const accessToken = useCookie("accessToken");
+    const token = accessToken.value.token;
+    const onSubmit = handleSubmit(async () => {
+      isSubmitting.value = true;
+      try {
+        const dataForm = {
+          namaPekerjaan: values.namaPekerjaan,
+          noKontrak: values.noKontrak,
+          nilaiKontrak: values.nilaiKontrak,
+          lokasi: values.lokasi,
+          tglMulai: values.tglMulai,
+          tglSelesai: values.tglSelesai,
+          createdBy: username.value,
+          createdDate: /* @__PURE__ */ new Date()
+        };
+        const response = await fetch(`${baseUrl}/proyek/${editedItem.value.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(dataForm)
+        });
+        if (response.ok) {
+          emit("dataEdited");
+          toast$1.success("Data Berhasil Di Update");
+          closeDialog();
+          resetForm();
+        } else {
+          console.error("Gagal mengedit data");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        isSubmitting.value = false;
+      }
+    });
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_TooltipProvider = _sfc_main$d;
+      const _component_Tooltip = _sfc_main$2$4;
+      const _component_TooltipTrigger = _sfc_main$e;
+      const _component_TooltipContent = _sfc_main$1$6;
+      const _component_Textarea = _sfc_main$b;
+      const _component_Popover = _sfc_main$2$3;
+      const _component_PopoverTrigger = _sfc_main$c;
+      const _component_RadixIconsCalendar = resolveComponent("RadixIconsCalendar");
+      const _component_PopoverContent = _sfc_main$1$5;
+      const _component_Calendar = _sfc_main$b$1;
+      const _component_Loader2 = resolveComponent("Loader2");
+      _push(ssrRenderComponent(unref(_sfc_main$8$1), mergeProps({
+        open: isDialogOpen.value,
+        onOpenChange: ($event) => isDialogOpen.value = $event
+      }, _attrs), {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(unref(_sfc_main$9), { "as-child": "" }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_TooltipProvider, null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_Tooltip, null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_TooltipTrigger, { "as-child": "" }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                      onClick: openDialog,
+                                      size: "sm"
+                                    }, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(unref(PencilIcon), { class: "w-4 h-4" }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$2$1), {
+                                        onClick: openDialog,
+                                        size: "sm"
+                                      }, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_TooltipContent, null, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`<p${_scopeId5}>Edit Data</p>`);
+                                  } else {
+                                    return [
+                                      createVNode("p", null, "Edit Data")
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$2$1), {
+                                      onClick: openDialog,
+                                      size: "sm"
+                                    }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TooltipContent, null, {
+                                  default: withCtx(() => [
+                                    createVNode("p", null, "Edit Data")
+                                  ]),
+                                  _: 1
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_Tooltip, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$2$1), {
+                                    onClick: openDialog,
+                                    size: "sm"
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_TooltipContent, null, {
+                                default: withCtx(() => [
+                                  createVNode("p", null, "Edit Data")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_TooltipProvider, null, {
+                      default: withCtx(() => [
+                        createVNode(_component_Tooltip, null, {
+                          default: withCtx(() => [
+                            createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$2$1), {
+                                  onClick: openDialog,
+                                  size: "sm"
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              _: 1
+                            }),
+                            createVNode(_component_TooltipContent, null, {
+                              default: withCtx(() => [
+                                createVNode("p", null, "Edit Data")
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    })
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(unref(_sfc_main$6$2), { class: "sm:max-w-[800px] [&>button]:hidden" }, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(`<form class="space-y-8"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(unref(_sfc_main$3$2), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$1$3), null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`Edit Data Proyek`);
+                            } else {
+                              return [
+                                createTextVNode("Edit Data Proyek")
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$1$3), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Edit Data Proyek")
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`<div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(unref(Field), { name: "namaPekerjaan" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nama Pekerjaan`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nama Pekerjaan")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nama Pekerjaan")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nama Pekerjaan")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(Field), { name: "noKontrak" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nomor Kontrak`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nomor Kontrak")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nomor Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nomor Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(Field), { name: "nilaiKontrak" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Nilai Kontrak`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Nilai Kontrak")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nilai Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nilai Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(Field), { name: "lokasi" }, {
+                    default: withCtx(({ componentField }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), null, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Lokasi`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Lokasi")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_Textarea, componentField, null, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_Textarea, componentField, null, 16)
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Lokasi")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_Textarea, componentField, null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Lokasi")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_Textarea, componentField, null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(Field), { name: "tglMulai" }, {
+                    default: withCtx(({ field, value }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Tanggal Mulai`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Tanggal Mulai")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_Popover, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                            default: withCtx((_6, _push8, _parent8, _scopeId7) => {
+                                              if (_push8) {
+                                                _push8(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx((_7, _push9, _parent9, _scopeId8) => {
+                                                    if (_push9) {
+                                                      _push9(ssrRenderComponent(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }, null, _parent9, _scopeId8));
+                                                      _push9(`<span${_scopeId8}>${ssrInterpolate(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date")}</span>`);
+                                                    } else {
+                                                      return [
+                                                        createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                        createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                      ];
+                                                    }
+                                                  }),
+                                                  _: 2
+                                                }, _parent8, _scopeId7));
+                                              } else {
+                                                return [
+                                                  createVNode(unref(_sfc_main$2$1), {
+                                                    variant: "outline",
+                                                    class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                  }, {
+                                                    default: withCtx(() => [
+                                                      createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                      createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                    ]),
+                                                    _: 2
+                                                  }, 1032, ["class"])
+                                                ];
+                                              }
+                                            }),
+                                            _: 2
+                                          }, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(unref(_sfc_main$4$3), null, {
+                                              default: withCtx(() => [
+                                                createVNode(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx(() => [
+                                                    createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                    createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                  ]),
+                                                  _: 2
+                                                }, 1032, ["class"])
+                                              ]),
+                                              _: 2
+                                            }, 1024)
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: dateMulai.value,
+                                            "onUpdate:modelValue": [
+                                              ($event) => dateMulai.value = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  dateMulai.value = v;
+                                                  unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  dateMulai.value = void 0;
+                                                  unref(setFieldValue)("tglMulai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Mulai",
+                                            "initial-focus": ""
+                                          }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_Calendar, {
+                                              placeholder: _ctx.placeholder,
+                                              "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                              modelValue: dateMulai.value,
+                                              "onUpdate:modelValue": [
+                                                ($event) => dateMulai.value = $event,
+                                                (v) => {
+                                                  if (v) {
+                                                    dateMulai.value = v;
+                                                    unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                  } else {
+                                                    dateMulai.value = void 0;
+                                                    unref(setFieldValue)("tglMulai", void 0);
+                                                  }
+                                                }
+                                              ],
+                                              "calendar-label": "Tanggal Mulai",
+                                              "initial-focus": ""
+                                            }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$4$3), null, {
+                                            default: withCtx(() => [
+                                              createVNode(unref(_sfc_main$2$1), {
+                                                variant: "outline",
+                                                class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                              }, {
+                                                default: withCtx(() => [
+                                                  createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                  createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                ]),
+                                                _: 2
+                                              }, 1032, ["class"])
+                                            ]),
+                                            _: 2
+                                          }, 1024)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: dateMulai.value,
+                                            "onUpdate:modelValue": [
+                                              ($event) => dateMulai.value = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  dateMulai.value = v;
+                                                  unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  dateMulai.value = void 0;
+                                                  unref(setFieldValue)("tglMulai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Mulai",
+                                            "initial-focus": ""
+                                          }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Mulai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(_sfc_main$4$3), null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: dateMulai.value,
+                                          "onUpdate:modelValue": [
+                                            ($event) => dateMulai.value = $event,
+                                            (v) => {
+                                              if (v) {
+                                                dateMulai.value = v;
+                                                unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                dateMulai.value = void 0;
+                                                unref(setFieldValue)("tglMulai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Mulai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                        _push4(`<input${ssrRenderAttrs(mergeProps({ type: "hidden" }, field))}${_scopeId3}>`);
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Mulai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(_sfc_main$4$3), null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: dateMulai.value,
+                                        "onUpdate:modelValue": [
+                                          ($event) => dateMulai.value = $event,
+                                          (v) => {
+                                            if (v) {
+                                              dateMulai.value = v;
+                                              unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              dateMulai.value = void 0;
+                                              unref(setFieldValue)("tglMulai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Mulai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(ssrRenderComponent(unref(Field), { name: "tglSelesai" }, {
+                    default: withCtx(({ field, value }, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                          default: withCtx((_3, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$1$4), null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(`Tanggal Selesai`);
+                                  } else {
+                                    return [
+                                      createTextVNode("Tanggal Selesai")
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(_component_Popover, null, {
+                                default: withCtx((_4, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(unref(_sfc_main$4$3), null, {
+                                            default: withCtx((_6, _push8, _parent8, _scopeId7) => {
+                                              if (_push8) {
+                                                _push8(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx((_7, _push9, _parent9, _scopeId8) => {
+                                                    if (_push9) {
+                                                      _push9(ssrRenderComponent(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }, null, _parent9, _scopeId8));
+                                                      _push9(`<span${_scopeId8}>${ssrInterpolate(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date")}</span>`);
+                                                    } else {
+                                                      return [
+                                                        createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                        createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                      ];
+                                                    }
+                                                  }),
+                                                  _: 2
+                                                }, _parent8, _scopeId7));
+                                              } else {
+                                                return [
+                                                  createVNode(unref(_sfc_main$2$1), {
+                                                    variant: "outline",
+                                                    class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                  }, {
+                                                    default: withCtx(() => [
+                                                      createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                      createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                    ]),
+                                                    _: 2
+                                                  }, 1032, ["class"])
+                                                ];
+                                              }
+                                            }),
+                                            _: 2
+                                          }, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(unref(_sfc_main$4$3), null, {
+                                              default: withCtx(() => [
+                                                createVNode(unref(_sfc_main$2$1), {
+                                                  variant: "outline",
+                                                  class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                                }, {
+                                                  default: withCtx(() => [
+                                                    createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                    createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                  ]),
+                                                  _: 2
+                                                }, 1032, ["class"])
+                                              ]),
+                                              _: 2
+                                            }, 1024)
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx((_5, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(ssrRenderComponent(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: dateSelesai.value,
+                                            "onUpdate:modelValue": [
+                                              ($event) => dateSelesai.value = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  dateSelesai.value = v;
+                                                  unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  dateSelesai.value = void 0;
+                                                  unref(setFieldValue)("tglSelesai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Selesai",
+                                            "initial-focus": ""
+                                          }, null, _parent7, _scopeId6));
+                                        } else {
+                                          return [
+                                            createVNode(_component_Calendar, {
+                                              placeholder: _ctx.placeholder,
+                                              "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                              modelValue: dateSelesai.value,
+                                              "onUpdate:modelValue": [
+                                                ($event) => dateSelesai.value = $event,
+                                                (v) => {
+                                                  if (v) {
+                                                    dateSelesai.value = v;
+                                                    unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                  } else {
+                                                    dateSelesai.value = void 0;
+                                                    unref(setFieldValue)("tglSelesai", void 0);
+                                                  }
+                                                }
+                                              ],
+                                              "calendar-label": "Tanggal Selesai",
+                                              "initial-focus": ""
+                                            }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                          ];
+                                        }
+                                      }),
+                                      _: 2
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$4$3), null, {
+                                            default: withCtx(() => [
+                                              createVNode(unref(_sfc_main$2$1), {
+                                                variant: "outline",
+                                                class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                              }, {
+                                                default: withCtx(() => [
+                                                  createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                  createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                                ]),
+                                                _: 2
+                                              }, 1032, ["class"])
+                                            ]),
+                                            _: 2
+                                          }, 1024)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                        default: withCtx(() => [
+                                          createVNode(_component_Calendar, {
+                                            placeholder: _ctx.placeholder,
+                                            "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                            modelValue: dateSelesai.value,
+                                            "onUpdate:modelValue": [
+                                              ($event) => dateSelesai.value = $event,
+                                              (v) => {
+                                                if (v) {
+                                                  dateSelesai.value = v;
+                                                  unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                                } else {
+                                                  dateSelesai.value = void 0;
+                                                  unref(setFieldValue)("tglSelesai", void 0);
+                                                }
+                                              }
+                                            ],
+                                            "calendar-label": "Tanggal Selesai",
+                                            "initial-focus": ""
+                                          }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 2
+                              }, _parent5, _scopeId4));
+                              _push5(ssrRenderComponent(unref(_sfc_main$a), null, null, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Selesai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(_sfc_main$4$3), null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: dateSelesai.value,
+                                          "onUpdate:modelValue": [
+                                            ($event) => dateSelesai.value = $event,
+                                            (v) => {
+                                              if (v) {
+                                                dateSelesai.value = v;
+                                                unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                dateSelesai.value = void 0;
+                                                unref(setFieldValue)("tglSelesai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Selesai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ];
+                            }
+                          }),
+                          _: 2
+                        }, _parent4, _scopeId3));
+                        _push4(`<input${ssrRenderAttrs(mergeProps({ type: "hidden" }, field))}${_scopeId3}>`);
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Selesai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(_sfc_main$4$3), null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: dateSelesai.value,
+                                        "onUpdate:modelValue": [
+                                          ($event) => dateSelesai.value = $event,
+                                          (v) => {
+                                            if (v) {
+                                              dateSelesai.value = v;
+                                              unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              dateSelesai.value = void 0;
+                                              unref(setFieldValue)("tglSelesai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Selesai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                  _push3(ssrRenderComponent(unref(_sfc_main$4$4), null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(unref(_sfc_main$7$2), { "as-child": "" }, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(` Close `);
+                                  } else {
+                                    return [
+                                      createTextVNode(" Close ")
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(unref(_sfc_main$2$1), {
+                                  type: "button",
+                                  variant: "secondary",
+                                  onClick: closeDialog
+                                }, {
+                                  default: withCtx(() => [
+                                    createTextVNode(" Close ")
+                                  ]),
+                                  _: 1
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                        if (isSubmitting.value) {
+                          _push4(`<span${_scopeId3}>`);
+                          _push4(ssrRenderComponent(unref(_sfc_main$2$1), { disabled: "" }, {
+                            default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                              if (_push5) {
+                                _push5(ssrRenderComponent(_component_Loader2, { class: "w-4 h-4 mr-2 animate-spin" }, null, _parent5, _scopeId4));
+                                _push5(` Updating.. `);
+                              } else {
+                                return [
+                                  createVNode(_component_Loader2, { class: "w-4 h-4 mr-2 animate-spin" }),
+                                  createTextVNode(" Updating.. ")
+                                ];
+                              }
+                            }),
+                            _: 1
+                          }, _parent4, _scopeId3));
+                          _push4(`</span>`);
+                        } else {
+                          _push4(ssrRenderComponent(unref(_sfc_main$2$1), { type: "submit" }, {
+                            default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                              if (_push5) {
+                                _push5(`Update `);
+                              } else {
+                                return [
+                                  createTextVNode("Update ")
+                                ];
+                              }
+                            }),
+                            _: 1
+                          }, _parent4, _scopeId3));
+                        }
+                      } else {
+                        return [
+                          createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" Close ")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                            createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                              default: withCtx(() => [
+                                createVNode(_component_Loader2, { class: "w-4 h-4 mr-2 animate-spin" }),
+                                createTextVNode(" Updating.. ")
+                              ]),
+                              _: 1
+                            })
+                          ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                            key: 1,
+                            type: "submit"
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode("Update ")
+                            ]),
+                            _: 1
+                          }))
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</form>`);
+                } else {
+                  return [
+                    createVNode("form", {
+                      class: "space-y-8",
+                      onSubmit: withModifiers(unref(onSubmit), ["prevent"])
+                    }, [
+                      createVNode(unref(_sfc_main$3$2), null, {
+                        default: withCtx(() => [
+                          createVNode(unref(_sfc_main$1$3), null, {
+                            default: withCtx(() => [
+                              createTextVNode("Edit Data Proyek")
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      }),
+                      createVNode("div", { class: "max-h-[60vh] overflow-y-auto pr-4 space-y-6" }, [
+                        createVNode(unref(Field), { name: "namaPekerjaan" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(unref(_sfc_main$2$2), null, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nama Pekerjaan")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(Field), { name: "noKontrak" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(unref(_sfc_main$2$2), null, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nomor Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(Field), { name: "nilaiKontrak" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(unref(_sfc_main$2$2), null, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nilai Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(Field), { name: "lokasi" }, {
+                          default: withCtx(({ componentField }) => [
+                            createVNode(unref(_sfc_main$2$2), null, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Lokasi")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(unref(_sfc_main$4$3), null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_Textarea, componentField, null, 16)
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(Field), { name: "tglMulai" }, {
+                          default: withCtx(({ field, value }) => [
+                            createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Mulai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(_sfc_main$4$3), null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: dateMulai.value,
+                                          "onUpdate:modelValue": [
+                                            ($event) => dateMulai.value = $event,
+                                            (v) => {
+                                              if (v) {
+                                                dateMulai.value = v;
+                                                unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                dateMulai.value = void 0;
+                                                unref(setFieldValue)("tglMulai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Mulai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024),
+                            createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(unref(Field), { name: "tglSelesai" }, {
+                          default: withCtx(({ field, value }) => [
+                            createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                              default: withCtx(() => [
+                                createVNode(unref(_sfc_main$1$4), null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Selesai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_Popover, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                      default: withCtx(() => [
+                                        createVNode(unref(_sfc_main$4$3), null, {
+                                          default: withCtx(() => [
+                                            createVNode(unref(_sfc_main$2$1), {
+                                              variant: "outline",
+                                              class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                            }, {
+                                              default: withCtx(() => [
+                                                createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                                createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                              ]),
+                                              _: 2
+                                            }, 1032, ["class"])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                      default: withCtx(() => [
+                                        createVNode(_component_Calendar, {
+                                          placeholder: _ctx.placeholder,
+                                          "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                          modelValue: dateSelesai.value,
+                                          "onUpdate:modelValue": [
+                                            ($event) => dateSelesai.value = $event,
+                                            (v) => {
+                                              if (v) {
+                                                dateSelesai.value = v;
+                                                unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                              } else {
+                                                dateSelesai.value = void 0;
+                                                unref(setFieldValue)("tglSelesai", void 0);
+                                              }
+                                            }
+                                          ],
+                                          "calendar-label": "Tanggal Selesai",
+                                          "initial-focus": ""
+                                        }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 2
+                                }, 1024),
+                                createVNode(unref(_sfc_main$a))
+                              ]),
+                              _: 2
+                            }, 1024),
+                            createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      createVNode(unref(_sfc_main$4$4), null, {
+                        default: withCtx(() => [
+                          createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$2$1), {
+                                type: "button",
+                                variant: "secondary",
+                                onClick: closeDialog
+                              }, {
+                                default: withCtx(() => [
+                                  createTextVNode(" Close ")
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                            createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                              default: withCtx(() => [
+                                createVNode(_component_Loader2, { class: "w-4 h-4 mr-2 animate-spin" }),
+                                createTextVNode(" Updating.. ")
+                              ]),
+                              _: 1
+                            })
+                          ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                            key: 1,
+                            type: "submit"
+                          }, {
+                            default: withCtx(() => [
+                              createTextVNode("Update ")
+                            ]),
+                            _: 1
+                          }))
+                        ]),
+                        _: 1
+                      })
+                    ], 40, ["onSubmit"])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(unref(_sfc_main$9), { "as-child": "" }, {
+                default: withCtx(() => [
+                  createVNode(_component_TooltipProvider, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_Tooltip, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_TooltipTrigger, { "as-child": "" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$2$1), {
+                                onClick: openDialog,
+                                size: "sm"
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(unref(PencilIcon), { class: "w-4 h-4" })
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_TooltipContent, null, {
+                            default: withCtx(() => [
+                              createVNode("p", null, "Edit Data")
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              }),
+              createVNode(unref(_sfc_main$6$2), { class: "sm:max-w-[800px] [&>button]:hidden" }, {
+                default: withCtx(() => [
+                  createVNode("form", {
+                    class: "space-y-8",
+                    onSubmit: withModifiers(unref(onSubmit), ["prevent"])
+                  }, [
+                    createVNode(unref(_sfc_main$3$2), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$1$3), null, {
+                          default: withCtx(() => [
+                            createTextVNode("Edit Data Proyek")
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    }),
+                    createVNode("div", { class: "max-h-[60vh] overflow-y-auto pr-4 space-y-6" }, [
+                      createVNode(unref(Field), { name: "namaPekerjaan" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nama Pekerjaan")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(Field), { name: "noKontrak" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nomor Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "text" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(Field), { name: "nilaiKontrak" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Nilai Kontrak")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(unref(_sfc_main$7), mergeProps({ type: "number" }, componentField), null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(Field), { name: "lokasi" }, {
+                        default: withCtx(({ componentField }) => [
+                          createVNode(unref(_sfc_main$2$2), null, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Lokasi")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(unref(_sfc_main$4$3), null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_Textarea, componentField, null, 16)
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(Field), { name: "tglMulai" }, {
+                        default: withCtx(({ field, value }) => [
+                          createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Mulai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(_sfc_main$4$3), null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateMulai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: dateMulai.value,
+                                        "onUpdate:modelValue": [
+                                          ($event) => dateMulai.value = $event,
+                                          (v) => {
+                                            if (v) {
+                                              dateMulai.value = v;
+                                              unref(setFieldValue)("tglMulai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              dateMulai.value = void 0;
+                                              unref(setFieldValue)("tglMulai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Mulai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ]),
+                        _: 1
+                      }),
+                      createVNode(unref(Field), { name: "tglSelesai" }, {
+                        default: withCtx(({ field, value }) => [
+                          createVNode(unref(_sfc_main$2$2), { class: "flex flex-col" }, {
+                            default: withCtx(() => [
+                              createVNode(unref(_sfc_main$1$4), null, {
+                                default: withCtx(() => [
+                                  createTextVNode("Tanggal Selesai")
+                                ]),
+                                _: 1
+                              }),
+                              createVNode(_component_Popover, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_PopoverTrigger, { "as-child": "" }, {
+                                    default: withCtx(() => [
+                                      createVNode(unref(_sfc_main$4$3), null, {
+                                        default: withCtx(() => [
+                                          createVNode(unref(_sfc_main$2$1), {
+                                            variant: "outline",
+                                            class: ("cn" in _ctx ? _ctx.cn : unref(cn))("justify-start text-left font-normal", !value && "text-muted-foreground")
+                                          }, {
+                                            default: withCtx(() => [
+                                              createVNode(_component_RadixIconsCalendar, { class: "mr-2 h-4 w-4 opacity-50" }),
+                                              createVNode("span", null, toDisplayString(value ? unref(df).format(unref(toDate)(dateSelesai.value, unref(getLocalTimeZone)())) : "Pick a date"), 1)
+                                            ]),
+                                            _: 2
+                                          }, 1032, ["class"])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_PopoverContent, { class: "p-0" }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_Calendar, {
+                                        placeholder: _ctx.placeholder,
+                                        "onUpdate:placeholder": ($event) => _ctx.placeholder = $event,
+                                        modelValue: dateSelesai.value,
+                                        "onUpdate:modelValue": [
+                                          ($event) => dateSelesai.value = $event,
+                                          (v) => {
+                                            if (v) {
+                                              dateSelesai.value = v;
+                                              unref(setFieldValue)("tglSelesai", unref(toDate)(v).toISOString());
+                                            } else {
+                                              dateSelesai.value = void 0;
+                                              unref(setFieldValue)("tglSelesai", void 0);
+                                            }
+                                          }
+                                        ],
+                                        "calendar-label": "Tanggal Selesai",
+                                        "initial-focus": ""
+                                      }, null, 8, ["placeholder", "onUpdate:placeholder", "modelValue", "onUpdate:modelValue"])
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 2
+                              }, 1024),
+                              createVNode(unref(_sfc_main$a))
+                            ]),
+                            _: 2
+                          }, 1024),
+                          createVNode("input", mergeProps({ type: "hidden" }, field), null, 16)
+                        ]),
+                        _: 1
+                      })
+                    ]),
+                    createVNode(unref(_sfc_main$4$4), null, {
+                      default: withCtx(() => [
+                        createVNode(unref(_sfc_main$7$2), { "as-child": "" }, {
+                          default: withCtx(() => [
+                            createVNode(unref(_sfc_main$2$1), {
+                              type: "button",
+                              variant: "secondary",
+                              onClick: closeDialog
+                            }, {
+                              default: withCtx(() => [
+                                createTextVNode(" Close ")
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          _: 1
+                        }),
+                        isSubmitting.value ? (openBlock(), createBlock("span", { key: 0 }, [
+                          createVNode(unref(_sfc_main$2$1), { disabled: "" }, {
+                            default: withCtx(() => [
+                              createVNode(_component_Loader2, { class: "w-4 h-4 mr-2 animate-spin" }),
+                              createTextVNode(" Updating.. ")
+                            ]),
+                            _: 1
+                          })
+                        ])) : (openBlock(), createBlock(unref(_sfc_main$2$1), {
+                          key: 1,
+                          type: "submit"
+                        }, {
+                          default: withCtx(() => [
+                            createTextVNode("Update ")
+                          ]),
+                          _: 1
+                        }))
+                      ]),
+                      _: 1
+                    })
+                  ], 40, ["onSubmit"])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+    };
+  }
+});
+const _sfc_setup$2 = _sfc_main$2.setup;
+_sfc_main$2.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/master-proyek/EditData.vue");
+  return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
+};
+const _sfc_main$1 = /* @__PURE__ */ defineComponent({
+  __name: "ListData",
+  __ssrInlineRender: true,
+  setup(__props) {
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.apiBase;
+    const isLoading = ref(false);
+    const searchQuery = ref("");
+    const currentPage = ref(1);
+    const itemsPerPage = ref(10);
+    const data = ref([]);
+    const filteredData = computed(() => {
+      return data.value.filter(
+        (item) => item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    });
+    const totalPages = computed(() => {
+      return Math.ceil(filteredData.value.length / itemsPerPage.value);
+    });
+    const paginatedData = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      return filteredData.value.slice(start, start + itemsPerPage.value);
+    });
+    const nextPage = () => {
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++;
+      }
+    };
+    const prevPage = () => {
+      if (currentPage.value > 1) {
+        currentPage.value--;
+      }
+    };
+    function formatTanggal(tanggal) {
+      return formatDate(tanggal, "dd/M/yyyy");
+    }
+    const accessToken = useCookie("accessToken");
+    const token = accessToken.value.token;
+    async function fetchData() {
+      isLoading.value = true;
+      try {
+        const timestamp = (/* @__PURE__ */ new Date()).getTime();
+        const response = await fetch(`${baseUrl}/proyek`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const fetchedData = await response.json();
+        console.log("Data yang diterima dari server:", fetchedData);
+        if (Array.isArray(fetchedData.data)) {
+          data.value = fetchedData.data;
+        } else {
+          console.error("Data yang diterima bukan array:", fetchedData);
+          data.value = [];
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data:", error);
+        data.value = [];
+      } finally {
+        isLoading.value = false;
+      }
+    }
+    const editItem = ref(null);
+    function handleDataEdited(editedItem2) {
+      const index = data.value.findIndex((item) => item.id === editedItem2.id);
+      if (index !== -1) {
+        data.value[index] = editedItem2;
+      }
+      editItem.value = null;
+    }
+    function handleDataDeleted(deletedItemId) {
+      data.value = data.value.filter((item) => item.id !== deletedItemId);
+    }
+    return (_ctx, _push, _parent, _attrs) => {
+      const _component_Card = _sfc_main$5;
+      const _component_CardHeader = _sfc_main$1$1;
+      const _component_CardTitle = _sfc_main$6;
+      const _component_Input = _sfc_main$7;
+      const _component_CardContent = _sfc_main$4$1;
+      const _component_Table = _sfc_main$7$1;
+      const _component_TableHeader = _sfc_main$8;
+      const _component_TableRow = _sfc_main$3$1;
+      const _component_TableHead = _sfc_main$1$2;
+      const _component_TableBody = _sfc_main$6$1;
+      const _component_TableCell = _sfc_main$4$2;
+      const _component_Button = _sfc_main$2$1;
+      _push(`<!--[-->`);
+      _push(ssrRenderComponent(_component_Card, { class: "w-full" }, {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(ssrRenderComponent(_component_CardHeader, null, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_component_CardTitle, null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_Input, {
+                          type: "text",
+                          modelValue: searchQuery.value,
+                          "onUpdate:modelValue": ($event) => searchQuery.value = $event,
+                          placeholder: "Search..."
+                        }, null, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_Input, {
+                            type: "text",
+                            modelValue: searchQuery.value,
+                            "onUpdate:modelValue": ($event) => searchQuery.value = $event,
+                            placeholder: "Search..."
+                          }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                } else {
+                  return [
+                    createVNode(_component_CardTitle, null, {
+                      default: withCtx(() => [
+                        createVNode(_component_Input, {
+                          type: "text",
+                          modelValue: searchQuery.value,
+                          "onUpdate:modelValue": ($event) => searchQuery.value = $event,
+                          placeholder: "Search..."
+                        }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                      ]),
+                      _: 1
+                    })
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+            _push2(ssrRenderComponent(_component_CardContent, null, {
+              default: withCtx((_2, _push3, _parent3, _scopeId2) => {
+                if (_push3) {
+                  _push3(ssrRenderComponent(_sfc_main$4, { onDataAdded: fetchData }, null, _parent3, _scopeId2));
+                  if (isLoading.value) {
+                    _push3(`<div class="flex justify-center items-center p-8"${_scopeId2}><div class="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"${_scopeId2}></div></div>`);
+                  } else {
+                    _push3(`<!---->`);
+                  }
+                  _push3(`<div class="min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px"${_scopeId2}>`);
+                  _push3(ssrRenderComponent(_component_Table, null, {
+                    default: withCtx((_3, _push4, _parent4, _scopeId3) => {
+                      if (_push4) {
+                        _push4(ssrRenderComponent(_component_TableHeader, null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(ssrRenderComponent(_component_TableRow, null, {
+                                default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                  if (_push6) {
+                                    _push6(ssrRenderComponent(_component_TableHead, { class: "w-[100px]" }, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(` No `);
+                                        } else {
+                                          return [
+                                            createTextVNode(" No ")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`Nama Pekerjaan`);
+                                        } else {
+                                          return [
+                                            createTextVNode("Nama Pekerjaan")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`No Kontrak`);
+                                        } else {
+                                          return [
+                                            createTextVNode("No Kontrak")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`Nilai Kontrak`);
+                                        } else {
+                                          return [
+                                            createTextVNode("Nilai Kontrak")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`Lokasi`);
+                                        } else {
+                                          return [
+                                            createTextVNode("Lokasi")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`Tanggal Mulai`);
+                                        } else {
+                                          return [
+                                            createTextVNode("Tanggal Mulai")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, null, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(`Tanggal Selesai`);
+                                        } else {
+                                          return [
+                                            createTextVNode("Tanggal Selesai")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                    _push6(ssrRenderComponent(_component_TableHead, { class: "text-center" }, {
+                                      default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                        if (_push7) {
+                                          _push7(` Action `);
+                                        } else {
+                                          return [
+                                            createTextVNode(" Action ")
+                                          ];
+                                        }
+                                      }),
+                                      _: 1
+                                    }, _parent6, _scopeId5));
+                                  } else {
+                                    return [
+                                      createVNode(_component_TableHead, { class: "w-[100px]" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(" No ")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("Nama Pekerjaan")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("No Kontrak")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("Nilai Kontrak")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("Lokasi")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("Tanggal Mulai")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode("Tanggal Selesai")
+                                        ]),
+                                        _: 1
+                                      }),
+                                      createVNode(_component_TableHead, { class: "text-center" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(" Action ")
+                                        ]),
+                                        _: 1
+                                      })
+                                    ];
+                                  }
+                                }),
+                                _: 1
+                              }, _parent5, _scopeId4));
+                            } else {
+                              return [
+                                createVNode(_component_TableRow, null, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_TableHead, { class: "w-[100px]" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(" No ")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("Nama Pekerjaan")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("No Kontrak")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("Nilai Kontrak")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("Lokasi")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("Tanggal Mulai")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode("Tanggal Selesai")
+                                      ]),
+                                      _: 1
+                                    }),
+                                    createVNode(_component_TableHead, { class: "text-center" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(" Action ")
+                                      ]),
+                                      _: 1
+                                    })
+                                  ]),
+                                  _: 1
+                                })
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                        _push4(ssrRenderComponent(_component_TableBody, null, {
+                          default: withCtx((_4, _push5, _parent5, _scopeId4) => {
+                            if (_push5) {
+                              _push5(`<!--[-->`);
+                              ssrRenderList(paginatedData.value, (item, index) => {
+                                _push5(ssrRenderComponent(_component_TableRow, {
+                                  key: item.id
+                                }, {
+                                  default: withCtx((_5, _push6, _parent6, _scopeId5) => {
+                                    if (_push6) {
+                                      _push6(ssrRenderComponent(_component_TableCell, null, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate((currentPage.value - 1) * itemsPerPage.value + index + 1)}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(item.namaPekerjaan)}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(item.noKontrak)}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(item.noKontrak), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(item.nilaiKontrak)}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(item.lokasi)}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(item.lokasi), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, null, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(formatTanggal(item.tglMulai))}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, null, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`${ssrInterpolate(formatTanggal(item.tglSelesai))}`);
+                                          } else {
+                                            return [
+                                              createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                      _push6(ssrRenderComponent(_component_TableCell, { class: "text-right" }, {
+                                        default: withCtx((_6, _push7, _parent7, _scopeId6) => {
+                                          if (_push7) {
+                                            _push7(`<div class="flex items-center justify-center gap-2"${_scopeId6}>`);
+                                            _push7(ssrRenderComponent(_sfc_main$2, {
+                                              id: item.id,
+                                              onDataEdited: handleDataEdited
+                                            }, null, _parent7, _scopeId6));
+                                            _push7(ssrRenderComponent(_sfc_main$3, {
+                                              item,
+                                              onDataDeleted: handleDataDeleted
+                                            }, null, _parent7, _scopeId6));
+                                            _push7(`</div>`);
+                                          } else {
+                                            return [
+                                              createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                                createVNode(_sfc_main$2, {
+                                                  id: item.id,
+                                                  onDataEdited: handleDataEdited
+                                                }, null, 8, ["id"]),
+                                                createVNode(_sfc_main$3, {
+                                                  item,
+                                                  onDataDeleted: handleDataDeleted
+                                                }, null, 8, ["item"])
+                                              ])
+                                            ];
+                                          }
+                                        }),
+                                        _: 2
+                                      }, _parent6, _scopeId5));
+                                    } else {
+                                      return [
+                                        createVNode(_component_TableCell, null, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, { class: "font-medium" }, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, { class: "font-medium" }, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(item.noKontrak), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, { class: "font-medium" }, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, { class: "font-medium" }, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(item.lokasi), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, null, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, null, {
+                                          default: withCtx(() => [
+                                            createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                          ]),
+                                          _: 2
+                                        }, 1024),
+                                        createVNode(_component_TableCell, { class: "text-right" }, {
+                                          default: withCtx(() => [
+                                            createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                              createVNode(_sfc_main$2, {
+                                                id: item.id,
+                                                onDataEdited: handleDataEdited
+                                              }, null, 8, ["id"]),
+                                              createVNode(_sfc_main$3, {
+                                                item,
+                                                onDataDeleted: handleDataDeleted
+                                              }, null, 8, ["item"])
+                                            ])
+                                          ]),
+                                          _: 2
+                                        }, 1024)
+                                      ];
+                                    }
+                                  }),
+                                  _: 2
+                                }, _parent5, _scopeId4));
+                              });
+                              _push5(`<!--]-->`);
+                            } else {
+                              return [
+                                (openBlock(true), createBlock(Fragment, null, renderList(paginatedData.value, (item, index) => {
+                                  return openBlock(), createBlock(_component_TableRow, {
+                                    key: item.id
+                                  }, {
+                                    default: withCtx(() => [
+                                      createVNode(_component_TableCell, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(item.noKontrak), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, { class: "font-medium" }, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(item.lokasi), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, null, {
+                                        default: withCtx(() => [
+                                          createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                        ]),
+                                        _: 2
+                                      }, 1024),
+                                      createVNode(_component_TableCell, { class: "text-right" }, {
+                                        default: withCtx(() => [
+                                          createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                            createVNode(_sfc_main$2, {
+                                              id: item.id,
+                                              onDataEdited: handleDataEdited
+                                            }, null, 8, ["id"]),
+                                            createVNode(_sfc_main$3, {
+                                              item,
+                                              onDataDeleted: handleDataDeleted
+                                            }, null, 8, ["item"])
+                                          ])
+                                        ]),
+                                        _: 2
+                                      }, 1024)
+                                    ]),
+                                    _: 2
+                                  }, 1024);
+                                }), 128))
+                              ];
+                            }
+                          }),
+                          _: 1
+                        }, _parent4, _scopeId3));
+                      } else {
+                        return [
+                          createVNode(_component_TableHeader, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_TableRow, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_TableHead, { class: "w-[100px]" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(" No ")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Nama Pekerjaan")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("No Kontrak")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Nilai Kontrak")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Lokasi")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Tanggal Mulai")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Tanggal Selesai")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, { class: "text-center" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(" Action ")
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_TableBody, null, {
+                            default: withCtx(() => [
+                              (openBlock(true), createBlock(Fragment, null, renderList(paginatedData.value, (item, index) => {
+                                return openBlock(), createBlock(_component_TableRow, {
+                                  key: item.id
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.noKontrak), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.lokasi), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "text-right" }, {
+                                      default: withCtx(() => [
+                                        createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                          createVNode(_sfc_main$2, {
+                                            id: item.id,
+                                            onDataEdited: handleDataEdited
+                                          }, null, 8, ["id"]),
+                                          createVNode(_sfc_main$3, {
+                                            item,
+                                            onDataDeleted: handleDataDeleted
+                                          }, null, 8, ["item"])
+                                        ])
+                                      ]),
+                                      _: 2
+                                    }, 1024)
+                                  ]),
+                                  _: 2
+                                }, 1024);
+                              }), 128))
+                            ]),
+                            _: 1
+                          })
+                        ];
+                      }
+                    }),
+                    _: 1
+                  }, _parent3, _scopeId2));
+                  _push3(`</div>`);
+                } else {
+                  return [
+                    createVNode(_sfc_main$4, { onDataAdded: fetchData }),
+                    isLoading.value ? (openBlock(), createBlock("div", {
+                      key: 0,
+                      class: "flex justify-center items-center p-8"
+                    }, [
+                      createVNode("div", { class: "animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent" })
+                    ])) : createCommentVNode("", true),
+                    createVNode("div", { class: "min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px" }, [
+                      createVNode(_component_Table, null, {
+                        default: withCtx(() => [
+                          createVNode(_component_TableHeader, null, {
+                            default: withCtx(() => [
+                              createVNode(_component_TableRow, null, {
+                                default: withCtx(() => [
+                                  createVNode(_component_TableHead, { class: "w-[100px]" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(" No ")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Nama Pekerjaan")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("No Kontrak")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Nilai Kontrak")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Lokasi")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Tanggal Mulai")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode("Tanggal Selesai")
+                                    ]),
+                                    _: 1
+                                  }),
+                                  createVNode(_component_TableHead, { class: "text-center" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(" Action ")
+                                    ]),
+                                    _: 1
+                                  })
+                                ]),
+                                _: 1
+                              })
+                            ]),
+                            _: 1
+                          }),
+                          createVNode(_component_TableBody, null, {
+                            default: withCtx(() => [
+                              (openBlock(true), createBlock(Fragment, null, renderList(paginatedData.value, (item, index) => {
+                                return openBlock(), createBlock(_component_TableRow, {
+                                  key: item.id
+                                }, {
+                                  default: withCtx(() => [
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.noKontrak), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "font-medium" }, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(item.lokasi), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, null, {
+                                      default: withCtx(() => [
+                                        createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                      ]),
+                                      _: 2
+                                    }, 1024),
+                                    createVNode(_component_TableCell, { class: "text-right" }, {
+                                      default: withCtx(() => [
+                                        createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                          createVNode(_sfc_main$2, {
+                                            id: item.id,
+                                            onDataEdited: handleDataEdited
+                                          }, null, 8, ["id"]),
+                                          createVNode(_sfc_main$3, {
+                                            item,
+                                            onDataDeleted: handleDataDeleted
+                                          }, null, 8, ["item"])
+                                        ])
+                                      ]),
+                                      _: 2
+                                    }, 1024)
+                                  ]),
+                                  _: 2
+                                }, 1024);
+                              }), 128))
+                            ]),
+                            _: 1
+                          })
+                        ]),
+                        _: 1
+                      })
+                    ])
+                  ];
+                }
+              }),
+              _: 1
+            }, _parent2, _scopeId));
+          } else {
+            return [
+              createVNode(_component_CardHeader, null, {
+                default: withCtx(() => [
+                  createVNode(_component_CardTitle, null, {
+                    default: withCtx(() => [
+                      createVNode(_component_Input, {
+                        type: "text",
+                        modelValue: searchQuery.value,
+                        "onUpdate:modelValue": ($event) => searchQuery.value = $event,
+                        placeholder: "Search..."
+                      }, null, 8, ["modelValue", "onUpdate:modelValue"])
+                    ]),
+                    _: 1
+                  })
+                ]),
+                _: 1
+              }),
+              createVNode(_component_CardContent, null, {
+                default: withCtx(() => [
+                  createVNode(_sfc_main$4, { onDataAdded: fetchData }),
+                  isLoading.value ? (openBlock(), createBlock("div", {
+                    key: 0,
+                    class: "flex justify-center items-center p-8"
+                  }, [
+                    createVNode("div", { class: "animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent" })
+                  ])) : createCommentVNode("", true),
+                  createVNode("div", { class: "min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px" }, [
+                    createVNode(_component_Table, null, {
+                      default: withCtx(() => [
+                        createVNode(_component_TableHeader, null, {
+                          default: withCtx(() => [
+                            createVNode(_component_TableRow, null, {
+                              default: withCtx(() => [
+                                createVNode(_component_TableHead, { class: "w-[100px]" }, {
+                                  default: withCtx(() => [
+                                    createTextVNode(" No ")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nama Pekerjaan")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("No Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Nilai Kontrak")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Lokasi")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Mulai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, null, {
+                                  default: withCtx(() => [
+                                    createTextVNode("Tanggal Selesai")
+                                  ]),
+                                  _: 1
+                                }),
+                                createVNode(_component_TableHead, { class: "text-center" }, {
+                                  default: withCtx(() => [
+                                    createTextVNode(" Action ")
+                                  ]),
+                                  _: 1
+                                })
+                              ]),
+                              _: 1
+                            })
+                          ]),
+                          _: 1
+                        }),
+                        createVNode(_component_TableBody, null, {
+                          default: withCtx(() => [
+                            (openBlock(true), createBlock(Fragment, null, renderList(paginatedData.value, (item, index) => {
+                              return openBlock(), createBlock(_component_TableRow, {
+                                key: item.id
+                              }, {
+                                default: withCtx(() => [
+                                  createVNode(_component_TableCell, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString((currentPage.value - 1) * itemsPerPage.value + index + 1), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, { class: "font-medium" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(item.namaPekerjaan), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, { class: "font-medium" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(item.noKontrak), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, { class: "font-medium" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(item.nilaiKontrak), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, { class: "font-medium" }, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(item.lokasi), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(formatTanggal(item.tglMulai)), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, null, {
+                                    default: withCtx(() => [
+                                      createTextVNode(toDisplayString(formatTanggal(item.tglSelesai)), 1)
+                                    ]),
+                                    _: 2
+                                  }, 1024),
+                                  createVNode(_component_TableCell, { class: "text-right" }, {
+                                    default: withCtx(() => [
+                                      createVNode("div", { class: "flex items-center justify-center gap-2" }, [
+                                        createVNode(_sfc_main$2, {
+                                          id: item.id,
+                                          onDataEdited: handleDataEdited
+                                        }, null, 8, ["id"]),
+                                        createVNode(_sfc_main$3, {
+                                          item,
+                                          onDataDeleted: handleDataDeleted
+                                        }, null, 8, ["item"])
+                                      ])
+                                    ]),
+                                    _: 2
+                                  }, 1024)
+                                ]),
+                                _: 2
+                              }, 1024);
+                            }), 128))
+                          ]),
+                          _: 1
+                        })
+                      ]),
+                      _: 1
+                    })
+                  ])
+                ]),
+                _: 1
+              })
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+      _push(`<div><div class="mt-4 flex float-right">`);
+      _push(ssrRenderComponent(_component_Button, {
+        class: "mr-2",
+        onClick: prevPage,
+        disabled: currentPage.value === 1
+      }, {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(`Previous `);
+          } else {
+            return [
+              createTextVNode("Previous ")
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+      _push(`<span>Page ${ssrInterpolate(currentPage.value)} of ${ssrInterpolate(totalPages.value)}</span>`);
+      _push(ssrRenderComponent(_component_Button, {
+        class: "ml-2",
+        onClick: nextPage,
+        disabled: currentPage.value === totalPages.value
+      }, {
+        default: withCtx((_, _push2, _parent2, _scopeId) => {
+          if (_push2) {
+            _push2(`Next `);
+          } else {
+            return [
+              createTextVNode("Next ")
+            ];
+          }
+        }),
+        _: 1
+      }, _parent));
+      _push(`</div></div><!--]-->`);
+    };
+  }
+});
+const _sfc_setup$1 = _sfc_main$1.setup;
+_sfc_main$1.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("components/master-proyek/ListData.vue");
+  return _sfc_setup$1 ? _sfc_setup$1(props, ctx) : void 0;
+};
+const _sfc_main = /* @__PURE__ */ defineComponent({
+  __name: "master-proyek",
+  __ssrInlineRender: true,
+  setup(__props) {
+    return (_ctx, _push, _parent, _attrs) => {
+      _push(`<div${ssrRenderAttrs(mergeProps({ class: "w-full flex flex-col gap-4" }, _attrs))}><div class="flex flex-wrap items-center justify-between gap-2"><h2 class="text-2xl font-bold tracking-tight">Master Proyek</h2></div><div>`);
+      _push(ssrRenderComponent(_sfc_main$1, null, null, _parent));
+      _push(`</div></div>`);
+    };
+  }
+});
+const _sfc_setup = _sfc_main.setup;
+_sfc_main.setup = (props, ctx) => {
+  const ssrContext = useSSRContext();
+  (ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("pages/(mon-project)/master-proyek.vue");
+  return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
+};
+
+export { _sfc_main as default };
+//# sourceMappingURL=master-proyek-BJQZKWLX.mjs.map

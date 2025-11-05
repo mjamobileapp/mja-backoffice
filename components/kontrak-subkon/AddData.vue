@@ -61,39 +61,6 @@ const formatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
-function onInputnilaiKontrakKontrak(event: Event, field: any) {
-  const input = event.target as HTMLInputElement
-  let val = input.value
-
-  // Hapus semua karakter selain angka & titik
-  val = val.replace(/[^\d.]/g, '')
-
-  // Jika kosong, reset
-  if (!val) {
-    displaynilaiKontrakKontrak.value = ''
-    field.onChange('')
-    return
-  }
-
-  // Pisahkan integer dan desimal
-  const [intPart, decPart] = val.split('.')
-  const num = Number(intPart)
-
-  // Format bagian integer dengan Intl (lebih cepat dari regex)
-  let formatted = formatter.format(num)
-
-  // Tambahkan kembali bagian desimal jika ada
-  if (decPart !== undefined) {
-    formatted += '.' + decPart.slice(0, 2) // batasi 2 digit desimal
-  }
-
-  // Set tampilan formatted
-  displaynilaiKontrakKontrak.value = formatted
-
-  // Simpan nilaiKontrak mentah (tanpa koma) ke field form
-  field.onChange(val)
-}
-
 const isSubmitting = ref(false)
 
 const { handleSubmit, resetForm, setFieldValue } = useForm({
@@ -335,11 +302,22 @@ const onSubmit = handleSubmit(async (values: any) => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ componentField }" name="nilaiKontrak">
+          <FormField v-slot="{ field }" name="nilaiKontrak">
             <FormItem>
               <FormLabel>Nilai Kontrak</FormLabel>
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

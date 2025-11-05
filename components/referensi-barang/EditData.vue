@@ -204,11 +204,22 @@ const onSubmit = handleSubmit(async () => {
           </FormField>
 
           <!-- 🧱 Harga -->
-          <FormField v-slot="{ componentField }" name="harga">
+          <FormField v-slot="{ field }" name="harga">
             <FormItem>
               <FormLabel>Harga</FormLabel>
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

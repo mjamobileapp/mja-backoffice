@@ -331,11 +331,22 @@ const onSubmit = handleSubmit(async (values: any) => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ componentField }" name="nilai">
+          <FormField v-slot="{ field }" name="nilai">
             <FormItem>
-              <FormLabel>Nilai / Jumlah Pembayaran</FormLabel>
+              <FormLabel>Nilai</FormLabel>
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

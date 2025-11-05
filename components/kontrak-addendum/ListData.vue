@@ -84,6 +84,11 @@ onMounted(() => {
   fetchData()
 })
 
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+}
+
 const editItem = ref(null)
 function handleDataEdited() {
   console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
@@ -141,7 +146,7 @@ function handleDataDeleted(deletedItemId) {
                 {{ item.noKontrakAddendum }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.nilaiKontrak }}
+                {{ formatRupiah(item.nilaiKontrak) }}
               </TableCell>
               <TableCell>{{ formatTanggal(item.tglMulai) }}</TableCell>
               <TableCell>{{ formatTanggal(item.tglSelesai) }}</TableCell>

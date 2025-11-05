@@ -409,7 +409,10 @@ watch(searchQuery, v => {
 
                 <td class="px-3 py-2"><Input v-model="row.satuan" disabled /></td>
 
-                <td class="px-3 py-2"><Input :modelValue="row.refHarga" disabled /></td>
+                <td class="px-3 py-2">
+                  <Input :modelValue="row.refHarga" disabled />
+                  <p class="text-xs text-gray-400 mt-0.5">{{ formatRupiah(row.refHarga) }}</p>
+                </td>
 
                 <td class="px-3 py-2">
                   <Input
@@ -417,10 +420,14 @@ watch(searchQuery, v => {
                     :modelValue="row.harga"
                     @update:modelValue="val => handleHargaChange(i, val)"
                   />
+                  <p class="text-xs text-gray-400 mt-0.5">{{ formatRupiah(row.harga) }}</p>
                 </td>
 
                 <td class="px-3 py-2">
                   <Input :modelValue="row.total" disabled class="bg-gray-50" />
+                  <p class="text-xs text-gray-400 mt-0.5 font-semibold">
+                    {{ formatRupiah(row.total) }}
+                  </p>
                 </td>
 
                 <td class="px-3 py-2 text-center">

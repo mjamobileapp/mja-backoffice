@@ -186,7 +186,7 @@ const onSubmit = handleSubmit(async () => {
       createdDate: new Date(),
     }
 
-    const response = await fetch(`${baseUrl}/proyek/${editedItem.value.id}`, {
+    const response = await fetch(`${baseUrl}/proyek/${props.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -255,11 +255,22 @@ const onSubmit = handleSubmit(async () => {
           </FormField>
 
           <!-- 🧱 Field: Nilai Kontrak -->
-          <FormField v-slot="{ componentField }" name="nilaiKontrak">
+          <FormField v-slot="{ field }" name="nilaiKontrak">
             <FormItem>
               <FormLabel>Nilai Kontrak</FormLabel>
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

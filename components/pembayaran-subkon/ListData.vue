@@ -94,6 +94,11 @@ function handleDataEdited() {
   }, 500)
 }
 
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+}
+
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
 }
@@ -143,7 +148,7 @@ function handleDataDeleted(deletedItemId) {
               <TableCell>{{ formatTanggal(item.tanggal) }}</TableCell>
 
               <TableCell class="font-medium">
-                {{ item.nilai }}
+                {{ formatRupiah(item.nilai) }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.keterangan }}

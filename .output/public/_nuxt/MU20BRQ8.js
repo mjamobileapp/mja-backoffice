@@ -1,0 +1,1 @@
+import{d as a,a as o,o as s,C as c,u as n,ck as t}from"./BrGgeaUg.js";const f=a({__name:"AvatarImage",props:{src:{},referrerPolicy:{},asChild:{type:Boolean},as:{}},setup(e){const r=e;return(l,p)=>(s(),o(n(t),c(r,{class:"h-full w-full object-cover"}),null,16))}});export{f as _};

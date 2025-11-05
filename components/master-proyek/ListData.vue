@@ -86,12 +86,17 @@ onMounted(() => {
 
 const editItem = ref(null)
 function handleDataEdited(editedItem) {
-  // console.log(editItem)
-  const index = data.value.findIndex(item => item.id === editedItem.id)
-  if (index !== -1) {
-    data.value[index] = editedItem
-  }
-  editItem.value = null
+  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
+
+  setTimeout(() => {
+    console.log('Melakukan fetch data setelah edit...')
+    fetchData()
+  }, 500)
+}
+
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
 function handleDataDeleted(deletedItemId) {
@@ -138,7 +143,7 @@ function handleDataDeleted(deletedItemId) {
                 {{ item.noKontrak }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.nilaiKontrak }}
+                {{ formatRupiah(item.nilaiKontrak) }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.lokasi }}

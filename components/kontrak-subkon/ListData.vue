@@ -46,6 +46,11 @@ function formatTanggal(tanggal: any) {
   return formatDate(tanggal, 'dd/M/yyyy')
 }
 
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+}
+
 // get token=====
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
@@ -139,7 +144,7 @@ function handleDataDeleted(deletedItemId) {
               <TableCell>{{ formatTanggal(item.tanggal) }}</TableCell>
 
               <TableCell class="font-medium">
-                {{ item.nilaiKontrak }}
+                {{ formatRupiah(item.nilaiKontrak) }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.keterangan }}
