@@ -40,7 +40,7 @@ onMounted(async () => {
         Authorization: `Bearer ${token}`,
       },
     })
-    // console.log(JSON.stringify(response))
+    console.log(JSON.stringify(response))
     dataNavMenu.value = response
   } catch (err) {
     console.error('Gagal mengambil data menu:', err)
@@ -57,7 +57,7 @@ const { sidebar } = useAppSettings()
       <!-- <Search /> -->
     </SidebarHeader>
     <SidebarContent>
-      <SidebarGroup>
+      <!-- <SidebarGroup>
         <component
           :is="resolveNavItemComponent(item)"
           v-for="(item, index) in navMenuTop"
@@ -65,7 +65,7 @@ const { sidebar } = useAppSettings()
           :item="item"
           size="sm"
         />
-      </SidebarGroup>
+      </SidebarGroup> -->
       <SidebarGroup v-for="(nav, indexGroup) in dataNavMenu" :key="indexGroup">
         <SidebarGroupLabel v-if="nav.heading">
           {{ nav.heading }}
