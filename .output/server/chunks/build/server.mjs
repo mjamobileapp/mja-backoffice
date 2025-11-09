@@ -544,6 +544,11 @@ const _routes = [
     component: () => import('./tasks-BMmXxDSL.mjs')
   },
   {
+    name: "user-home",
+    path: "/user-home",
+    component: () => import('./user-home-WniMCY3C.mjs')
+  },
+  {
     name: "401",
     path: "/401",
     meta: __nuxt_page_meta$9 || {},
@@ -608,7 +613,7 @@ const _routes = [
   {
     name: "po",
     path: "/po",
-    component: () => import('./po-BaylVJsY.mjs')
+    component: () => import('./po-f-ylgIlz.mjs')
   },
   {
     name: "components-alert",
@@ -900,32 +905,32 @@ const _routes = [
   {
     name: "kas-pemasukan",
     path: "/kas-pemasukan",
-    component: () => import('./kas-pemasukan-prx2bLk5.mjs')
+    component: () => import('./kas-pemasukan-jo3bpLD_.mjs')
   },
   {
     name: "master-proyek",
     path: "/master-proyek",
-    component: () => import('./master-proyek-BJQZKWLX.mjs')
+    component: () => import('./master-proyek-DfwkLher.mjs')
   },
   {
     name: "kontrak-subkon",
     path: "/kontrak-subkon",
-    component: () => import('./kontrak-subkon-ChlOTTCH.mjs')
+    component: () => import('./kontrak-subkon-Z-7PuwgM.mjs')
   },
   {
     name: "kontrak-addendum",
     path: "/kontrak-addendum",
-    component: () => import('./kontrak-addendum-CGQUTZJ2.mjs')
+    component: () => import('./kontrak-addendum-gKIcMg_U.mjs')
   },
   {
     name: "referensi-barang",
     path: "/referensi-barang",
-    component: () => import('./referensi-barang-DG8MEtP2.mjs')
+    component: () => import('./referensi-barang-CMEqW0JK.mjs')
   },
   {
     name: "pembayaran-subkon",
     path: "/pembayaran-subkon",
-    component: () => import('./pembayaran-subkon-CBH6cVjv.mjs')
+    component: () => import('./pembayaran-subkon-BgYtKnQZ.mjs')
   },
   {
     name: void 0 ,
@@ -1143,12 +1148,27 @@ function writeServerCookie(event, name, value, opts = {}) {
   }
 }
 const auth_45global = /* @__PURE__ */ defineNuxtRouteMiddleware((to) => {
-  const user = useCookie("currentUser");
-  if (!user.value && to.path !== "/login") {
+  var _a;
+  const userCookie = useCookie("currentUser");
+  let user = userCookie.value;
+  if (typeof user === "string") {
+    try {
+      user = JSON.parse(user);
+    } catch {
+      user = null;
+    }
+  }
+  if (!user && to.path !== "/login") {
     return navigateTo("/login");
   }
-  if (user.value && to.path === "/login") {
+  if (user && to.path === "/login") {
     return navigateTo("/");
+  }
+  if (user && to.path === "/") {
+    const role = (_a = user.role) == null ? void 0 : _a.toLowerCase();
+    if (role !== "admin" && role !== "super admin") {
+      return navigateTo("/user-home");
+    }
   }
 });
 const manifest_45route_45rule = /* @__PURE__ */ defineNuxtRouteMiddleware(async (to) => {
@@ -2061,7 +2081,7 @@ const plugins = [
 ];
 const layouts = {
   blank: defineAsyncComponent(() => import('./blank-CUfiiuQ1.mjs').then((m) => m.default || m)),
-  default: defineAsyncComponent(() => import('./default-BClWApLo.mjs').then((m) => m.default || m))
+  default: defineAsyncComponent(() => import('./default-p9Yus7tV.mjs').then((m) => m.default || m))
 };
 const LayoutLoader = defineComponent({
   name: "LayoutLoader",

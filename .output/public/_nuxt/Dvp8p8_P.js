@@ -1,1 +1,0 @@
-import{d as o,g as t,o as n,n as r,u as c,e as l,V as p}from"./BrGgeaUg.js";const d=o({__name:"CardDescription",props:{class:{}},setup(s){const e=s;return(a,m)=>(n(),t("p",{class:r(c(l)("text-sm text-muted-foreground",e.class))},[p(a.$slots,"default")],2))}});export{d as _};

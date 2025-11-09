@@ -1,1 +1,0 @@
-import{d as t,g as o,o as n,n as l,u as r,e as c,V as p}from"./BrGgeaUg.js";const d=t({__name:"DialogHeader",props:{class:{}},setup(e){const s=e;return(a,f)=>(n(),o("div",{class:l(r(c)("flex flex-col gap-y-1.5 text-center sm:text-left",s.class))},[p(a.$slots,"default")],2))}});export{d as _};

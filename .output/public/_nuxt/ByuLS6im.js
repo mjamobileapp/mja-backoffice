@@ -1,1 +1,0 @@
-import{_ as o}from"./DlAUqK2U.js";import{g as t,f as r,o as s}from"./BrGgeaUg.js";const a={};function n(p,e,l,c,f,_){return s(),t("div",null,[...e[0]||(e[0]=[r("p",null,"Hallow",-1)])])}const m=o(a,[["render",n]]);export{m as default};
