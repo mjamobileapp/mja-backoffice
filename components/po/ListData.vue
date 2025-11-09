@@ -17,8 +17,10 @@ const itemsPerPage = ref(10)
 const data = ref<any>([]) // Define the type for fetched data
 
 const filteredData = computed(() => {
-  return data.value.filter(item =>
-    item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return data.value.filter(
+    item =>
+      item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      item.noPo.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 

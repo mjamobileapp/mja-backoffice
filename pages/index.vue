@@ -22,6 +22,7 @@ const selectedProyek = ref(1)
 
 const jumlahProyek = ref(0)
 const totalNilaiKontrak = ref(0)
+const totalNilaiProyek = ref(0)
 const objProyek = ref({})
 const dataBarchart = ref<{ name: string; total: number }[]>([])
 
@@ -82,6 +83,7 @@ async function fetchDataBarchart(idProyek) {
 
     jumlahProyek.value = result.jumlahProyek
     totalNilaiKontrak.value = result.totalNilaiKontrak
+    totalNilaiProyek.value = result.totalNilaiProyek
 
     // ✅ Isi data chart di sini
     dataBarchart.value = Array.isArray(result.data)
@@ -226,7 +228,7 @@ watch(selectedProyek, newId => {
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              <NumberFlowRp :value="objProyek.nilaiKontrak" />
+              <NumberFlowRp :value="totalNilaiProyek" />
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>
