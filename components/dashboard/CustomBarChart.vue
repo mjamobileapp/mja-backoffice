@@ -29,6 +29,8 @@ const chartData = computed(() => ({
             return '#eab308' // kuning
           case 'purple':
             return '#8b5cf6' // ungu
+          case 'orange':
+            return '#EA8808' // orange
           default:
             return '#10b981' // fallback hijau
         }
