@@ -211,7 +211,7 @@ const downloadPdf = async item => {
                     <Tooltip>
                       <TooltipTrigger as-child>
                         <Button
-                          :disabled="downloadingId === item.id"
+                          :disabled="Number(item.grandTotal) === 0 || downloadingId === item.id"
                           @click="downloadPdf(item)"
                           size="sm"
                         >

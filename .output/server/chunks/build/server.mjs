@@ -536,7 +536,7 @@ const _routes = [
   {
     name: "index",
     path: "/",
-    component: () => import('./index-C4tMKCf3.mjs')
+    component: () => import('./index-n_il28Zz.mjs')
   },
   {
     name: "tasks",
@@ -582,7 +582,7 @@ const _routes = [
     name: "login",
     path: "/login",
     meta: __nuxt_page_meta$4 || {},
-    component: () => import('./login-Cu5UvEfl.mjs')
+    component: () => import('./login-9O3G7IBj.mjs')
   },
   {
     name: "settings-pages",
@@ -593,7 +593,7 @@ const _routes = [
     name: "register",
     path: "/register",
     meta: __nuxt_page_meta$3 || {},
-    component: () => import('./register-CGSWo9Al.mjs')
+    component: () => import('./register-D8Py7mF3.mjs')
   },
   {
     name: "components-card",
@@ -613,7 +613,7 @@ const _routes = [
   {
     name: "po",
     path: "/po",
-    component: () => import('./po-f-ylgIlz.mjs')
+    component: () => import('./po-DWP8E6NM.mjs')
   },
   {
     name: "components-alert",
@@ -905,7 +905,7 @@ const _routes = [
   {
     name: "kas-pemasukan",
     path: "/kas-pemasukan",
-    component: () => import('./kas-pemasukan-jo3bpLD_.mjs')
+    component: () => import('./kas-pemasukan-jINAdM5M.mjs')
   },
   {
     name: "master-proyek",
@@ -915,12 +915,12 @@ const _routes = [
   {
     name: "kontrak-subkon",
     path: "/kontrak-subkon",
-    component: () => import('./kontrak-subkon-Z-7PuwgM.mjs')
+    component: () => import('./kontrak-subkon-CsFDDzzq.mjs')
   },
   {
     name: "kontrak-addendum",
     path: "/kontrak-addendum",
-    component: () => import('./kontrak-addendum-gKIcMg_U.mjs')
+    component: () => import('./kontrak-addendum-oZVB8d_P.mjs')
   },
   {
     name: "referensi-barang",
@@ -930,7 +930,7 @@ const _routes = [
   {
     name: "pembayaran-subkon",
     path: "/pembayaran-subkon",
-    component: () => import('./pembayaran-subkon-BgYtKnQZ.mjs')
+    component: () => import('./pembayaran-subkon-DZdpNRCL.mjs')
   },
   {
     name: void 0 ,
