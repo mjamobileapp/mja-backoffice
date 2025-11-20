@@ -1,60 +1,23 @@
 <script setup lang="ts">
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
-import EditData from './EditData.vue'
 import DeleteData from './DeleteData.vue'
+import EditData from './EditData.vue'
+import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 const isLoading = ref(false)
-
+// console.log(baseUrl)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-const data = ref([]) // Define the type for fetched data
-
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-
-async function fetchData() {
-  // console.log(baseUrl)
-  isLoading.value = true
-  try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/menus`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData)
-    // console.log(fetchedData.data)
-    if (Array.isArray(fetchedData.data)) {
-      data.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      data.value = []
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchData()
-})
+const data = ref<any>([]) // Define the type for fetched data
 
 const filteredData = computed(() => {
-  return data.value.filter((item: any) =>
-    item.namaMenu.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return data.value.filter(item =>
+    item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
@@ -67,16 +30,70 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, start + itemsPerPage.value)
 })
 
-function nextPage() {
+const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
   }
 }
 
-function prevPage() {
+const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--
   }
+}
+
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+}
+
+// get token=====
+const accessToken = useCookie('accessToken')
+const token = accessToken.value.token
+
+async function fetchData() {
+  isLoading.value = true
+  try {
+    const timestamp = new Date().getTime()
+    const response = await fetch(`${baseUrl}/masterUpah`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const fetchedData = await response.json()
+    console.log('Data yang diterima dari server:', fetchedData)
+
+    if (Array.isArray(fetchedData.data)) {
+      data.value = fetchedData.data
+    } else {
+      console.error('Data yang diterima bukan array:', fetchedData)
+      data.value = []
+    }
+  } catch (error) {
+    console.error('Gagal mengambil data:', error)
+    data.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchData()
+})
+
+function handleDataEdited() {
+  setTimeout(() => {
+    console.log('Melakukan fetch data setelah edit...')
+    fetchData()
+  }, 500)
+}
+
+function handleDataDeleted(deletedItemId) {
+  data.value = data.value.filter(item => item.id !== deletedItemId)
 }
 </script>
 <template>
@@ -98,31 +115,35 @@ function prevPage() {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
-              <TableHead>Nama Menu</TableHead>
-              <TableHead>Menu Header</TableHead>
-              <TableHead>Sub Menu</TableHead>
-              <TableHead>No Urut</TableHead>
-              <TableHead class="text-center w-[300px]"> Action </TableHead>
+              <TableHead>Nama Pekerjaan</TableHead>
+              <TableHead>Spesifikasi</TableHead>
+              <TableHead>Harga</TableHead>
+              <TableHead>Unit</TableHead>
+              <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="(item, index) in paginatedData" :key="item.id">
               <TableCell>
-                {{ index + 1 }}
+                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.namaMenu }}
+                {{ item.namaPekerjaan }}
               </TableCell>
-              <TableCell>{{ item.menuParent }}</TableCell>
-              <TableCell>
-                {{ item.menuSubParent }}
+              <TableCell class="font-medium">
+                {{ item.spesifikasi }}
               </TableCell>
-              <TableCell>
-                {{ item.noUrut }}
+              <TableCell class="font-medium">
+                {{ formatRupiah(item.harga) }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ item.unit }}
               </TableCell>
               <TableCell class="text-right">
-                <EditData :id="item.id" @dataUpdated="fetchData" />
-                <DeleteData :item="item" @dataDeleted="fetchData" />
+                <div class="flex items-center justify-center gap-2">
+                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
+                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                </div>
               </TableCell>
             </TableRow>
           </TableBody>

@@ -9,4 +9,5 @@ import 'node:crypto';
 import 'node:url';
 import '@iconify/utils';
 import 'consola';
+import 'node:module';
 //# sourceMappingURL=index.mjs.map

@@ -20,6 +20,7 @@ import 'node:crypto';
 import 'node:url';
 import '@iconify/utils';
 import 'consola';
+import 'node:module';
 import 'vue-bundle-renderer/runtime';
 import 'unhead/server';
 import 'devalue';
@@ -613,7 +614,7 @@ const _routes = [
   {
     name: "po",
     path: "/po",
-    component: () => import('./po-DWP8E6NM.mjs')
+    component: () => import('./po-OXQ4vW4c.mjs')
   },
   {
     name: "components-alert",

@@ -31,7 +31,7 @@ const formSchema = toTypedSchema(
   z.object({
     namaMenu: z.string(),
     url: z.string(),
-    parentId: z.string().optional(),
+    parentId: z.number().optional(),
     noUrut: z.number(),
     levelMenu: z.number(),
     tipeMenu: z.string(),
@@ -91,7 +91,12 @@ const isLoading = ref(false)
 
 async function fetchMenuHeader() {
   try {
-    const response = await fetch(`${baseUrl}/getMenuHeader`)
+    const response = await fetch(`${baseUrl}/getMenuHeader`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     if (response.ok) {
       const data = await response.json()
       listMenuHeader.value = data
@@ -108,6 +113,7 @@ async function openDialog() {
   isDialogOpen.value = true
   await fetchData()
   await fetchMenuHeader()
+  console.log(props.id)
 }
 
 function closeDialog() {
@@ -157,7 +163,7 @@ async function fetchData() {
 }
 
 const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.email || 'no-email@example.com')
+const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
 const onSubmit = handleSubmit(async (values: any) => {
@@ -166,6 +172,8 @@ const onSubmit = handleSubmit(async (values: any) => {
     namaMenu: values.namaMenu,
     url: values.url,
     parentId: values.parentId,
+    menuParent: values.menuParent ? values.menuParent : '',
+    menuSubParent: values.menuSubParent ? values.menuSubParent : '',
     noUrut: values.noUrut,
     levelMenu: values.levelMenu,
     tipeMenu: values.tipeMenu,
@@ -173,9 +181,9 @@ const onSubmit = handleSubmit(async (values: any) => {
     createdBy: email.value,
     createdDate: new Date(),
   }
-  //   console.log(dataForm)
+  // console.log(dataForm)
   try {
-    const response = await fetch(`${baseUrl}/roles/${props.id}`, {
+    const response = await fetch(`${baseUrl}/menus/${props.id}`, {
       method: 'PUT', // atau PATCH
       headers: {
         'Content-Type': 'application/json',
@@ -185,10 +193,7 @@ const onSubmit = handleSubmit(async (values: any) => {
     })
 
     if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil diperbarui.',
-      })
+      toast({ title: 'Success', description: 'Data berhasil diupdate.' })
 
       setTimeout(() => {
         emit('dataUpdated')
@@ -196,17 +201,11 @@ const onSubmit = handleSubmit(async (values: any) => {
         resetForm()
       }, 300)
     } else {
-      toast({
-        title: 'Error',
-        description: 'Gagal memperbarui data. Silakan coba lagi.',
-      })
+      toast({ title: 'Error', description: 'Gagal Update data.' })
     }
   } catch (error) {
-    console.error('Error updating data:', error)
-    toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat mengirim data.',
-    })
+    console.error('Error submitting data:', error)
+    toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
   } finally {
     isSubmitting.value = false
   }

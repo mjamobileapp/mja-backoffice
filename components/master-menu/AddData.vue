@@ -31,7 +31,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.email || 'no-email@example.com')
+const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 // get token====================
 const accessToken = useCookie('accessToken')
