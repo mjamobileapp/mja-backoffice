@@ -40,7 +40,7 @@ onMounted(async () => {
         Authorization: `Bearer ${token}`,
       },
     })
-    console.log(JSON.stringify(response))
+    // console.log(JSON.stringify(response))
     dataNavMenu.value = response
   } catch (err) {
     console.error('Gagal mengambil data menu:', err)
