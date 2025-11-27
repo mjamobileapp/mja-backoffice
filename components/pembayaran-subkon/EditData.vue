@@ -17,7 +17,8 @@ import { useForm } from 'vee-validate'
 import { ref, onMounted } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
-
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 import {
   CalendarDate,
   DateFormatter,
@@ -57,7 +58,10 @@ const profileFormSchema = toTypedSchema(
     idSubkon: z.number(),
     keterangan: z.string(),
     nilai: z.number(),
-    tanggal: z.string().datetime(),
+    tanggal: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
   })
 )
 
@@ -77,8 +81,7 @@ const isDialogOpen = ref(false)
 // Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
 // Asumsi: setValues adalah fungsi dari VeeValidate useForm
 
-const dateMulai = ref<DateValue | undefined>()
-const dateSelesai = ref<DateValue | undefined>()
+const dateMulai = ref(null)
 
 const kontrakSubkonList = ref([])
 
@@ -119,25 +122,9 @@ async function fetchData() {
 
     if (response.ok) {
       const { data } = await response.json()
-      console.log(data)
 
-      // --- 1. Penanganan Nilai Kontrak (String ke Number) ---
-      // Konversi string nilai menjadi float.
       const nilaiNumber = parseFloat(data.nilai)
-
-      // --- 2. Penanganan Tanggal (Invalid Time Value) ---
-      // Pastikan tglSelesai ada. Jika tidak, beri nilai default (misalnya null/undefined).
-      const tanggalString = data.tanggal
-
-      // Inisialisasi Date Objects
-      const dateObj = tanggalString ? toDate(tanggalString) : undefined
-
-      // Cek apakah toDate berhasil mengonversi. Jika tidak, nilai akan menjadi Invalid Date.
-      if (dateObj && isNaN(dateObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      // Tambahkan pengecekan serupa untuk dateSelesaiObj jika diperlukan
-
+      const tanggalString = toDate(data.tanggal)
       // --- 3. setValues ke VeeValidate ---
       setValues({
         idSubkon: data.idSubkon,
@@ -145,17 +132,11 @@ async function fetchData() {
         nilai: nilaiNumber,
         keterangan: data.keterangan,
         // Kirim Date Object yang sudah valid atau undefined/null
-        tanggal: dateObj ? dateObj.toISOString() : undefined,
+        tanggal: tanggalString,
       })
 
       // --- 4. Set Nilai untuk Kalender (hanya jika objek Date valid) ---
-      if (dateObj) {
-        dateMulai.value = new CalendarDate(
-          dateObj.getFullYear(),
-          dateObj.getMonth() + 1, // Month + 1 karena CalendarDate berbasis 1
-          dateObj.getDate()
-        )
-      }
+      dateMulai.value = tanggalString
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
@@ -247,7 +228,6 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ value }" name="idSubkon">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Subkon</FormLabel>
-
               <Popover v-model:open="open">
                 <PopoverTrigger as-child>
                   <FormControl>
@@ -260,7 +240,7 @@ const onSubmit = handleSubmit(async () => {
                       {{
                         value
                           ? kontrakSubkonList.find(item => item.id === value)?.namaSubkon
-                          : 'Select kontrakSubkon...'
+                          : 'Select Subkon...'
                       }}
 
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -269,8 +249,8 @@ const onSubmit = handleSubmit(async () => {
                 </PopoverTrigger>
                 <PopoverContent class="p-0">
                   <Command>
-                    <CommandInput placeholder="Search kontrakSubkon..." />
-                    <CommandEmpty>No Kontrak Subkon found.</CommandEmpty>
+                    <CommandInput placeholder="Search Subkon..." />
+                    <CommandEmpty>No Subkon found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>
                         <CommandItem
@@ -289,13 +269,14 @@ const onSubmit = handleSubmit(async () => {
                               cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
                             "
                           />
-                          {{ item.namaSubkon }}
+                          {{ item.namaSubkon }} - {{ item.namaPekerjaan }}
                         </CommandItem>
                       </CommandGroup>
                     </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
+
               <FormMessage />
             </FormItem>
           </FormField>
@@ -303,45 +284,17 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ field, value }" name="tanggal">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal</FormLabel>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      :class="
-                        cn('justify-start text-left font-normal', !value && 'text-muted-foreground')
-                      "
-                    >
-                      <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                      <span>
-                        {{
-                          value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                        }}
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-
-                <PopoverContent class="p-0">
-                  <Calendar
-                    v-model:placeholder="placeholder"
-                    v-model="dateMulai"
-                    calendar-label="Tanggal"
-                    initial-focus
-                    @update:model-value="
-                      v => {
-                        if (v) {
-                          dateMulai = v
-                          setFieldValue('tanggal', toDate(v).toISOString())
-                        } else {
-                          dateMulai = undefined
-                          setFieldValue('tanggal', undefined)
-                        }
-                      }
-                    "
-                  />
-                </PopoverContent>
-              </Popover>
+              <Datepicker
+                v-model="dateMulai"
+                :enable-time-picker="false"
+                :format="'dd-MM-yyyy'"
+                @update:model-value="
+                  val => {
+                    dateMulai = val
+                    field.onChange(val) // <--- ini penting
+                  }
+                "
+              />
               <FormMessage />
             </FormItem>
             <input type="hidden" v-bind="field" />

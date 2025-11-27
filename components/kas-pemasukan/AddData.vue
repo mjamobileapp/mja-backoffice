@@ -29,6 +29,8 @@ import {
 } from '@internationalized/date'
 import { toDate } from 'date-fns'
 
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 const emit = defineEmits(['dataAdded'])
 
 const config = useRuntimeConfig()
@@ -48,7 +50,11 @@ const profileFormSchema = toTypedSchema(
     idProyek: z.number(),
     keterangan: z.string(),
     nilai: z.number(),
-    tanggal: z.string().datetime(),
+
+    tanggal: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
   })
 )
 
@@ -118,16 +124,16 @@ onMounted(() => {
 })
 
 const open = ref(false)
-const dateMulai = ref<DateValue | undefined>(undefined)
-const placeholder = today(getLocalTimeZone())
+// const dateMulai = ref<DateValue | undefined>(undefined)
+const dateMulai = ref(null)
 
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
 
   open.value = false
-  dateMulai.value = undefined
-  setFieldValue('tanggal', undefined)
+  dateMulai.value = null
+  setFieldValue('tanggal', '')
 }
 
 // get token====================
@@ -190,7 +196,7 @@ const onSubmit = handleSubmit(async (values: any) => {
         description: 'Data berhasil disimpan.',
       })
 
-      console.log('[AddData] Emitting dataAdded...')
+      // console.log('[AddData] Emitting dataAdded...')
       emit('dataAdded') // kirim emit dulu
       open.value = false
       dateMulai.value = undefined
@@ -287,46 +293,17 @@ const onSubmit = handleSubmit(async (values: any) => {
           <FormField v-slot="{ field, value }" name="tanggal">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal</FormLabel>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      :class="
-                        cn('justify-start text-left font-normal', !value && 'text-muted-foreground')
-                      "
-                    >
-                      <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                      <span>
-                        {{
-                          value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                        }}
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-
-                <PopoverContent class="p-0">
-                  <Calendar
-                    v-model:placeholder="placeholder"
-                    v-model="dateMulai"
-                    calendar-label="Tanggal"
-                    initial-focus
-                    @update:model-value="
-                      v => {
-                        if (v) {
-                          dateMulai = v
-                          setFieldValue('tanggal', toDate(v).toISOString())
-                        } else {
-                          dateMulai = undefined
-                          setFieldValue('tanggal', undefined)
-                        }
-                      }
-                    "
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
+              <Datepicker
+                v-model="dateMulai"
+                :enable-time-picker="false"
+                :format="'dd-MM-yyyy'"
+                @update:model-value="
+                  val => {
+                    dateMulai = val
+                    field.onChange(val) // <--- ini penting
+                  }
+                "
+              />
             </FormItem>
             <input type="hidden" v-bind="field" />
           </FormField>

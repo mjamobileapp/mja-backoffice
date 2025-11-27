@@ -17,7 +17,8 @@ import { useForm } from 'vee-validate'
 import { ref, onMounted } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
-
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 import {
   CalendarDate,
   DateFormatter,
@@ -60,8 +61,14 @@ const profileFormSchema = toTypedSchema(
     alamat: z.string(),
     penerima: z.string(),
     ppn: z.number(),
-    tanggal: z.string().datetime(),
-    tglPengiriman: z.string().datetime(),
+    tanggal: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
+    tglPengiriman: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
     jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
   })
 )
@@ -87,8 +94,8 @@ const isDialogOpen = ref(false)
 // Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
 // Asumsi: setValues adalah fungsi dari VeeValidate useForm
 
-const dateMulai = ref<DateValue | undefined>()
-const datePengiriman = ref<DateValue | undefined>()
+const datePo = ref(null)
+const dateDelivery = ref(null)
 
 const proyekList = ref([])
 
@@ -129,7 +136,6 @@ async function fetchData() {
 
     if (response.ok) {
       const { data } = await response.json()
-      console.log(data)
 
       // --- 1. Penanganan Nilai Kontrak (String ke Number) ---
       // Konversi string nilai menjadi float.
@@ -137,21 +143,8 @@ async function fetchData() {
 
       // --- 2. Penanganan Tanggal (Invalid Time Value) ---
       // Pastikan tglSelesai ada. Jika tidak, beri nilai default (misalnya null/undefined).
-      const tanggalString = data.tanggal
-      const tglPengirimanString = data.tglPengiriman
-
-      // Inisialisasi Date Objects
-      const dateObj = tanggalString ? toDate(tanggalString) : undefined
-      const datePengirimanObj = tglPengirimanString ? toDate(tglPengirimanString) : undefined
-
-      // Cek apakah toDate berhasil mengonversi. Jika tidak, nilai akan menjadi Invalid Date.
-      if (dateObj && isNaN(dateObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      if (datePengirimanObj && isNaN(datePengirimanObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      // Tambahkan pengecekan serupa untuk datePengirimanObj jika diperlukan
+      const tanggalString = toDate(data.tanggal)
+      const tglPengirimanString = toDate(data.tglPengiriman)
 
       // --- 3. setValues ke VeeValidate ---
       setValues({
@@ -162,25 +155,12 @@ async function fetchData() {
         alamat: data.alamat,
         penerima: data.penerima,
         jenisPayment: data.jenisPayment,
-        tanggal: dateObj ? dateObj.toISOString() : undefined,
-        tglPengiriman: datePengirimanObj ? datePengirimanObj.toISOString() : undefined,
+        tanggal: tanggalString,
+        tglPengiriman: tglPengirimanString,
       })
 
-      // --- 4. Set Nilai untuk Kalender (hanya jika objek Date valid) ---
-      if (dateObj) {
-        dateMulai.value = new CalendarDate(
-          dateObj.getFullYear(),
-          dateObj.getMonth() + 1, // Month + 1 karena CalendarDate berbasis 1
-          dateObj.getDate()
-        )
-      }
-      if (datePengirimanObj) {
-        datePengiriman.value = new CalendarDate(
-          datePengirimanObj.getFullYear(),
-          datePengirimanObj.getMonth() + 1, // Month + 1 karena CalendarDate berbasis 1
-          datePengirimanObj.getDate()
-        )
-      }
+      datePo.value = tanggalString
+      dateDelivery.value = tglPengirimanString
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
@@ -327,48 +307,17 @@ const onSubmit = handleSubmit(async () => {
             <FormField v-slot="{ field, value }" name="tanggal">
               <FormItem class="flex flex-col">
                 <FormLabel>Tanggal</FormLabel>
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        :class="
-                          cn(
-                            'justify-start text-left font-normal',
-                            !value && 'text-muted-foreground'
-                          )
-                        "
-                      >
-                        <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                        <span>
-                          {{
-                            value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                          }}
-                        </span>
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-
-                  <PopoverContent class="p-0">
-                    <Calendar
-                      v-model:placeholder="placeholder"
-                      v-model="dateMulai"
-                      calendar-label="Tanggal"
-                      initial-focus
-                      @update:model-value="
-                        v => {
-                          if (v) {
-                            dateMulai = v
-                            setFieldValue('tanggal', toDate(v).toISOString())
-                          } else {
-                            dateMulai = undefined
-                            setFieldValue('tanggal', undefined)
-                          }
-                        }
-                      "
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Datepicker
+                  v-model="datePo"
+                  :enable-time-picker="false"
+                  :format="'dd-MM-yyyy'"
+                  @update:model-value="
+                    val => {
+                      datePo = val
+                      field.onChange(val) // <--- ini penting
+                    }
+                  "
+                />
                 <FormMessage />
               </FormItem>
               <input type="hidden" v-bind="field" />
@@ -410,48 +359,17 @@ const onSubmit = handleSubmit(async () => {
               <FormItem class="flex flex-col h-full">
                 <FormLabel>Tanggal Pengiriman</FormLabel>
                 <FormControl class="flex-1">
-                  <Popover>
-                    <PopoverTrigger as-child>
-                      <Button
-                        variant="outline"
-                        :class="
-                          cn(
-                            'justify-start text-left font-normal w-full',
-                            !value && 'text-muted-foreground'
-                          )
-                        "
-                      >
-                        <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                        <span>
-                          {{
-                            value
-                              ? df.format(toDate(datePengiriman, getLocalTimeZone()))
-                              : 'Pick a date'
-                          }}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent class="p-0">
-                      <Calendar
-                        v-model:placeholder="placeholder"
-                        v-model="datePengiriman"
-                        calendar-label="tglPengiriman"
-                        initial-focus
-                        @update:model-value="
-                          v => {
-                            if (v) {
-                              datePengiriman = v
-                              setFieldValue('tglPengiriman', toDate(v).toISOString())
-                            } else {
-                              datePengiriman = undefined
-                              setFieldValue('tglPengiriman', undefined)
-                            }
-                          }
-                        "
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Datepicker
+                    v-model="dateDelivery"
+                    :enable-time-picker="false"
+                    :format="'dd-MM-yyyy'"
+                    @update:model-value="
+                      val => {
+                        dateDelivery = val
+                        field.onChange(val) // <--- ini penting
+                      }
+                    "
+                  />
                 </FormControl>
 
                 <!-- taruh hidden input di INSIDE FormItem supaya struktur konsisten -->

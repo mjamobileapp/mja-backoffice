@@ -17,6 +17,8 @@ import { useForm } from 'vee-validate'
 import { ref, onMounted } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 import {
   CalendarDate,
@@ -44,7 +46,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // const editedItem = ref({ ...props.item })
-console.log(props.id)
+// console.log(props.id)
 // onMounted(() => {
 //   fetchData()
 //   // console.log(props.item.code)
@@ -57,8 +59,14 @@ const profileFormSchema = toTypedSchema(
     idProyek: z.number(),
     noKontrak: z.string(),
     nilaiKontrak: z.number(),
-    tglMulai: z.string().datetime(),
-    tglSelesai: z.string().datetime(),
+    tglMulai: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
+    tglSelesai: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
   })
 )
 
@@ -68,8 +76,8 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
     idProyek: 0,
     noKontrak: '',
     nilaiKontrak: 0,
-    tglMulai: '',
-    tglSelesai: '', // Use prop value directly as fallback
+    tglMulai: undefined,
+    tglSelesai: undefined, // Use prop value directly as fallback
   },
 })
 
@@ -79,8 +87,8 @@ const isDialogOpen = ref(false)
 // Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
 // Asumsi: setValues adalah fungsi dari VeeValidate useForm
 
-const dateMulai = ref<DateValue | undefined>()
-const dateSelesai = ref<DateValue | undefined>()
+const dateMulai = ref(null)
+const dateSelesai = ref(null)
 
 const proyekList = ref([])
 
@@ -129,21 +137,8 @@ async function fetchData() {
 
       // --- 2. Penanganan Tanggal (Invalid Time Value) ---
       // Pastikan tglSelesai ada. Jika tidak, beri nilai default (misalnya null/undefined).
-      const tglMulaiString = data.tglMulai
-      const tglSelesaiString = data.tglSelesai // tglSelesai tidak ada di API return Anda
-
-      // Inisialisasi Date Objects
-      const dateMulaiObj = tglMulaiString ? toDate(tglMulaiString) : undefined
-
-      // Jika tglSelesai tidak ada di API, gunakan tglMulai sebagai fallback atau null
-      // Jika tglSelesai seharusnya ada tapi null, gunakan operator ||
-      const dateSelesaiObj = tglSelesaiString ? toDate(tglSelesaiString) : undefined
-
-      // Cek apakah toDate berhasil mengonversi. Jika tidak, nilai akan menjadi Invalid Date.
-      if (dateMulaiObj && isNaN(dateMulaiObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      // Tambahkan pengecekan serupa untuk dateSelesaiObj jika diperlukan
+      const tglMulaiString = toDate(data.tglMulai)
+      const tglSelesaiString = toDate(data.tglSelesai) // tglSelesai tidak ada di API return Anda
 
       // --- 3. setValues ke VeeValidate ---
       setValues({
@@ -152,27 +147,11 @@ async function fetchData() {
         // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
         nilaiKontrak: nilaiKontrakNumber,
         // Kirim Date Object yang sudah valid atau undefined/null
-        tglMulai: dateMulaiObj ? dateMulaiObj.toISOString() : undefined,
-        tglSelesai: dateSelesaiObj ? dateSelesaiObj.toISOString() : undefined,
+        tglMulai: tglMulaiString,
+        tglSelesai: tglSelesaiString,
       })
-
-      // --- 4. Set Nilai untuk Kalender (hanya jika objek Date valid) ---
-      if (dateMulaiObj) {
-        dateMulai.value = new CalendarDate(
-          dateMulaiObj.getFullYear(),
-          dateMulaiObj.getMonth() + 1, // Month + 1 karena CalendarDate berbasis 1
-          dateMulaiObj.getDate()
-        )
-      }
-
-      // Lakukan hal yang sama untuk dateSelesai, tapi hanya jika datanya valid
-      if (dateSelesaiObj) {
-        dateSelesai.value = new CalendarDate(
-          dateSelesaiObj.getFullYear(),
-          dateSelesaiObj.getMonth() + 1,
-          dateSelesaiObj.getDate()
-        )
-      }
+      dateMulai.value = tglMulaiString
+      dateSelesai.value = tglSelesaiString
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
@@ -348,50 +327,21 @@ const onSubmit = handleSubmit(async () => {
               <FormMessage />
             </FormItem>
           </FormField>
-
           <!-- 🗓️ Field: Tanggal Mulai -->
           <FormField v-slot="{ field, value }" name="tglMulai">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal Mulai</FormLabel>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      :class="
-                        cn('justify-start text-left font-normal', !value && 'text-muted-foreground')
-                      "
-                    >
-                      <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                      <span>
-                        {{
-                          value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                        }}
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-
-                <PopoverContent class="p-0">
-                  <Calendar
-                    v-model:placeholder="placeholder"
-                    v-model="dateMulai"
-                    calendar-label="Tanggal Mulai"
-                    initial-focus
-                    @update:model-value="
-                      v => {
-                        if (v) {
-                          dateMulai = v
-                          setFieldValue('tglMulai', toDate(v).toISOString())
-                        } else {
-                          dateMulai = undefined
-                          setFieldValue('tglMulai', undefined)
-                        }
-                      }
-                    "
-                  />
-                </PopoverContent>
-              </Popover>
+              <Datepicker
+                v-model="dateMulai"
+                :enable-time-picker="false"
+                :format="'dd-MM-yyyy'"
+                @update:model-value="
+                  val => {
+                    dateMulai = val
+                    field.onChange(val) // <--- ini penting
+                  }
+                "
+              />
               <FormMessage />
             </FormItem>
             <input type="hidden" v-bind="field" />
@@ -401,45 +351,17 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ field, value }" name="tglSelesai">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal Selesai</FormLabel>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      :class="
-                        cn('justify-start text-left font-normal', !value && 'text-muted-foreground')
-                      "
-                    >
-                      <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                      <span>
-                        {{
-                          value ? df.format(toDate(dateSelesai, getLocalTimeZone())) : 'Pick a date'
-                        }}
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-
-                <PopoverContent class="p-0">
-                  <Calendar
-                    v-model:placeholder="placeholder"
-                    v-model="dateSelesai"
-                    calendar-label="Tanggal Selesai"
-                    initial-focus
-                    @update:model-value="
-                      v => {
-                        if (v) {
-                          dateSelesai = v
-                          setFieldValue('tglSelesai', toDate(v).toISOString())
-                        } else {
-                          dateSelesai = undefined
-                          setFieldValue('tglSelesai', undefined)
-                        }
-                      }
-                    "
-                  />
-                </PopoverContent>
-              </Popover>
+              <Datepicker
+                v-model="dateSelesai"
+                :enable-time-picker="false"
+                :format="'dd-MM-yyyy'"
+                @update:model-value="
+                  val => {
+                    dateSelesai = val
+                    field.onChange(val) // <--- ini penting
+                  }
+                "
+              />
               <FormMessage />
             </FormItem>
             <input type="hidden" v-bind="field" />

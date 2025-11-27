@@ -28,8 +28,8 @@ import {
   today,
 } from '@internationalized/date'
 import { toDate } from 'date-fns'
-import Combobox from '../ui/combobox/Combobox.vue'
-import { ComboboxAnchor, ComboboxInput, ComboboxTrigger } from 'radix-vue'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const emit = defineEmits(['dataAdded'])
 
@@ -53,8 +53,14 @@ const profileFormSchema = toTypedSchema(
     alamat: z.string(),
     penerima: z.string(),
     ppn: z.number(),
-    tanggal: z.string().datetime(),
-    tglPengiriman: z.string().datetime(),
+    tanggal: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
+    tglPengiriman: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
     jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
   })
 )
@@ -66,39 +72,6 @@ const formatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 })
-
-function onInputNilaiKontrak(event: Event, field: any) {
-  const input = event.target as HTMLInputElement
-  let val = input.value
-
-  // Hapus semua karakter selain angka & titik
-  val = val.replace(/[^\d.]/g, '')
-
-  // Jika kosong, reset
-  if (!val) {
-    displayNilaiKontrak.value = ''
-    field.onChange('')
-    return
-  }
-
-  // Pisahkan integer dan desimal
-  const [intPart, decPart] = val.split('.')
-  const num = Number(intPart)
-
-  // Format bagian integer dengan Intl (lebih cepat dari regex)
-  let formatted = formatter.format(num)
-
-  // Tambahkan kembali bagian desimal jika ada
-  if (decPart !== undefined) {
-    formatted += '.' + decPart.slice(0, 2) // batasi 2 digit desimal
-  }
-
-  // Set tampilan formatted
-  displayNilaiKontrak.value = formatted
-
-  // Simpan nilai mentah (tanpa koma) ke field form
-  field.onChange(val)
-}
 
 const isSubmitting = ref(false)
 
@@ -123,6 +96,8 @@ function closeDialog() {
   resetForm()
 }
 
+const datePo = ref(null)
+const dateDelivery = ref(null)
 // get token====================
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
@@ -284,48 +259,17 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormField v-slot="{ field, value }" name="tanggal">
               <FormItem class="flex flex-col">
                 <FormLabel>Tanggal</FormLabel>
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        :class="
-                          cn(
-                            'justify-start text-left font-normal',
-                            !value && 'text-muted-foreground'
-                          )
-                        "
-                      >
-                        <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                        <span>
-                          {{
-                            value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                          }}
-                        </span>
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-
-                  <PopoverContent class="p-0">
-                    <Calendar
-                      v-model:placeholder="placeholder"
-                      v-model="dateMulai"
-                      calendar-label="Tanggal"
-                      initial-focus
-                      @update:model-value="
-                        v => {
-                          if (v) {
-                            dateMulai = v
-                            setFieldValue('tanggal', toDate(v).toISOString())
-                          } else {
-                            dateMulai = undefined
-                            setFieldValue('tanggal', undefined)
-                          }
-                        }
-                      "
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Datepicker
+                  v-model="datePo"
+                  :enable-time-picker="false"
+                  :format="'dd-MM-yyyy'"
+                  @update:model-value="
+                    val => {
+                      datePo = val
+                      field.onChange(val) // <--- ini penting
+                    }
+                  "
+                />
                 <FormMessage />
               </FormItem>
               <input type="hidden" v-bind="field" />
@@ -367,48 +311,17 @@ const onSubmit = handleSubmit(async (values: any) => {
               <FormItem class="flex flex-col h-full">
                 <FormLabel>Tanggal Pengiriman</FormLabel>
                 <FormControl class="flex-1">
-                  <Popover>
-                    <PopoverTrigger as-child>
-                      <Button
-                        variant="outline"
-                        :class="
-                          cn(
-                            'justify-start text-left font-normal w-full',
-                            !value && 'text-muted-foreground'
-                          )
-                        "
-                      >
-                        <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                        <span>
-                          {{
-                            value
-                              ? df.format(toDate(datePengiriman, getLocalTimeZone()))
-                              : 'Pick a date'
-                          }}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent class="p-0">
-                      <Calendar
-                        v-model:placeholder="placeholder"
-                        v-model="datePengiriman"
-                        calendar-label="tglPengiriman"
-                        initial-focus
-                        @update:model-value="
-                          v => {
-                            if (v) {
-                              datePengiriman = v
-                              setFieldValue('tglPengiriman', toDate(v).toISOString())
-                            } else {
-                              datePengiriman = undefined
-                              setFieldValue('tglPengiriman', undefined)
-                            }
-                          }
-                        "
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Datepicker
+                    v-model="dateDelivery"
+                    :enable-time-picker="false"
+                    :format="'dd-MM-yyyy'"
+                    @update:model-value="
+                      val => {
+                        dateDelivery = val
+                        field.onChange(val) // <--- ini penting
+                      }
+                    "
+                  />
                 </FormControl>
 
                 <!-- taruh hidden input di INSIDE FormItem supaya struktur konsisten -->

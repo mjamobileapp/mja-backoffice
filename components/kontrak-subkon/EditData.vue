@@ -26,6 +26,8 @@ import {
   today,
 } from '@internationalized/date'
 import { toDate } from 'date-fns'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
@@ -58,7 +60,10 @@ const profileFormSchema = toTypedSchema(
     namaSubkon: z.string(),
     keterangan: z.string(),
     nilaiKontrak: z.number(),
-    tanggal: z.string().datetime(),
+    tanggal: z.date({
+      required_error: 'Please select a valid date.',
+      invalid_type_error: 'Please select a valid date.',
+    }),
   })
 )
 
@@ -80,8 +85,7 @@ const open = ref(false)
 // Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
 // Asumsi: setValues adalah fungsi dari VeeValidate useForm
 
-const dateMulai = ref<DateValue | undefined>()
-const dateSelesai = ref<DateValue | undefined>()
+const dateMulai = ref(null)
 
 const proyekList = ref([])
 
@@ -127,20 +131,7 @@ async function fetchData() {
       // --- 1. Penanganan nilaiKontrak Kontrak (String ke Number) ---
       // Konversi string nilaiKontrak menjadi float.
       const nilaiKontrakNumber = parseFloat(data.nilaiKontrak)
-
-      // --- 2. Penanganan Tanggal (Invalid Time Value) ---
-      // Pastikan tglSelesai ada. Jika tidak, beri nilaiKontrak default (misalnya null/undefined).
-      const tanggalString = data.tanggal
-
-      // Inisialisasi Date Objects
-      const dateObj = tanggalString ? toDate(tanggalString) : undefined
-
-      // Cek apakah toDate berhasil mengonversi. Jika tidak, nilaiKontrak akan menjadi Invalid Date.
-      if (dateObj && isNaN(dateObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      // Tambahkan pengecekan serupa untuk dateSelesaiObj jika diperlukan
-
+      const tanggalString = toDate(data.tanggal)
       // --- 3. setValues ke VeeValidate ---
       setValues({
         idProyek: data.idProyek,
@@ -149,17 +140,10 @@ async function fetchData() {
         nilaiKontrak: nilaiKontrakNumber,
         keterangan: data.keterangan,
         // Kirim Date Object yang sudah valid atau undefined/null
-        tanggal: dateObj ? dateObj.toISOString() : undefined,
+        tanggal: tanggalString,
       })
 
-      // --- 4. Set nilaiKontrak untuk Kalender (hanya jika objek Date valid) ---
-      if (dateObj) {
-        dateMulai.value = new CalendarDate(
-          dateObj.getFullYear(),
-          dateObj.getMonth() + 1, // Month + 1 karena CalendarDate berbasis 1
-          dateObj.getDate()
-        )
-      }
+      dateMulai.value = tanggalString
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
@@ -315,45 +299,17 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ field, value }" name="tanggal">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal</FormLabel>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      :class="
-                        cn('justify-start text-left font-normal', !value && 'text-muted-foreground')
-                      "
-                    >
-                      <RadixIconsCalendar class="mr-2 h-4 w-4 opacity-50" />
-                      <span>
-                        {{
-                          value ? df.format(toDate(dateMulai, getLocalTimeZone())) : 'Pick a date'
-                        }}
-                      </span>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-
-                <PopoverContent class="p-0">
-                  <Calendar
-                    v-model:placeholder="placeholder"
-                    v-model="dateMulai"
-                    calendar-label="Tanggal"
-                    initial-focus
-                    @update:model-value="
-                      v => {
-                        if (v) {
-                          dateMulai = v
-                          setFieldValue('tanggal', toDate(v).toISOString())
-                        } else {
-                          dateMulai = undefined
-                          setFieldValue('tanggal', undefined)
-                        }
-                      }
-                    "
-                  />
-                </PopoverContent>
-              </Popover>
+              <Datepicker
+                v-model="dateMulai"
+                :enable-time-picker="false"
+                :format="'dd-MM-yyyy'"
+                @update:model-value="
+                  val => {
+                    dateMulai = val
+                    field.onChange(val) // <--- ini penting
+                  }
+                "
+              />
               <FormMessage />
             </FormItem>
             <input type="hidden" v-bind="field" />
