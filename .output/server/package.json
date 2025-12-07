@@ -44,6 +44,7 @@
     "@vue/runtime-dom": "3.5.22",
     "@vue/server-renderer": "3.5.22",
     "@vue/shared": "3.5.22",
+    "@vuepic/vue-datepicker": "11.0.2",
     "birpc": "2.6.1",
     "chart.js": "4.5.1",
     "class-variance-authority": "0.7.1",

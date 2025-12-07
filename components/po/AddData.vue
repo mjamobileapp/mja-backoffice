@@ -46,36 +46,29 @@ const df = new DateFormatter('en-US', {
 const proyekList = ref([])
 
 const profileFormSchema = toTypedSchema(
-  z.object({
-    idProyek: z.number(),
-    tujuanPo: z.string(),
-    noTelepon: z.string(),
-    alamat: z.string(),
-    penerima: z.string(),
-    ppn: z.number(),
-    tanggal: z.date({
-      required_error: 'Please select a valid date.',
-      invalid_type_error: 'Please select a valid date.',
-    }),
-    tglPengiriman: z.date({
-      required_error: 'Please select a valid date.',
-      invalid_type_error: 'Please select a valid date.',
-    }),
-    jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
-  })
+  z
+    .object({
+      idProyek: z.number(),
+      tujuanPo: z.string(),
+      noTelepon: z.string(),
+      alamat: z.string(),
+      penerima: z.string(),
+      ppn: z.number(),
+      tanggal: z.date().nullable(),
+      tglPengiriman: z.date().nullable(),
+      jenisPayment: z.string(),
+      tglJatuhTempo: z.date().optional().nullable(),
+    })
+    .refine(data => data.jenisPayment !== 'Tempo' || !!data.tglJatuhTempo, {
+      path: ['tglJatuhTempo'],
+      message: 'Tanggal jatuh tempo harus diisi untuk jenis payment Tempo.',
+    })
 )
 
-const displayNilaiKontrak = ref('')
-
-// Gunakan NumberFormat sekali, bukan setiap ketik
-const formatter = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-})
-
 const isSubmitting = ref(false)
+const dateJatuhTempo = ref(null)
 
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, resetForm, setFieldValue, values } = useForm({
   validationSchema: profileFormSchema,
 })
 
@@ -179,6 +172,18 @@ const onSubmit = handleSubmit(async (values: any) => {
     isSubmitting.value = false
   }
 })
+
+const openPayment = ref(false)
+function onSelectJenisPayment(item: any) {
+  setFieldValue('jenisPayment', item.nama)
+
+  if (item.nama !== 'Tempo') {
+    dateJatuhTempo.value = null
+    setFieldValue('tglJatuhTempo', null)
+  }
+
+  openPayment.value = false
+}
 </script>
 
 <template>
@@ -272,7 +277,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                 />
                 <FormMessage />
               </FormItem>
-              <input type="hidden" v-bind="field" />
+              <!-- <input type="hidden" v-bind="field" /> -->
             </FormField>
 
             <!-- 💰 PPN -->
@@ -325,7 +330,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                 </FormControl>
 
                 <!-- taruh hidden input di INSIDE FormItem supaya struktur konsisten -->
-                <input type="hidden" v-bind="field" />
+                <!-- <input type="hidden" v-bind="field" /> -->
                 <FormMessage />
               </FormItem>
             </FormField>
@@ -352,6 +357,9 @@ const onSubmit = handleSubmit(async (values: any) => {
               </FormItem>
             </FormField>
 
+            <!-- Row: Jenis Payment + Tgl Jatuh Tempo -->
+
+            <!-- Jenis Payment -->
             <FormField v-slot="{ value }" name="jenisPayment">
               <FormItem class="flex flex-col">
                 <FormLabel>Jenis Payment</FormLabel>
@@ -373,6 +381,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
+
                   <PopoverContent class="p-0">
                     <Command>
                       <CommandInput placeholder="Search payment..." />
@@ -382,22 +391,8 @@ const onSubmit = handleSubmit(async (values: any) => {
                           <CommandItem
                             v-for="item in listJenisPayment"
                             :key="item.nama"
-                            :value="item.nama"
-                            @select="
-                              () => {
-                                setFieldValue('jenisPayment', item.nama)
-                                openPayment = false
-                              }
-                            "
+                            @select="() => onSelectJenisPayment(item)"
                           >
-                            <Check
-                              :class="
-                                cn(
-                                  'mr-2 h-4 w-4',
-                                  value === item.nama ? 'opacity-100' : 'opacity-0'
-                                )
-                              "
-                            />
                             {{ item.nama }}
                           </CommandItem>
                         </CommandGroup>
@@ -405,6 +400,32 @@ const onSubmit = handleSubmit(async (values: any) => {
                     </Command>
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <!-- Tanggal Jatuh Tempo (hanya muncul kalau tempo) -->
+            <FormField
+              v-if="values.jenisPayment === 'Tempo'"
+              v-slot="{ field }"
+              name="tglJatuhTempo"
+            >
+              <FormItem class="flex flex-col">
+                <FormLabel>Tanggal Jatuh Tempo</FormLabel>
+
+                <Datepicker
+                  v-model="dateJatuhTempo"
+                  :enable-time-picker="false"
+                  :format="'dd-MM-yyyy'"
+                  @update:model-value="
+                    val => {
+                      dateJatuhTempo = val
+                      field.onChange(val)
+                    }
+                  "
+                />
+
+                <!-- <input type="hidden" v-bind="field" /> -->
                 <FormMessage />
               </FormItem>
             </FormField>

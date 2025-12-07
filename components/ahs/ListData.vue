@@ -19,7 +19,6 @@ const data = ref<any>([]) // Define the type for fetched data
 const filteredData = computed(() => {
   return data.value.filter(
     item =>
-      item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       item.namaAhs.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       item.kodeAhs.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
@@ -166,7 +165,6 @@ const downloadPdf = async item => {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
-              <TableHead>Nama Proyek</TableHead>
               <TableHead>Kode AHS</TableHead>
               <TableHead>Nama AHS</TableHead>
               <TableHead>Satuan</TableHead>
@@ -178,9 +176,6 @@ const downloadPdf = async item => {
             <TableRow v-for="(item, index) in paginatedData" :key="item.id">
               <TableCell>
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
-              </TableCell>
-              <TableCell class="font-medium">
-                {{ item.namaPekerjaan }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.kodeAhs }}
@@ -199,28 +194,6 @@ const downloadPdf = async item => {
                   <DetailPo :id="item.id" @detailAhs="handleDetailAhs" />
                   <EditData :id="item.id" @dataEdited="handleDataEdited" />
                   <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
-                  <!-- <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger as-child>
-                        <Button
-                          :disabled="Number(item.grandTotal) === 0 || downloadingId === item.id"
-                          @click="downloadPdf(item)"
-                          size="sm"
-                        >
-                          <template v-if="downloadingId === item.id">
-                            <Loader2 class="w-4 h-4 animate-spin" />
-                          </template>
-                          <template v-else>
-                            <FileDown class="w-4 h-4" />
-                          </template>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <span v-if="isDownloading">Mengunduh...</span>
-                        <span v-else>Download PDF</span>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider> -->
                 </div>
               </TableCell>
             </TableRow>

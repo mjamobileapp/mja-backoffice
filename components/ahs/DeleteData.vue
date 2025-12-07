@@ -12,7 +12,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
+
 const props = defineProps(['item'])
+console.log(props.item?.id)
 const emit = defineEmits(['dataDeleted'])
 
 const config = useRuntimeConfig()

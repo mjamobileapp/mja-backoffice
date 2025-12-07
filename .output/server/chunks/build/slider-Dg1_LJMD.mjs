@@ -15,7 +15,6 @@ import 'node:crypto';
 import 'node:url';
 import '@iconify/utils';
 import 'consola';
-import 'node:module';
 import 'vue-router';
 import '@iconify/vue';
 import 'class-variance-authority';

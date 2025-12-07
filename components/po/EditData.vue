@@ -43,7 +43,7 @@ const emit = defineEmits<{
 }>()
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
-
+const dateJatuhTempo = ref(null)
 // const editedItem = ref({ ...props.item })
 // console.log(props.id)
 // onMounted(() => {
@@ -54,23 +54,23 @@ const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai obje
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const profileFormSchema = toTypedSchema(
-  z.object({
-    idProyek: z.number(),
-    tujuanPo: z.string(),
-    noTelepon: z.string(),
-    alamat: z.string(),
-    penerima: z.string(),
-    ppn: z.number(),
-    tanggal: z.date({
-      required_error: 'Please select a valid date.',
-      invalid_type_error: 'Please select a valid date.',
-    }),
-    tglPengiriman: z.date({
-      required_error: 'Please select a valid date.',
-      invalid_type_error: 'Please select a valid date.',
-    }),
-    jenisPayment: z.string().min(1, 'Jenis Payment harus dipilih.'),
-  })
+  z
+    .object({
+      idProyek: z.number(),
+      tujuanPo: z.string(),
+      noTelepon: z.string(),
+      alamat: z.string(),
+      penerima: z.string(),
+      ppn: z.number(),
+      tanggal: z.date().nullable(),
+      tglPengiriman: z.date().nullable(),
+      jenisPayment: z.string(),
+      tglJatuhTempo: z.date().optional().nullable(),
+    })
+    .refine(data => data.jenisPayment !== 'Tempo' || !!data.tglJatuhTempo, {
+      path: ['tglJatuhTempo'],
+      message: 'Tanggal jatuh tempo harus diisi untuk jenis payment Tempo.',
+    })
 )
 
 const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
@@ -83,8 +83,9 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
     alamat: '',
     penerima: '',
     ppn: 0,
-    tanggal: '',
-    tglPengiriman: '', // Use prop value directly as fallback
+    tanggal: null,
+    tglPengiriman: null, // Use prop value directly as fallback
+    tglJatuhTempo: null, // Use prop value directly as fallback
   },
 })
 
@@ -145,6 +146,7 @@ async function fetchData() {
       // Pastikan tglSelesai ada. Jika tidak, beri nilai default (misalnya null/undefined).
       const tanggalString = toDate(data.tanggal)
       const tglPengirimanString = toDate(data.tglPengiriman)
+      const tglJatuhTempoString = toDate(data.tglJatuhTempo)
 
       // --- 3. setValues ke VeeValidate ---
       setValues({
@@ -157,10 +159,12 @@ async function fetchData() {
         jenisPayment: data.jenisPayment,
         tanggal: tanggalString,
         tglPengiriman: tglPengirimanString,
+        tglJatuhTempo: tglJatuhTempoString,
       })
 
       datePo.value = tanggalString
       dateDelivery.value = tglPengirimanString
+      dateJatuhTempo.value = tglJatuhTempoString
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
@@ -224,6 +228,18 @@ const onSubmit = handleSubmit(async () => {
     isSubmitting.value = false
   }
 })
+
+const openPayment = ref(false)
+function onSelectJenisPayment(item: any) {
+  setFieldValue('jenisPayment', item.nama)
+
+  if (item.nama !== 'Tempo') {
+    dateJatuhTempo.value = null
+    setFieldValue('tglJatuhTempo', null)
+  }
+
+  openPayment.value = false
+}
 </script>
 
 <template>
@@ -400,6 +416,7 @@ const onSubmit = handleSubmit(async () => {
               </FormItem>
             </FormField>
 
+            <!-- Jenis Payment -->
             <FormField v-slot="{ value }" name="jenisPayment">
               <FormItem class="flex flex-col">
                 <FormLabel>Jenis Payment</FormLabel>
@@ -421,6 +438,7 @@ const onSubmit = handleSubmit(async () => {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
+
                   <PopoverContent class="p-0">
                     <Command>
                       <CommandInput placeholder="Search payment..." />
@@ -430,22 +448,8 @@ const onSubmit = handleSubmit(async () => {
                           <CommandItem
                             v-for="item in listJenisPayment"
                             :key="item.nama"
-                            :value="item.nama"
-                            @select="
-                              () => {
-                                setFieldValue('jenisPayment', item.nama)
-                                openPayment = false
-                              }
-                            "
+                            @select="() => onSelectJenisPayment(item)"
                           >
-                            <Check
-                              :class="
-                                cn(
-                                  'mr-2 h-4 w-4',
-                                  value === item.nama ? 'opacity-100' : 'opacity-0'
-                                )
-                              "
-                            />
                             {{ item.nama }}
                           </CommandItem>
                         </CommandGroup>
@@ -453,6 +457,32 @@ const onSubmit = handleSubmit(async () => {
                     </Command>
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <!-- Tanggal Jatuh Tempo (hanya muncul kalau tempo) -->
+            <FormField
+              v-if="values.jenisPayment === 'Tempo'"
+              v-slot="{ field }"
+              name="tglJatuhTempo"
+            >
+              <FormItem class="flex flex-col">
+                <FormLabel>Tanggal Jatuh Tempo</FormLabel>
+
+                <Datepicker
+                  v-model="dateJatuhTempo"
+                  :enable-time-picker="false"
+                  :format="'dd-MM-yyyy'"
+                  @update:model-value="
+                    val => {
+                      dateJatuhTempo = val
+                      field.onChange(val)
+                    }
+                  "
+                />
+
+                <!-- <input type="hidden" v-bind="field" /> -->
                 <FormMessage />
               </FormItem>
             </FormField>

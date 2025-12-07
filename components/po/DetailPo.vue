@@ -151,9 +151,26 @@ function calculateTotal(index: number) {
 }
 
 // validasi harga
+// function handleHargaChange(index: number, val: number) {
+//   const row = dataDetail.value[index]
+//   if (val > row.refHarga) {
+//     toast({
+//       title: 'Harga Melebihi Batas',
+//       description: `Harga tidak boleh melebihi harga referensi (${formatRupiah(row.refHarga)})`,
+//       variant: 'destructive',
+//     })
+//     row.harga = row.refHarga
+//   } else {
+//     row.harga = val
+//   }
+//   calculateTotal(index)
+// }
+
 function handleHargaChange(index: number, val: number) {
   const row = dataDetail.value[index]
-  if (val > row.refHarga) {
+  const numberVal = normalizeNumber(val)
+
+  if (numberVal > row.refHarga) {
     toast({
       title: 'Harga Melebihi Batas',
       description: `Harga tidak boleh melebihi harga referensi (${formatRupiah(row.refHarga)})`,
@@ -161,8 +178,9 @@ function handleHargaChange(index: number, val: number) {
     })
     row.harga = row.refHarga
   } else {
-    row.harga = val
+    row.harga = numberVal
   }
+
   calculateTotal(index)
 }
 
@@ -214,7 +232,7 @@ async function handleSubmit() {
     idPo: headerPo.idPo,
     ppn: Number(headerPo.ppn),
     dataDetail: dataDetail.value
-      .filter(d => d.item && Number(d.banyak) > 0 && Number(d.harga) > 0)
+      .filter(d => d.item && normalizeNumber(d.banyak) > 0 && normalizeNumber(d.harga) > 0)
       .map(d => ({
         idBarang: d.idBarang,
         item: d.item,
@@ -230,7 +248,7 @@ async function handleSubmit() {
     createdBy: username.value,
   }
 
-  console.log(JSON.stringify(payload))
+  // console.log(JSON.stringify(payload))
 
   const response = await fetch(`${baseUrl}/detailPo`, {
     method: 'POST',
@@ -269,6 +287,11 @@ const filteredBarang = computed(() => {
   )
 })
 
+function normalizeNumber(val: any) {
+  if (val === null || val === undefined) return 0
+  return Number(String(val).replace(',', '.')) || 0
+}
+
 watch(searchQuery, v => {
   console.log('searchQuery berubah:', v)
 })
@@ -280,7 +303,9 @@ watch(searchQuery, v => {
       <Button size="sm" @click="openDialog"><PlusSquareIcon class="w-4 h-4" /></Button>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-[90vw] w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <DialogContent
+      class="sm:max-w-[90vw] w-full max-h-[90vh] flex flex-col overflow-hidden [&>button]:hidden"
+    >
       <DialogHeader class="border-b pb-2 shrink-0">
         <DialogTitle>Detail Purchase Order (PO)</DialogTitle>
       </DialogHeader>
@@ -396,11 +421,11 @@ watch(searchQuery, v => {
 
                 <td class="px-3 py-2">
                   <Input
-                    type="number"
+                    type="text"
                     :modelValue="row.banyak"
                     @update:modelValue="
                       val => {
-                        row.banyak = val
+                        row.banyak = normalizeNumber(val)
                         calculateTotal(i)
                       }
                     "
@@ -416,9 +441,9 @@ watch(searchQuery, v => {
 
                 <td class="px-3 py-2">
                   <Input
-                    type="number"
+                    type="text"
                     :modelValue="row.harga"
-                    @update:modelValue="val => handleHargaChange(i, val)"
+                    @update:modelValue="val => handleHargaChange(i, normalizeNumber(val))"
                   />
                   <p class="text-xs text-gray-400 mt-0.5">{{ formatRupiah(row.harga) }}</p>
                 </td>

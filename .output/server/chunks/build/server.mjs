@@ -20,7 +20,6 @@ import 'node:crypto';
 import 'node:url';
 import '@iconify/utils';
 import 'consola';
-import 'node:module';
 import 'vue-bundle-renderer/runtime';
 import 'unhead/server';
 import 'devalue';
@@ -614,7 +613,7 @@ const _routes = [
   {
     name: "po",
     path: "/po",
-    component: () => import('./po-OXQ4vW4c.mjs')
+    component: () => import('./po-CIPXWu-8.mjs')
   },
   {
     name: "components-alert",
@@ -660,6 +659,11 @@ const _routes = [
     name: "settings-profile",
     path: "/settings/profile",
     component: () => import('./profile-BP-kuP0i.mjs')
+  },
+  {
+    name: "ahs",
+    path: "/ahs",
+    component: () => import('./ahs-JEv7x_NQ.mjs')
   },
   {
     name: "components-avatar",
@@ -881,12 +885,17 @@ const _routes = [
   {
     name: "master-menu",
     path: "/master-menu",
-    component: () => import('./master-menu-CXy14ps5.mjs')
+    component: () => import('./master-menu-B4HfRv6V.mjs')
   },
   {
     name: "master-role",
     path: "/master-role",
     component: () => import('./master-role-UxAw6SXg.mjs')
+  },
+  {
+    name: "master-upah",
+    path: "/master-upah",
+    component: () => import('./master-upah-CyuZemmf.mjs')
   },
   {
     name: "master-user",
@@ -906,22 +915,22 @@ const _routes = [
   {
     name: "kas-pemasukan",
     path: "/kas-pemasukan",
-    component: () => import('./kas-pemasukan-jINAdM5M.mjs')
+    component: () => import('./kas-pemasukan-aUEQ-xwO.mjs')
   },
   {
     name: "master-proyek",
     path: "/master-proyek",
-    component: () => import('./master-proyek-DfwkLher.mjs')
+    component: () => import('./master-proyek-Dp5KUcAW.mjs')
   },
   {
     name: "kontrak-subkon",
     path: "/kontrak-subkon",
-    component: () => import('./kontrak-subkon-CsFDDzzq.mjs')
+    component: () => import('./kontrak-subkon-CUZ4GrV8.mjs')
   },
   {
     name: "kontrak-addendum",
     path: "/kontrak-addendum",
-    component: () => import('./kontrak-addendum-oZVB8d_P.mjs')
+    component: () => import('./kontrak-addendum-BgCqOvUg.mjs')
   },
   {
     name: "referensi-barang",
@@ -931,7 +940,7 @@ const _routes = [
   {
     name: "pembayaran-subkon",
     path: "/pembayaran-subkon",
-    component: () => import('./pembayaran-subkon-DZdpNRCL.mjs')
+    component: () => import('./pembayaran-subkon-q3lZftXz.mjs')
   },
   {
     name: void 0 ,
