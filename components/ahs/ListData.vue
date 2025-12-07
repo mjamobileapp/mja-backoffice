@@ -168,6 +168,7 @@ const downloadPdf = async item => {
               <TableHead>Kode AHS</TableHead>
               <TableHead>Nama AHS</TableHead>
               <TableHead>Satuan</TableHead>
+              <TableHead>Profit %</TableHead>
               <TableHead>Harga</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
@@ -185,6 +186,9 @@ const downloadPdf = async item => {
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.satuan }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ item.profit }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ formatRupiah(item.harga ?? 0) }}

@@ -35,12 +35,13 @@ const profileFormSchema = toTypedSchema(
     namaAhs: z.string(),
     satuan: z.string(),
     keterangan: z.string(),
+    profit: z.string(),
   })
 )
 
 const isSubmitting = ref(false)
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, setFieldValue } = useForm({
   validationSchema: profileFormSchema,
 })
 
@@ -57,6 +58,22 @@ function openDialog() {
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
+}
+
+function handleProfitChange(e: any) {
+  const raw = e.target.value
+  const normalized = normalizeNumber(raw)
+
+  // set ke Vee-Validate
+  setFieldValue('profit', normalized)
+
+  // kembalikan ke input (agar tampilan tetap benar)
+  e.target.value = normalized
+}
+
+function normalizeNumber(val: any) {
+  if (val === null || val === undefined) return 0
+  return Number(String(val).replace(',', '.')) || 0
 }
 
 const onSubmit = handleSubmit(async (values: any) => {
@@ -142,6 +159,16 @@ const onSubmit = handleSubmit(async (values: any) => {
               <FormLabel>Keterangan</FormLabel>
               <FormControl class="flex-1">
                 <Textarea v-bind="componentField"></Textarea>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField v-slot="{ componentField }" name="profit">
+            <FormItem>
+              <FormLabel>Profit %</FormLabel>
+              <FormControl>
+                <Input type="text" v-bind="componentField" @input="handleProfitChange" />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -54,59 +54,26 @@ const username = computed(() => currentUser.value?.username || 'no-email@example
 
 const profileFormSchema = toTypedSchema(
   z.object({
-    idProyek: z.number(),
     namaAhs: z.string(),
     satuan: z.string(),
     keterangan: z.string(),
+    profit: z.string(),
   })
 )
 
 const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
-    idProyek: 0,
     namaAhs: '',
     satuan: '',
+    profit: '',
     keterangan: '', // Use prop value directly as fallback
   },
 })
 
 const isDialogOpen = ref(false)
 
-// Asumsi: dateMulai dan datePengiriman adalah ref() untuk Calendar
-// Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
-// Asumsi: setValues adalah fungsi dari VeeValidate useForm
-
-const dateMulai = ref<DateValue | undefined>()
-const datePengiriman = ref<DateValue | undefined>()
-
 const proyekList = ref([])
-
-async function fetchDataProyek() {
-  try {
-    const response = await fetch(`${baseUrl}/proyek`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
-
-    if (Array.isArray(fetchedData.data)) {
-      proyekList.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      proyekList.value = []
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data:', error)
-    proyekList.value = []
-  }
-}
 
 async function fetchData() {
   try {
@@ -121,31 +88,9 @@ async function fetchData() {
       const { data } = await response.json()
       console.log(data)
 
-      // --- 1. Penanganan Nilai Kontrak (String ke Number) ---
-      // Konversi string nilai menjadi float.
-      const nilaiNumber = parseFloat(data.ppn)
-
-      // --- 2. Penanganan Tanggal (Invalid Time Value) ---
-      // Pastikan tglSelesai ada. Jika tidak, beri nilai default (misalnya null/undefined).
-      const tanggalString = data.tanggal
-      const tglPengirimanString = data.tglPengiriman
-
-      // Inisialisasi Date Objects
-      const dateObj = tanggalString ? toDate(tanggalString) : undefined
-      const datePengirimanObj = tglPengirimanString ? toDate(tglPengirimanString) : undefined
-
-      // Cek apakah toDate berhasil mengonversi. Jika tidak, nilai akan menjadi Invalid Date.
-      if (dateObj && isNaN(dateObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      if (datePengirimanObj && isNaN(datePengirimanObj.getTime())) {
-        throw new Error('Invalid dateMulai value received from API.')
-      }
-      // Tambahkan pengecekan serupa untuk datePengirimanObj jika diperlukan
-
       // --- 3. setValues ke VeeValidate ---
       setValues({
-        idProyek: data.idProyek,
+        profit: data.profit,
 
         namaAhs: data.namaAhs,
         satuan: data.satuan,
@@ -163,7 +108,6 @@ async function fetchData() {
 async function openDialog() {
   isDialogOpen.value = true
   await fetchData()
-  await fetchDataProyek()
 }
 
 const open = ref(false)
@@ -172,6 +116,22 @@ function closeDialog() {
   isDialogOpen.value = false
   open.value = false
   resetForm()
+}
+
+function handleProfitChange(e: any) {
+  const raw = e.target.value
+  const normalized = normalizeNumber(raw)
+
+  // set ke Vee-Validate
+  setFieldValue('profit', normalized)
+
+  // kembalikan ke input (agar tampilan tetap benar)
+  e.target.value = normalized
+}
+
+function normalizeNumber(val: any) {
+  if (val === null || val === undefined) return 0
+  return Number(String(val).replace(',', '.')) || 0
 }
 
 const isSubmitting = ref(false)
@@ -235,66 +195,6 @@ const onSubmit = handleSubmit(async () => {
         </DialogHeader>
 
         <div class="max-h-[60vh] pr-2">
-          <!-- 🧱 Field: Proyek -->
-          <FormField v-slot="{ value }" name="idProyek">
-            <FormItem class="flex flex-col">
-              <FormLabel>Pilih Proyek</FormLabel>
-              <Popover v-model:open="open">
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      :aria-expanded="open"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
-                    >
-                      {{
-                        value
-                          ? proyekList.find(item => item.id === value)?.namaPekerjaan
-                          : 'Select Proyek...'
-                      }}
-                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent
-                  class="p-0 z-[9999]"
-                  :modal="false"
-                  :teleport-to="'body'"
-                  side="bottom"
-                  align="start"
-                >
-                  <Command>
-                    <CommandInput placeholder="Search Proyek..." />
-                    <CommandEmpty>No Proyek found.</CommandEmpty>
-                    <CommandList>
-                      <CommandGroup>
-                        <CommandItem
-                          v-for="item in proyekList"
-                          :key="item.id"
-                          :value="item.namaPekerjaan"
-                          @select="
-                            () => {
-                              setFieldValue('idProyek', item.id)
-                              open = false
-                            }
-                          "
-                        >
-                          <Check
-                            :class="
-                              cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
-                            "
-                          />
-                          {{ item.namaPekerjaan }}
-                        </CommandItem>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          </FormField>
           <FormField v-slot="{ componentField }" name="namaAhs">
             <FormItem>
               <FormLabel>Nama AHS</FormLabel>
@@ -320,6 +220,16 @@ const onSubmit = handleSubmit(async () => {
               <FormControl class="flex-1">
                 <!-- <Input type="text" v-bind="componentField" /> -->
                 <Textarea v-bind="componentField"></Textarea>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField v-slot="{ componentField }" name="profit">
+            <FormItem>
+              <FormLabel>Profit %</FormLabel>
+              <FormControl>
+                <Input type="text" v-bind="componentField" @input="handleProfitChange" />
               </FormControl>
               <FormMessage />
             </FormItem>

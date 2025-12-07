@@ -37,6 +37,7 @@ const headerAhs = reactive({
   kodeAhs: '',
   namaAhs: '',
   satuan: '',
+  profit: 0,
   harga: 0, // default 11%
 })
 
@@ -61,6 +62,7 @@ async function fetchData() {
       kodeAhs: fetchedData.data?.kodeAhs ?? fetchedData.data?.kode_ahs ?? '',
       namaAhs: fetchedData.data?.namaAhs ?? fetchedData.data?.nama_ahs ?? '',
       satuan: fetchedData.data?.satuan ?? fetchedData.data?.satuan ?? '',
+      profit: fetchedData.data?.profit ?? fetchedData.data?.profit ?? '',
     })
   } catch (err) {
     console.error('Gagal fetch PO:', err)
@@ -166,8 +168,8 @@ function handleHargaChange(index: number, val: number) {
 const subtotal = computed(() =>
   dataDetail.value.reduce((sum, row) => sum + (Number(row.total) || 0), 0)
 )
-// const totalPpn = computed(() => (subtotal.value * Number(headerAhs.ppn)) / 100)
-// const grandTotal = computed(() => subtotal.value + totalPpn.value)
+const totalProfit = computed(() => (subtotal.value * Number(headerAhs.profit)) / 100)
+const grandTotal = computed(() => subtotal.value + totalProfit.value)
 const isValid = computed(() =>
   dataDetail.value.some(d => d.item && Number(d.banyak) > 0 && Number(d.harga) > 0)
 )
@@ -218,7 +220,7 @@ async function handleSubmit() {
         total: Number(d.total),
       })),
     subtotal: subtotal.value,
-    // grandTotal: grandTotal.value,
+    grandTotal: grandTotal.value,
     createdBy: username.value,
   }
 
@@ -246,9 +248,16 @@ async function handleSubmit() {
 // ===================
 // Util
 // ===================
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+function formatRupiah(value: any) {
+  if (value == null) return 'Rp 0'
+
+  const val = typeof value === 'object' && 'value' in value ? value.value : value
+  const num = Number(val) || 0
+
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+  }).format(num)
 }
 
 const searchQuery = ref('')
@@ -261,6 +270,11 @@ const filteredBarang = computed(() => {
   )
 })
 
+function normalizeNumber(val: any) {
+  if (val === null || val === undefined) return 0
+  return Number(String(val).replace(',', '.')) || 0
+}
+
 watch(searchQuery, v => {
   console.log('searchQuery berubah:', v)
 })
@@ -272,7 +286,9 @@ watch(searchQuery, v => {
       <Button size="sm" @click="openDialog"><PlusSquareIcon class="w-4 h-4" /></Button>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-[90vw] w-full max-h-[90vh] flex flex-col overflow-hidden">
+    <DialogContent
+      class="sm:max-w-[90vw] w-full max-h-[90vh] flex flex-col overflow-hidden [&>button]:hidden"
+    >
       <DialogHeader class="border-b pb-2 shrink-0">
         <DialogTitle>Detail Analisa Harga Satuan (AHS)</DialogTitle>
       </DialogHeader>
@@ -288,14 +304,12 @@ watch(searchQuery, v => {
             <label class="text-sm font-medium text-gray-600">Nama AHS</label>
             <Input v-model="headerAhs.namaAhs" disabled class="bg-gray-50" />
           </div>
-          <!-- <div>
-            <label class="text-sm font-medium text-gray-600">Harga</label>
-            <Input type="number" v-model="headerAhs.ppn" disabled class="bg-white" />
-          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="text-sm font-medium text-gray-600">No. Telepon</label>
-            <Input v-model="headerAhs.noTelepon" disabled class="bg-gray-50" />
-          </div> -->
+            <label class="text-sm font-medium text-gray-600">Profit</label>
+            <Input v-model="headerAhs.profit" disabled class="bg-gray-50" />
+          </div>
         </div>
 
         <!-- Table -->
@@ -388,11 +402,11 @@ watch(searchQuery, v => {
 
                 <td class="px-3 py-2">
                   <Input
-                    type="number"
+                    type="text"
                     :modelValue="row.banyak"
                     @update:modelValue="
                       val => {
-                        row.banyak = val
+                        row.banyak = normalizeNumber(val)
                         calculateTotal(i)
                       }
                     "
@@ -408,9 +422,9 @@ watch(searchQuery, v => {
 
                 <td class="px-3 py-2">
                   <Input
-                    type="number"
+                    type="text"
                     :modelValue="row.harga"
-                    @update:modelValue="val => handleHargaChange(i, val)"
+                    @update:modelValue="val => handleHargaChange(i, normalizeNumber(val))"
                   />
                   <p class="text-xs text-gray-400 mt-0.5">{{ formatRupiah(row.harga) }}</p>
                 </td>
@@ -441,10 +455,14 @@ watch(searchQuery, v => {
               <span>Total:</span>
               <span class="font-bold text-green-600">{{ formatRupiah(subtotal) }}</span>
             </div>
-            <!-- <div class="flex justify-between w-64 border-t pt-2 mt-1">
+            <div class="flex justify-between w-64">
+              <span>Profit ({{ headerAhs.profit }}%):</span>
+              <span class="font-semibold">{{ formatRupiah(totalProfit) }}</span>
+            </div>
+            <div class="flex justify-between w-64 border-t pt-2 mt-1">
               <span>Total Akhir:</span>
               <span class="font-bold text-green-600">{{ formatRupiah(grandTotal) }}</span>
-            </div> -->
+            </div>
           </div>
         </div>
 
