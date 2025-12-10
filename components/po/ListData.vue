@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { DownloadCloud, FileDown, Loader2, PencilIcon, Trash2Icon } from 'lucide-vue-next'
+import {
+  DownloadCloud,
+  FileDown,
+  Loader2,
+  LucideTrash,
+  PencilIcon,
+  Trash2Icon,
+  TrashIcon,
+} from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
@@ -187,6 +195,7 @@ async function handleUploadFiles() {
 }
 
 const downloadingId = ref<number | null>(null)
+
 const downloadPdf = async item => {
   try {
     downloadingId.value = item.id
@@ -224,7 +233,7 @@ async function openPreview(item) {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    console.log(images)
+    // console.log(images)
     previewImages.value = images.map(img => ({
       id: img.id,
       url: img.url, // ini harus URL yang bisa diakses oleh frontend
@@ -238,6 +247,36 @@ async function openPreview(item) {
       description: 'Gagal mengambil bukti lunas',
       variant: 'destructive',
     })
+  }
+}
+
+const deletingId = ref<number | null>(null)
+async function deleteFile(item) {
+  console.log(item)
+  deletingId.value = item.id
+  try {
+    const { data, error } = await useFetch(`${baseUrl}/deleteBuktiLunas/${item.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (error.value) {
+      throw new Error(error.value.data || 'Gagal menghapus lampiran')
+    }
+
+    // return data.value
+
+    setTimeout(() => {
+      console.log('Melakukan fetch data setelah Delete File...')
+      fetchData()
+    }, 500)
+  } catch (error) {
+    console.error('Delete Error:', err)
+    throw err
+  } finally {
+    deletingId.value = null
   }
 }
 </script>
@@ -375,8 +414,30 @@ async function openPreview(item) {
                 >
                   Preview
                 </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger :as-child="true">
+                      <Button
+                        v-show="item.statusPo && item.statusPo.toLowerCase() === 'lunas'"
+                        @click="deleteFile(item)"
+                        size="sm"
+                        variant="danger"
+                      >
+                        <template v-if="deletingId === item.id">
+                          <Loader2 class="w-4 h-4 animate-spin" />
+                        </template>
+                        <template v-else>
+                          <LucideTrash class="w-4 h-4" />
+                        </template>
+                      </Button>
+                    </TooltipTrigger>
 
-                <span v-else>-</span>
+                    <TooltipContent>
+                      <span v-if="deletingId === item.id">Deleting...</span>
+                      <span v-else>Delete File</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
 
               <TableCell class="font-medium">
@@ -390,7 +451,7 @@ async function openPreview(item) {
                   <UploadFile
                     :item="item"
                     @uploadFiles="handleUploadFiles"
-                    :disabled="item.jenisPayment === 'Cash' || item.statusPo === 'Lunas'"
+                    :disabled="item.statusPo === 'Lunas'"
                   />
                   <DetailPo :id="item.id" @detailPo="handleDetailPo" />
                   <EditData :id="item.id" @dataEdited="handleDataEdited" />
