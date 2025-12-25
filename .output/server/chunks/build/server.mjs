@@ -1,5 +1,5 @@
-import { defineComponent, computed, h, unref, mergeProps, withCtx, renderSlot, ref, shallowRef, toValue, getCurrentInstance, watch, nextTick, hasInjectionContext, inject, effectScope, watchEffect, onServerPrefetch, readonly, getCurrentScope, onScopeDispose, toRef, isRef, provide, createElementBlock, cloneVNode, defineAsyncComponent, shallowReactive, Suspense, Fragment, useSSRContext, toRaw, createApp, createVNode, createTextVNode, toDisplayString, isVNode, resolveDynamicComponent, createBlock, openBlock, createCommentVNode, renderList, useId, onErrorCaptured, reactive, isReadonly, isShallow, isReactive, markRaw } from 'vue';
-import { i as destr, k as klona, w as withQuery, j as hasProtocol, l as isScriptProtocol, m as joinURL, n as defuFn, o as getRequestHeader, q as isEqual, s as sanitizeStatusCode, r as setCookie, t as getCookie, v as deleteCookie, x as getContext, e as createError$1, $ as $fetch$1, y as baseURL, z as createHooks, A as executeAsync, B as toRouteMatcher, C as createRouter$1, D as defu } from '../nitro/nitro.mjs';
+import { defineComponent, computed, h, unref, mergeProps, withCtx, renderSlot, ref, toValue, getCurrentInstance, onServerPrefetch, shallowRef, watch, nextTick, hasInjectionContext, inject, effectScope, watchEffect, toRef, readonly, getCurrentScope, onScopeDispose, isRef, provide, createElementBlock, cloneVNode, defineAsyncComponent, shallowReactive, Suspense, Fragment, useSSRContext, toRaw, createApp, createVNode, createTextVNode, toDisplayString, isVNode, resolveDynamicComponent, createBlock, openBlock, createCommentVNode, renderList, useId, onErrorCaptured, reactive, isReadonly, isShallow, isReactive, markRaw } from 'vue';
+import { k as klona, i as defuFn, j as destr, l as hasProtocol, m as isScriptProtocol, n as joinURL, w as withQuery, o as getRequestHeader, q as isEqual, s as sanitizeStatusCode, r as setCookie, t as getCookie, v as deleteCookie, e as createError$1, x as getContext, $ as $fetch$1, y as baseURL, z as createHooks, A as executeAsync, B as toRouteMatcher, C as createRouter$1, D as defu } from '../nitro/nitro.mjs';
 import { useRoute as useRoute$1, RouterView, createMemoryHistory, createRouter, START_LOCATION } from 'vue-router';
 import { Icon, getIcon, loadIcon as loadIcon$1, _api, addAPIProvider, setCustomIconsLoader } from '@iconify/vue';
 import { ssrRenderComponent, ssrRenderSlot, ssrRenderList, ssrInterpolate, ssrRenderVNode, ssrRenderSuspense, ssrRenderAttrs } from 'vue/server-renderer';
@@ -140,6 +140,7 @@ if (!("global" in globalThis)) {
 const appLayoutTransition = false;
 const nuxtLinkDefaults = { "componentName": "NuxtLink" };
 const asyncDataDefaults = { "value": null, "errorValue": null, "deep": true };
+const fetchDefaults = {};
 const appId = "nuxt-app";
 function getNuxtAppCtx(id = appId) {
   return getContext(id, {
@@ -531,7 +532,7 @@ const _routes = [
   {
     name: "email",
     path: "/email",
-    component: () => import('./email-DmSoP-c8.mjs')
+    component: () => import('./email-DgSiKzAy.mjs')
   },
   {
     name: "index",
@@ -541,7 +542,7 @@ const _routes = [
   {
     name: "tasks",
     path: "/tasks",
-    component: () => import('./tasks-BMmXxDSL.mjs')
+    component: () => import('./tasks-BVrS9L9V.mjs')
   },
   {
     name: "user-home",
@@ -582,7 +583,7 @@ const _routes = [
     name: "login",
     path: "/login",
     meta: __nuxt_page_meta$4 || {},
-    component: () => import('./login-9O3G7IBj.mjs')
+    component: () => import('./login-Dn4gAjiY.mjs')
   },
   {
     name: "settings-pages",
@@ -593,354 +594,354 @@ const _routes = [
     name: "register",
     path: "/register",
     meta: __nuxt_page_meta$3 || {},
-    component: () => import('./register-D8Py7mF3.mjs')
+    component: () => import('./register-BXUUlZBY.mjs')
   },
   {
     name: "components-card",
     path: "/components/card",
-    component: () => import('./card-ClorGsPT.mjs')
+    component: () => import('./card-D7kyj2zv.mjs')
   },
   {
     name: "components-form",
     path: "/components/form",
-    component: () => import('./form-D4uqgasJ.mjs')
+    component: () => import('./form-CDzOx97y.mjs')
   },
   {
     name: "components-tabs",
     path: "/components/tabs",
-    component: () => import('./tabs-DTb2xgYx.mjs')
+    component: () => import('./tabs-Do9yQizx.mjs')
   },
   {
     name: "po",
     path: "/po",
-    component: () => import('./po-CIPXWu-8.mjs')
+    component: () => import('./po-DXx5frzm.mjs')
   },
   {
     name: "components-alert",
     path: "/components/alert",
-    component: () => import('./alert-BElECPJB.mjs')
+    component: () => import('./alert-DUSagHUp.mjs')
   },
   {
     name: "components-badge",
     path: "/components/badge",
-    component: () => import('./badge-Caety0Kq.mjs')
+    component: () => import('./badge-CVkMnp3N.mjs')
   },
   {
     name: "components-input",
     path: "/components/input",
-    component: () => import('./input-fjp819lA.mjs')
+    component: () => import('./input-Cs4JA-Il.mjs')
   },
   {
     name: "components-label",
     path: "/components/label",
-    component: () => import('./label-VcZAP2FQ.mjs')
+    component: () => import('./label-Cj8aZrTS.mjs')
   },
   {
     name: "components-sheet",
     path: "/components/sheet",
-    component: () => import('./sheet-CZdILTYr.mjs')
+    component: () => import('./sheet-NPsIzPwe.mjs')
   },
   {
     name: "components-table",
     path: "/components/table",
-    component: () => import('./table-Bdiz1tUF.mjs')
+    component: () => import('./table-DtGSaGCX.mjs')
   },
   {
     name: "components-toast",
     path: "/components/toast",
-    component: () => import('./toast-BZgAKOxB.mjs')
+    component: () => import('./toast-CLkBdG9x.mjs')
   },
   {
     name: "settings-display",
     path: "/settings/display",
-    component: () => import('./display-BI67Ve43.mjs')
+    component: () => import('./display-AGFKVJvP.mjs')
   },
   {
     name: "settings-profile",
     path: "/settings/profile",
-    component: () => import('./profile-BP-kuP0i.mjs')
+    component: () => import('./profile-CvLbkOk2.mjs')
   },
   {
     name: "ahs",
     path: "/ahs",
-    component: () => import('./ahs-JEv7x_NQ.mjs')
+    component: () => import('./ahs-tWB--qf4.mjs')
   },
   {
     name: "components-avatar",
     path: "/components/avatar",
-    component: () => import('./avatar-zXyzPoR2.mjs')
+    component: () => import('./avatar-B9Jp_5iW.mjs')
   },
   {
     name: "components-button",
     path: "/components/button",
-    component: () => import('./button-B4Qx4WUp.mjs')
+    component: () => import('./button-C-51-0SD.mjs')
   },
   {
     name: "components-dialog",
     path: "/components/dialog",
-    component: () => import('./dialog-DmyMskEM.mjs')
+    component: () => import('./dialog-BR19wG55.mjs')
   },
   {
     name: "components-drawer",
     path: "/components/drawer",
-    component: () => import('./drawer-BAqVzISn.mjs')
+    component: () => import('./drawer-Cfu5nE6w.mjs')
   },
   {
     name: "components-select",
     path: "/components/select",
-    component: () => import('./select-ChCw5Uqx.mjs')
+    component: () => import('./select-DrVKSWcv.mjs')
   },
   {
     name: "components-slider",
     path: "/components/slider",
-    component: () => import('./slider-Dg1_LJMD.mjs')
+    component: () => import('./slider-DV-SHFXO.mjs')
   },
   {
     name: "components-sonner",
     path: "/components/sonner",
-    component: () => import('./sonner-BwX9_e3b.mjs')
+    component: () => import('./sonner-_jxMb4cz.mjs')
   },
   {
     name: "components-switch",
     path: "/components/switch",
-    component: () => import('./switch-CY6USTc0.mjs')
+    component: () => import('./switch-DaTUYhRO.mjs')
   },
   {
     name: "components-toggle",
     path: "/components/toggle",
-    component: () => import('./toggle-BU5hh0dy.mjs')
+    component: () => import('./toggle-DRCRCKxQ.mjs')
   },
   {
     name: "login-basic",
     path: "/login-basic",
     meta: __nuxt_page_meta$2 || {},
-    component: () => import('./login-basic-J4bQgIZn.mjs')
+    component: () => import('./login-basic-DydhcP5q.mjs')
   },
   {
     name: "components-command",
     path: "/components/command",
-    component: () => import('./command-i6QzioZg.mjs')
+    component: () => import('./command-DRy8mshk.mjs')
   },
   {
     name: "components-menubar",
     path: "/components/menubar",
-    component: () => import('./menubar-BLBxaRuY.mjs')
+    component: () => import('./menubar-CbEW2zzM.mjs')
   },
   {
     name: "components-popover",
     path: "/components/popover",
-    component: () => import('./popover-vdEmT4ji.mjs')
+    component: () => import('./popover-C6wAHgAx.mjs')
   },
   {
     name: "components-stepper",
     path: "/components/stepper",
-    component: () => import('./stepper-ZFaydv2i.mjs')
+    component: () => import('./stepper-kp8qm1uz.mjs')
   },
   {
     name: "components-tooltip",
     path: "/components/tooltip",
-    component: () => import('./tooltip-D5Y0aSBG.mjs')
+    component: () => import('./tooltip-CeqJd6Eh.mjs')
   },
   {
     name: "components-calendar",
     path: "/components/calendar",
-    component: () => import('./calendar-DUteSA7r.mjs')
+    component: () => import('./calendar-fZqmUpD1.mjs')
   },
   {
     name: "components-carousel",
     path: "/components/carousel",
-    component: () => import('./carousel-CUnKUKu1.mjs')
+    component: () => import('./carousel-BEJQTzDU.mjs')
   },
   {
     name: "components-checkbox",
     path: "/components/checkbox",
-    component: () => import('./checkbox-CVknHi_s.mjs')
+    component: () => import('./checkbox-Cfm2gnPZ.mjs')
   },
   {
     name: "components-combobox",
     path: "/components/combobox",
-    component: () => import('./combobox-_l2Af7Nr.mjs')
+    component: () => import('./combobox-BCs6tMsa.mjs')
   },
   {
     name: "components-progress",
     path: "/components/progress",
-    component: () => import('./progress-Cshx_N86.mjs')
+    component: () => import('./progress-BOK4BWZu.mjs')
   },
   {
     name: "components-skeleton",
     path: "/components/skeleton",
-    component: () => import('./skeleton-u_VdWbDp.mjs')
+    component: () => import('./skeleton-BCtel9CP.mjs')
   },
   {
     name: "components-textarea",
     path: "/components/textarea",
-    component: () => import('./textarea-Bnj7jdgN.mjs')
+    component: () => import('./textarea-BXLhS5hI.mjs')
   },
   {
     name: "settings-appearance",
     path: "/settings/appearance",
-    component: () => import('./appearance-Pfan-aLM.mjs')
+    component: () => import('./appearance-b_yo3he-.mjs')
   },
   {
     name: "components-accordion",
     path: "/components/accordion",
-    component: () => import('./accordion-DYab5mXZ.mjs')
+    component: () => import('./accordion-BrKNhRn5.mjs')
   },
   {
     name: "components-pin-input",
     path: "/components/pin-input",
-    component: () => import('./pin-input-DRmi5vm_.mjs')
+    component: () => import('./pin-input-Ci6Bd89b.mjs')
   },
   {
     name: "components-resizable",
     path: "/components/resizable",
-    component: () => import('./resizable-Bn20vp7w.mjs')
+    component: () => import('./resizable-BGYJx--A.mjs')
   },
   {
     name: "components-separator",
     path: "/components/separator",
-    component: () => import('./separator-Doc7B03G.mjs')
+    component: () => import('./separator-Bctlfk6-.mjs')
   },
   {
     name: "components-breadcrumb",
     path: "/components/breadcrumb",
-    component: () => import('./breadcrumb-CrcvXDD4.mjs')
+    component: () => import('./breadcrumb-ByJFn_lz.mjs')
   },
   {
     name: "components-hover-card",
     path: "/components/hover-card",
-    component: () => import('./hover-card-B0dUp2sN.mjs')
+    component: () => import('./hover-card-zDdztOLs.mjs')
   },
   {
     name: "components-pagination",
     path: "/components/pagination",
-    component: () => import('./pagination-DyRqbehb.mjs')
+    component: () => import('./pagination-mHh-BiUP.mjs')
   },
   {
     name: "components-tags-input",
     path: "/components/tags-input",
-    component: () => import('./tags-input-D2si0Idb.mjs')
+    component: () => import('./tags-input-DplJ6-4V.mjs')
   },
   {
     name: "settings-account-test",
     path: "/settings/account-test",
-    component: () => import('./account-test-Cd--hQCt.mjs')
+    component: () => import('./account-test-CGKYSCA7.mjs')
   },
   {
     name: "forgot-password",
     path: "/forgot-password",
     meta: __nuxt_page_meta$1 || {},
-    component: () => import('./forgot-password-B2B2ZAEy.mjs')
+    component: () => import('./forgot-password-BLeFKtKi.mjs')
   },
   {
     name: "components-collapsible",
     path: "/components/collapsible",
-    component: () => import('./collapsible-CmJkkHHc.mjs')
+    component: () => import('./collapsible-B8r4A1tA.mjs')
   },
   {
     name: "components-radio-group",
     path: "/components/radio-group",
-    component: () => import('./radio-group-BHM344kq.mjs')
+    component: () => import('./radio-group-h-iB0J7s.mjs')
   },
   {
     name: "components-scroll-area",
     path: "/components/scroll-area",
-    component: () => import('./scroll-area-BRbaF4Hi.mjs')
+    component: () => import('./scroll-area-vlidNDso.mjs')
   },
   {
     name: "settings-notifications",
     path: "/settings/notifications",
-    component: () => import('./notifications-DtrPchmc.mjs')
+    component: () => import('./notifications-DixgjkQK.mjs')
   },
   {
     name: "components-alert-dialog",
     path: "/components/alert-dialog",
-    component: () => import('./alert-dialog-CoBkV8PJ.mjs')
+    component: () => import('./alert-dialog-zRd8kz9U.mjs')
   },
   {
     name: "components-aspect-ratio",
     path: "/components/aspect-ratio",
-    component: () => import('./aspect-ratio-Ds5kmp7d.mjs')
+    component: () => import('./aspect-ratio-BBqgLqHU.mjs')
   },
   {
     name: "components-context-menu",
     path: "/components/context-menu",
-    component: () => import('./context-menu-ClK5BqAX.mjs')
+    component: () => import('./context-menu-CsGaEIqD.mjs')
   },
   {
     name: "components-number-field",
     path: "/components/number-field",
-    component: () => import('./number-field-BKKOUpMM.mjs')
+    component: () => import('./number-field-CXC17_gv.mjs')
   },
   {
     name: "components-toggle-group",
     path: "/components/toggle-group",
-    component: () => import('./toggle-group-ZLGGFTrV.mjs')
+    component: () => import('./toggle-group-d8WYnPfK.mjs')
   },
   {
     name: "components-dropdown-menu",
     path: "/components/dropdown-menu",
-    component: () => import('./dropdown-menu-DruJ0z7Z.mjs')
+    component: () => import('./dropdown-menu-B9oWmTe0.mjs')
   },
   {
     name: "master-menu",
     path: "/master-menu",
-    component: () => import('./master-menu-B4HfRv6V.mjs')
+    component: () => import('./master-menu-BDsDgpH1.mjs')
   },
   {
     name: "master-role",
     path: "/master-role",
-    component: () => import('./master-role-UxAw6SXg.mjs')
+    component: () => import('./master-role-CvtLVG-r.mjs')
   },
   {
     name: "master-upah",
     path: "/master-upah",
-    component: () => import('./master-upah-CyuZemmf.mjs')
+    component: () => import('./master-upah-CIfu-56H.mjs')
   },
   {
     name: "master-user",
     path: "/master-user",
-    component: () => import('./master-user-DgEv8vQE.mjs')
+    component: () => import('./master-user-vf631dIC.mjs')
   },
   {
     name: "components-range-calendar",
     path: "/components/range-calendar",
-    component: () => import('./range-calendar-DJCFk45v.mjs')
+    component: () => import('./range-calendar-CCpfVfv2.mjs')
   },
   {
     name: "components-navigation-menu",
     path: "/components/navigation-menu",
-    component: () => import('./navigation-menu-C07NvdMr.mjs')
+    component: () => import('./navigation-menu-D62ETE4B.mjs')
   },
   {
     name: "kas-pemasukan",
     path: "/kas-pemasukan",
-    component: () => import('./kas-pemasukan-aUEQ-xwO.mjs')
+    component: () => import('./kas-pemasukan-CDAlpmnJ.mjs')
   },
   {
     name: "master-proyek",
     path: "/master-proyek",
-    component: () => import('./master-proyek-Dp5KUcAW.mjs')
+    component: () => import('./master-proyek-C5C9388C.mjs')
   },
   {
     name: "kontrak-subkon",
     path: "/kontrak-subkon",
-    component: () => import('./kontrak-subkon-CUZ4GrV8.mjs')
+    component: () => import('./kontrak-subkon-D-44Bq0Y.mjs')
   },
   {
     name: "kontrak-addendum",
     path: "/kontrak-addendum",
-    component: () => import('./kontrak-addendum-BgCqOvUg.mjs')
+    component: () => import('./kontrak-addendum-bYjhhySs.mjs')
   },
   {
     name: "referensi-barang",
     path: "/referensi-barang",
-    component: () => import('./referensi-barang-CMEqW0JK.mjs')
+    component: () => import('./referensi-barang-D8epOG-T.mjs')
   },
   {
     name: "pembayaran-subkon",
     path: "/pembayaran-subkon",
-    component: () => import('./pembayaran-subkon-q3lZftXz.mjs')
+    component: () => import('./pembayaran-subkon-DRmVvhpT.mjs')
   },
   {
     name: void 0 ,
@@ -1098,6 +1099,10 @@ function useRequestEvent(nuxtApp) {
   var _a;
   nuxtApp || (nuxtApp = useNuxtApp());
   return (_a = nuxtApp.ssrContext) == null ? void 0 : _a.event;
+}
+function useRequestFetch() {
+  var _a;
+  return ((_a = useRequestEvent()) == null ? void 0 : _a.$fetch) || globalThis.$fetch;
 }
 const CookieDefaults = {
   path: "/",
@@ -2091,7 +2096,7 @@ const plugins = [
 ];
 const layouts = {
   blank: defineAsyncComponent(() => import('./blank-CUfiiuQ1.mjs').then((m) => m.default || m)),
-  default: defineAsyncComponent(() => import('./default-p9Yus7tV.mjs').then((m) => m.default || m))
+  default: defineAsyncComponent(() => import('./default-OhCeUVMS.mjs').then((m) => m.default || m))
 };
 const LayoutLoader = defineComponent({
   name: "LayoutLoader",
@@ -4713,7 +4718,15 @@ const buttonVariants = cva(
         outline: "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline"
+        link: "text-primary underline-offset-4 hover:underline",
+        success: "bg-green-600 text-white hover:bg-green-700",
+        warning: "bg-yellow-500 text-black hover:bg-yellow-600",
+        danger: "bg-red-600 text-white hover:bg-red-700",
+        edit: "bg-blue-600 text-white hover:bg-blue-700",
+        reset: "bg-orange-500 text-white hover:bg-orange-600",
+        download: "bg-indigo-600 text-white hover:bg-indigo-700",
+        neutral: "bg-gray-500 text-white hover:bg-gray-600",
+        log: "bg-slate-600 text-white hover:bg-slate-700"
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -4852,5 +4865,5 @@ let entry;
 }
 const entry$1 = (ssrContext) => entry(ssrContext);
 
-export { __nuxt_component_5 as _, _sfc_main$2 as a, buttonVariants as b, cn as c, useRuntimeConfig as d, entry$1 as default, useCookie as e, useRouter as f, useToast as g, useClipboard as h, useVModel as i, useNuxtApp as j, resolveRouteObject as k, nuxtLinkDefaults as l, useRoute as m, navigateTo as n, useShortcuts as o, defineShortcuts as p, createInjectionState as q, refDebounced as r, useColorMode as s, toast as t, useMediaQuery as u, valueUpdater as v, useEventListener as w, useAppConfig as x, useCustomize as y, themes as z };
+export { useAppConfig as A, useCustomize as B, themes as C, __nuxt_component_5 as _, _sfc_main$2 as a, buttonVariants as b, cn as c, useRuntimeConfig as d, entry$1 as default, useCookie as e, useRouter as f, fetchDefaults as g, useAsyncData as h, useRequestFetch as i, useToast as j, useClipboard as k, useVModel as l, useNuxtApp as m, navigateTo as n, resolveRouteObject as o, nuxtLinkDefaults as p, useRoute as q, refDebounced as r, useShortcuts as s, toast as t, useMediaQuery as u, valueUpdater as v, defineShortcuts as w, createInjectionState as x, useColorMode as y, useEventListener as z };
 //# sourceMappingURL=server.mjs.map

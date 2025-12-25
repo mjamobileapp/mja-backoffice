@@ -39,10 +39,6 @@ const baseUrl = config.public.apiBase
 const currentUser = useCookie('currentUser') // diasumsikan cookie bernilaiKontrak object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
 const proyekList = ref([])
 
 const profileFormSchema = toTypedSchema(
@@ -51,6 +47,8 @@ const profileFormSchema = toTypedSchema(
     keterangan: z.string(),
     namaSubkon: z.string(),
     nilaiKontrak: z.number(),
+    nilaiDp: z.number(),
+    nilaiRetensi: z.number(),
     tanggal: z.date({
       required_error: 'Please select a valid date.',
       invalid_type_error: 'Please select a valid date.',
@@ -136,6 +134,8 @@ const onSubmit = handleSubmit(async (values: any) => {
     keterangan: values.keterangan,
     namaSubkon: values.namaSubkon,
     nilaiKontrak: values.nilaiKontrak,
+    nilaiDp: values.nilaiDp,
+    nilaiRetensi: values.nilaiRetensi,
     tanggal: values.tanggal,
     createdBy: username.value,
     createdDate: new Date(),
@@ -297,6 +297,33 @@ const onSubmit = handleSubmit(async (values: any) => {
                   </p>
                 </div>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <FormField v-slot="{ field }" name="nilaiDp">
+            <FormItem>
+              <FormLabel>DP</FormLabel>
+              <FormControl>
+                <div class="space-y-1">
+                  <Input class="mb-4" type="number" v-bind="field" />
+
+                  <!-- ✅ Tampilan dalam format Rupiah -->
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      field.value
+                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        : 'Rp 0'
+                    }}
+                  </p>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+          <FormField v-slot="{ componentField }" name="nilaiRetensi">
+            <FormItem>
+              <FormLabel>Retensi %</FormLabel>
+              <FormControl> <Input type="number" v-bind="componentField" /> </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

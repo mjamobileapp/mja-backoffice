@@ -106,6 +106,38 @@ function formatRupiah(value: number | Ref<number>) {
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
 }
+
+const previewOpen = ref(false)
+const previewImages = ref([])
+
+async function openPreview(item) {
+  try {
+    const img = await $fetch(`${baseUrl}/getBuktiBayarSubkon?idPembayaran=${item.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    // Karena API mengembalikan object {id, url, title},
+    // kita bungkus dalam array agar tidak merusak logika v-for di template
+    previewImages.value = [
+      {
+        id: img.id,
+        url: img.url,
+        title: img.title,
+      },
+    ]
+
+    previewOpen.value = true
+  } catch (error) {
+    console.error(error)
+    const errorMsg = error.response?._data?.message || 'Gagal mengambil bukti bayar'
+
+    toast({
+      title: 'Informasi',
+      description: errorMsg,
+      variant: 'destructive',
+    })
+  }
+}
 </script>
 <template>
   <Card class="w-full">
@@ -126,12 +158,15 @@ function handleDataDeleted(deletedItemId) {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
-              <TableHead>Nama Pekerjaan</TableHead>
-              <TableHead>Nama Subkon/Kontrak</TableHead>
-              <TableHead>No Kontrak</TableHead>
+              <TableHead>Nama Proyek + Nama Subkon</TableHead>
+              <TableHead>No Termin</TableHead>
               <TableHead>Tanggal Pembayaran</TableHead>
-              <TableHead>Nilai</TableHead>
-              <TableHead>Keterangan</TableHead>
+              <TableHead>Nilai Progress</TableHead>
+              <TableHead>Nilai Tagihan</TableHead>
+              <TableHead>Potongan DP</TableHead>
+              <TableHead>Nilai Retensi</TableHead>
+              <TableHead>Nilai Dibayar</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -141,32 +176,63 @@ function handleDataDeleted(deletedItemId) {
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.namaPekerjaan }}
+                {{ item.namaPekerjaan }} - {{ item.namaSubkon }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.namaSubkon }}
+                {{ item.noTermin }}
               </TableCell>
+              <TableCell>{{ formatTanggal(item.tanggalPembayaran) }}</TableCell>
               <TableCell class="font-medium">
-                {{ item.noKontrak }}
+                {{ formatRupiah(item.nilaiProgress) }}
               </TableCell>
-              <TableCell>{{ formatTanggal(item.tanggal) }}</TableCell>
 
               <TableCell class="font-medium">
-                {{ formatRupiah(item.nilai) }}
+                {{ formatRupiah(item.nilaiTagihan) }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.keterangan }}
+                {{ formatRupiah(item.potonganDp) }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ formatRupiah(item.nilaiRetensi) }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ formatRupiah(item.nilaiDibayar) }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ item.status }}
               </TableCell>
 
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <Button size="sm" variant="default" @click="openPreview(item)"> Preview </Button>
+                  <!-- <EditData :id="item.id" @dataEdited="handleDataEdited" />
+                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" /> -->
                 </div>
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
+
+        <Dialog v-model:open="previewOpen">
+          <DialogContent class="max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Preview Bukti Lunas</DialogTitle>
+            </DialogHeader>
+
+            <div class="flex flex-col gap-4">
+              <img
+                v-for="img in previewImages"
+                :key="img.id"
+                :src="img.url"
+                class="rounded-lg border shadow"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button @click="previewOpen = false">Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </CardContent>
   </Card>

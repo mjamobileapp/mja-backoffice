@@ -1,180 +1,306 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import { Loader2, Calculator, Banknote } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from '~/components/ui/toast'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
-import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2, Notebook } from 'lucide-vue-next'
-import { FieldArray, useForm } from 'vee-validate'
-import { h, ref, onMounted } from 'vue'
-import * as z from 'zod'
-import { toast } from '~/components/ui/toast'
 import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'date-fns'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { FormField, FormItem, FormLabel, FormMessage, FormControl } from '@/components/ui/form'
 
-import Datepicker from '@vuepic/vue-datepicker'
-import '@vuepic/vue-datepicker/dist/main.css'
-
-const emit = defineEmits(['dataAdded'])
-
+/* ============================================================
+   CONFIG & AUTH
+============================================================ */
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const username = computed(() => currentUser.value?.username || 'no-username@example.com')
+const emit = defineEmits(['dataAdded'])
 
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
+const accessToken = useCookie('accessToken')
+const token = accessToken.value?.token
 
-const kontrakSubkonList = ref([])
+const currentUser = useCookie('currentUser')
+const username = computed(() => currentUser.value?.username || 'system')
 
-const profileFormSchema = toTypedSchema(
+const lastSelectedSubkonId = ref<number | null>(null)
+const lastSelectedProgressId = ref<number | null>(null)
+
+/* ============================================================
+   VALIDATION
+============================================================ */
+const schema = toTypedSchema(
   z.object({
-    idSubkon: z.number(),
-    keterangan: z.string(),
-    nilai: z.number(),
-    tanggal: z.date({
-      required_error: 'Please select a valid date.',
-      invalid_type_error: 'Please select a valid date.',
-    }),
+    idSubkon: z.number({ required_error: 'Pilih subkon' }),
+    idProgress: z.number({ required_error: 'Pilih termin' }),
+    tanggal: z.date({ required_error: 'Pilih tanggal' }),
+    nilaiBayar: z.number().min(1, 'Minimal Rp 1'),
+    keterangan: z.string().optional(),
+    files: z
+      .array(z.any())
+      .min(1, 'Minimal 1 file harus diupload')
+      .refine(files => files.every(file => file.type.startsWith('image/')), {
+        message: 'File harus berupa gambar (jpg, jpeg, png, webp, dll)',
+      }),
   })
 )
 
-const displayNilaiKontrak = ref('')
-
-// Gunakan NumberFormat sekali, bukan setiap ketik
-const formatter = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
+const { handleSubmit, setFieldValue, values, resetForm } = useForm({
+  validationSchema: schema,
+  initialValues: {
+    tanggal: new Date(),
+    nilaiBayar: undefined,
+  },
 })
 
-const dateMulai = ref(null)
+/* ============================================================
+   DATA FETCH
+============================================================ */
+const listSubkonProgress = ref<any[]>([])
 
-const isSubmitting = ref(false)
-
-const { handleSubmit, resetForm, setFieldValue } = useForm({
-  validationSchema: profileFormSchema,
-  // initialValues: {
-  //   idSubkon: 0,
-  //   noKontrak: '',
-  //   nilaiKontrak: 0,
-  //   tglMulai: '',
-  //   tglSelesai: '',
-  // },
-})
-
-const isDialogOpen = ref(false)
-
-async function openDialog() {
-  isDialogOpen.value = true
-  await fetchDataKontrakSukon()
+async function fetchDataProgressSummary() {
+  const res = await fetch(`${baseUrl}/getSubkonProgressSummary`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const json = await res.json()
+  listSubkonProgress.value = json.data.map(subkon => ({
+    ...subkon,
+    termin: subkon.termin.map(t => ({
+      ...t,
+      nilaiProgress: Number(t.nilaiProgress),
+      totalDibayar: Number(t.totalDibayar),
+    })),
+  }))
 }
 
-onMounted(() => {
-  fetchDataKontrakSukon()
+onMounted(fetchDataProgressSummary)
+
+/* ============================================================
+   COMPUTED CORE
+============================================================ */
+const selectedSubkon = computed(() => listSubkonProgress.value.find(s => s.id === values.idSubkon))
+
+const terminList = computed(() => selectedSubkon.value?.termin || [])
+
+const selectedTermin = computed(() =>
+  terminList.value.find(t => t.idProgress === values.idProgress)
+)
+
+watch(selectedTermin, val => {
+  console.log('DEBUG TERMIN:', val)
 })
 
-const open = ref(false)
-function closeDialog() {
+/**
+ * FLAG: pembayaran pertama termin?
+ */
+const isFirstPaymentOfTermin = computed(() => {
+  if (!selectedTermin.value) return false
+  return Number(selectedTermin.value.totalDibayar) === 0
+})
+
+/**
+ * Potongan DP (HANYA SEKALI)
+ */
+const potonganDP = computed(() => {
+  if (
+    !selectedTermin.value ||
+    !isFirstPaymentOfTermin.value ||
+    selectedTermin.value.noTermin !== 'Termin-01'
+  )
+    return 0
+
+  return selectedSubkon.value?.nilaiDP || 0
+})
+
+/**
+ * Retensi (HANYA SEKALI)
+ */
+const potonganRetensi = computed(() => {
+  if (
+    !selectedTermin.value ||
+    !selectedSubkon.value ||
+    !isFirstPaymentOfTermin.value ||
+    selectedTermin.value.noTermin !== 'Termin-01'
+  )
+    return 0
+
+  return selectedTermin.value.nilaiProgress * (selectedSubkon.value.persenRetensi / 100)
+})
+
+/**
+ * Netto termin
+ */
+const nilaiNetto = computed(() => {
+  if (!selectedTermin.value) return 0
+  return selectedTermin.value.nilaiProgress - potonganDP.value - potonganRetensi.value
+})
+
+/**
+ * SISA BAYAR (PER TERMIN, BUKAN KUMULATIF)
+ */
+const sisaBayar = computed(() => {
+  if (!selectedTermin.value) return 0
+  return Math.max(nilaiNetto.value - selectedTermin.value.totalDibayar, 0)
+})
+
+/* ============================================================
+   HELPERS
+============================================================ */
+const formatRupiah = (val: number) =>
+  new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(val || 0)
+
+/* ============================================================
+   UI STATE
+============================================================ */
+const isDialogOpen = ref(false)
+const isSubmitting = ref(false)
+
+// 📁 handle file
+function handleFileChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  if (target.files) {
+    const arrFiles = Array.from(target.files)
+    setFieldValue('files', arrFiles)
+  }
+}
+
+const closeDialog = () => {
   isDialogOpen.value = false
-  open.value = false
   resetForm()
 }
 
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-
-async function fetchDataKontrakSukon() {
-  try {
-    const response = await fetch(`${baseUrl}/kontrakSubkon`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
-
-    if (Array.isArray(fetchedData.data)) {
-      kontrakSubkonList.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      kontrakSubkonList.value = []
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data:', error)
-    kontrakSubkonList.value = []
+/**
+ * Input nominal aman
+ */
+const handleNilaiBayar = (raw: string) => {
+  const cleaned = raw.replace(/\D/g, '')
+  if (!cleaned) {
+    setFieldValue('nilaiBayar', undefined)
+    return
   }
+
+  let val = parseInt(cleaned)
+  if (val > sisaBayar.value) val = sisaBayar.value
+  setFieldValue('nilaiBayar', val)
 }
 
-const onSubmit = handleSubmit(async (values: any) => {
+/* ============================================================
+   SUBMIT
+============================================================ */
+const onSubmit = handleSubmit(async form => {
   isSubmitting.value = true
-  const dataForm = {
-    idSubkon: values.idSubkon,
-    keterangan: values.keterangan,
-    nilai: values.nilai,
-    tanggal: values.tanggal,
-    createdBy: username.value,
-    createdDate: new Date(),
-  }
-  isDialogOpen.value = false
-  console.log(JSON.stringify(dataForm))
+  lastSelectedSubkonId.value = values.idSubkon
+  lastSelectedProgressId.value = values.idProgress
+
   try {
+    const payload = {
+      ...form,
+      potonganDP: potonganDP.value,
+      retensi: potonganRetensi.value,
+      createdBy: username.value,
+    }
+
+    console.log(JSON.stringify(payload))
     const response = await fetch(`${baseUrl}/pembayaranSubkon`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(dataForm),
+      body: JSON.stringify(payload),
     })
 
-    console.log(await response.json())
+    // Cek jika HTTP status bukan 2xx
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Gagal menyimpan pembayaran')
+    }
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil disimpan.',
+    // 2. Parsing JSON untuk mendapatkan ID yang baru dibuat
+    const result = await response.json()
+    console.log(result)
+    const newId = result.data?.id // Pastikan controller Anda mengembalikan { data: { id: ... } }
+
+    toast({
+      title: 'Success',
+      description: 'Data berhasil disimpan.',
+    })
+
+    // 3. Upload File (hanya jika ada file dan ID pembayaran valid)
+    if (newId && form.files?.length > 0) {
+      const formDataFile = new FormData()
+      formDataFile.append('createdBy', username.value)
+      formDataFile.append('idPembayaran', newId)
+
+      form.files.forEach(file => {
+        formDataFile.append('files', file)
       })
 
-      console.log('[AddData] Emitting dataAdded...')
-      emit('dataAdded') // kirim emit dulu
-      open.value = false
-      resetForm() // reset form
-      isDialogOpen.value = false // baru tutup dialog
-    } else {
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data. Silakan coba lagi.',
+      await $fetch(`${baseUrl}/uploadBuktiBayarSubkon`, {
+        method: 'POST',
+        body: formDataFile,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Note: Jangan set Content-Type manual untuk FormData
+        },
       })
     }
-  } catch (error) {
-    console.error('Error submitting data:', error)
+
+    // 🔄 REFRESH DATA TERMIN
+    await fetchDataProgressSummary()
+
+    // 🔁 Restore pilihan subkon
+    if (lastSelectedSubkonId.value) {
+      setFieldValue('idSubkon', lastSelectedSubkonId.value)
+    }
+
+    // 🔍 Cek apakah termin masih punya sisa
+    const refreshedSubkon = listSubkonProgress.value.find(s => s.id === lastSelectedSubkonId.value)
+
+    const refreshedTermin = refreshedSubkon?.termin.find(
+      t => t.idProgress === lastSelectedProgressId.value
+    )
+
+    if (refreshedTermin && refreshedTermin.nilaiProgress - refreshedTermin.totalDibayar > 0) {
+      // ⏳ masih bisa dibayar
+      setFieldValue('idProgress', refreshedTermin.idProgress)
+    } else {
+      // ✅ termin lunas → reset pilihan termin
+      setFieldValue('idProgress', undefined)
+    }
+
+    setFieldValue('nilaiBayar', undefined)
+
+    emit('dataAdded')
+    closeDialog()
+  } catch {
     toast({
       title: 'Error',
-      description: 'Terjadi kesalahan saat mengirim data.',
+      description: 'Gagal menyimpan pembayaran',
+      variant: 'destructive',
     })
   } finally {
     isSubmitting.value = false
@@ -183,135 +309,182 @@ const onSubmit = handleSubmit(async (values: any) => {
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @update:open="val => !val && closeDialog()">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="isDialogOpen = true" class="gap-2">
+        <Banknote class="w-4 h-4" /> Input Pembayaran
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
-      <form class="space-y-8" @submit.prevent="onSubmit">
+
+    <DialogContent class="sm:max-w-[600px]">
+      <form @submit.prevent="onSubmit" class="space-y-5">
         <DialogHeader>
-          <DialogTitle>Add Data Pembayaran Subkon</DialogTitle>
+          <DialogTitle>Form Pembayaran Subkon</DialogTitle>
         </DialogHeader>
 
-        <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
-          <!-- 🧱 Field: Subkon -->
-          <FormField v-slot="{ value }" name="idSubkon">
-            <FormItem class="flex flex-col">
-              <FormLabel>Pilih Subkon</FormLabel>
-
-              <Popover v-model:open="open">
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      :aria-expanded="open"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
-                    >
-                      {{
-                        value
-                          ? kontrakSubkonList.find(item => item.id === value)?.namaSubkon
-                          : 'Select Subkon...'
-                      }}
-
-                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent class="p-0">
-                  <Command>
-                    <CommandInput placeholder="Search Subkon..." />
-                    <CommandEmpty>No Subkon found.</CommandEmpty>
-                    <CommandList>
-                      <CommandGroup>
-                        <CommandItem
-                          v-for="item in kontrakSubkonList"
-                          :key="item.id"
-                          :value="item.namaSubkon"
-                          @select="
-                            () => {
-                              setFieldValue('idSubkon', item.id)
-                              open = false
-                            }
-                          "
-                        >
-                          <Check
-                            :class="
-                              cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
-                            "
-                          />
-                          {{ item.namaSubkon }} - {{ item.namaPekerjaan }}
-                        </CommandItem>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <!-- 🗓️ Field: Tanggal Mulai -->
-          <FormField v-slot="{ field, value }" name="tanggal">
-            <FormItem class="flex flex-col">
-              <FormLabel>Tanggal</FormLabel>
-              <Datepicker
-                v-model="dateMulai"
-                :enable-time-picker="false"
-                :format="'dd-MM-yyyy'"
+        <div class="grid gap-4 max-h-[65vh] overflow-y-auto pr-2">
+          <FormField name="idSubkon" v-slot="{ value }">
+            <FormItem>
+              <FormLabel>Sub Kontraktor</FormLabel>
+              <Select
+                :model-value="value?.toString()"
                 @update:model-value="
-                  val => {
-                    dateMulai = val
-                    field.onChange(val) // <--- ini penting
+                  v => {
+                    setFieldValue('idSubkon', Number(v))
+                    setFieldValue('idProgress', undefined)
+                    setFieldValue('nilaiBayar', undefined)
                   }
                 "
-              />
+              >
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Pilih Subkon" /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem v-for="s in listSubkonProgress" :key="s.id" :value="s.id.toString()">
+                    {{ s.namaSubkon }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
-            <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ field }" name="nilai">
+          <FormField name="idProgress" v-slot="{ value }" v-if="terminList.length">
             <FormItem>
-              <FormLabel>Nilai / Jumlah Pembayaran</FormLabel>
-              <FormControl>
-                <div class="space-y-1">
-                  <Input class="mb-4" type="number" v-bind="field" />
+              <FormLabel>Termin Pembayaran</FormLabel>
+              <Select
+                :model-value="value?.toString()"
+                @update:model-value="
+                  v => {
+                    setFieldValue('idProgress', Number(v))
+                    setFieldValue('nilaiBayar', undefined)
+                  }
+                "
+              >
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Pilih Termin" /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem
+                    v-for="t in terminList"
+                    :key="t.idProgress"
+                    :value="t.idProgress.toString()"
+                    :disabled="t.nilaiProgress - t.totalDibayar <= 0"
+                  >
+                    {{ t.noTermin }} - {{ formatRupiah(t.nilaiProgress) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
-                  <!-- ✅ Tampilan dalam format Rupiah -->
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
-                        : 'Rp 0'
-                    }}
+          <div
+            v-if="selectedTermin"
+            class="rounded-xl border bg-slate-50 p-4 text-sm space-y-2.5 shadow-sm"
+          >
+            <div class="flex items-center gap-2 font-bold text-slate-800 border-b pb-2 mb-2">
+              <Calculator class="w-4 h-4" /> Rincian Kewajiban
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Nilai Progress</span>
+              <span class="font-medium text-slate-900">{{
+                formatRupiah(selectedTermin.nilaiProgress)
+              }}</span>
+            </div>
+
+            <div v-if="potonganDP > 0" class="flex justify-between text-rose-600 italic">
+              <span>Potongan DP (Termin 1)</span> <span>- {{ formatRupiah(potonganDP) }}</span>
+            </div>
+            <div v-if="potonganRetensi > 0" class="flex justify-between text-rose-600 italic">
+              <span>Retensi ({{ selectedSubkon?.persenRetensi }}%)</span>
+              <span>- {{ formatRupiah(potonganRetensi) }}</span>
+            </div>
+            <div class="flex justify-between font-bold border-t pt-2 text-slate-900">
+              <span>Total Netto</span> <span>{{ formatRupiah(nilaiNetto) }}</span>
+            </div>
+            <div class="flex justify-between text-blue-600">
+              <span>Sudah Terbayar</span>
+              <span>{{ formatRupiah(selectedTermin.totalDibayar) }}</span>
+            </div>
+            <div
+              class="flex justify-between font-bold text-base text-emerald-700 border-t-2 border-dashed pt-2"
+            >
+              <span>Sisa Maks. Bayar (Kumulatif)</span> <span>{{ formatRupiah(sisaBayar) }}</span>
+            </div>
+            <div v-if="!isFirstPaymentOfTermin" class="text-xs italic text-slate-400 pt-2">
+              * Potongan DP & retensi sudah diterapkan pada pembayaran sebelumnya
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <FormField name="tanggal" v-slot="{ field }">
+              <FormItem>
+                <FormLabel>Tanggal Transaksi</FormLabel>
+                <Datepicker
+                  v-model="field.value"
+                  :enable-time-picker="false"
+                  auto-apply
+                  @update:model-value="val => setFieldValue('tanggal', val)"
+                />
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField name="nilaiBayar" v-slot="{ field }">
+              <FormItem>
+                <FormLabel>Nominal Pembayaran</FormLabel>
+                <FormControl>
+                  <div class="relative">
+                    <Input
+                      type="text"
+                      placeholder="Contoh: 5.000.000"
+                      :model-value="field.value"
+                      @input="e => handleNilaiBayar(e.target.value)"
+                      :disabled="!selectedTermin || sisaBayar <= 0"
+                      class="pr-4"
+                    />
+                  </div>
+                </FormControl>
+                <div class="flex justify-between mt-1.5">
+                  <p class="text-[11px] font-bold text-emerald-600 truncate">
+                    {{ formatRupiah(field.value || 0) }}
                   </p>
                 </div>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+          </div>
+          <FormField name="files">
+            <FormItem>
+              <FormLabel>Upload Bukti Bayar</FormLabel>
+              <FormControl>
+                <Input type="file" @change="handleFileChange" />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-
-          <FormField v-slot="{ componentField }" name="keterangan">
+          <FormField name="keterangan" v-slot="{ field }">
             <FormItem>
-              <FormLabel>Keterangan</FormLabel>
+              <FormLabel>Keterangan / Catatan</FormLabel>
               <FormControl>
-                <Textarea type="text" v-bind="componentField"></Textarea>
+                <Textarea v-bind="field" placeholder="Tambahkan catatan jika perlu..." rows="2" />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
         </div>
 
-        <DialogFooter class="flex justify-between items-center pt-4">
-          <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog">Close</Button>
-          </DialogClose>
-
-          <Button v-if="isSubmitting" disabled>
-            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
-            Saving..
+        <DialogFooter class="border-t pt-4">
+          <Button variant="ghost" type="button" @click="closeDialog">Batal</Button>
+          <Button
+            type="submit"
+            :disabled="isSubmitting || !selectedTermin || sisaBayar <= 0"
+            class="min-w-[140px]"
+          >
+            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+            Simpan Data
           </Button>
-          <Button v-else type="submit">Save</Button>
         </DialogFooter>
       </form>
     </DialogContent>

@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
-import DetailSubkon from './DetailSubkon.vue'
+import DetailProgressSubkon from './DetailProgressSubkon.vue'
 import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
@@ -17,10 +17,8 @@ const itemsPerPage = ref(10)
 const data = ref<any>([]) // Define the type for fetched data
 
 const filteredData = computed(() => {
-  return data.value.filter(
-    item =>
-      item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.namaSubkon.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return data.value.filter(item =>
+    item.namaSubkon.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
@@ -49,11 +47,6 @@ function formatTanggal(tanggal: any) {
   return formatDate(tanggal, 'dd/M/yyyy')
 }
 
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
-}
-
 // get token=====
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
@@ -61,8 +54,7 @@ const token = accessToken.value.token
 async function fetchData() {
   isLoading.value = true
   try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/kontrakSubkon`, {
+    const response = await fetch(`${baseUrl}/progressSubkon`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -72,7 +64,7 @@ async function fetchData() {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData)
+    console.log('Data yang diterima dari server:', fetchedData)
 
     if (Array.isArray(fetchedData.data)) {
       data.value = fetchedData.data
@@ -93,26 +85,22 @@ onMounted(() => {
 })
 
 const editItem = ref(null)
-function handleDataEdited() {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
-  setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
-    fetchData()
-  }, 500)
-}
-
-function handleDetailSubkon() {
-  console.log('Event detailPo diterima, menunggu 500ms sebelum refresh data...')
-
-  setTimeout(() => {
-    console.log('Melakukan fetch data setelah DetailSubkon...')
-    fetchData()
-  }, 500)
+function handleDataEdited(editedItem) {
+  console.log(editItem)
+  const index = data.value.findIndex(item => item.id === editedItem.id)
+  if (index !== -1) {
+    data.value[index] = editedItem
+  }
+  editItem.value = null
 }
 
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
+}
+
+function formatRupiah(value: number | Ref<number>) {
+  const val = typeof value === 'object' ? value.value : value
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 </script>
 <template>
@@ -134,13 +122,11 @@ function handleDataDeleted(deletedItemId) {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
-              <TableHead>Nama Pekerjaan</TableHead>
-              <TableHead>Nama Subkon/Kontrak</TableHead>
-              <TableHead>Tanggal</TableHead>
-              <TableHead>Nilai Kontrak</TableHead>
-              <TableHead>DP</TableHead>
-              <TableHead>Retensi %</TableHead>
-              <TableHead>Keterangan</TableHead>
+              <TableHead>No. Penagihan</TableHead>
+              <TableHead>Nama Subkon</TableHead>
+              <TableHead>Tanggal Penagihan</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Total Progress</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -150,31 +136,25 @@ function handleDataDeleted(deletedItemId) {
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.namaPekerjaan }}
+                {{ item.noPenagihan }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.namaSubkon }}
               </TableCell>
-              <TableCell>{{ formatTanggal(item.tanggal) }}</TableCell>
-
               <TableCell class="font-medium">
-                {{ formatRupiah(item.nilaiKontrak) }}
+                {{ formatTanggal(item.tglPenagihan) }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ formatRupiah(item.nilaiDp) }}
+                {{ item.statusProgress }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.nilaiRetensi }}
+                {{ formatRupiah(item.totalProgress) }}
               </TableCell>
-              <TableCell class="font-medium">
-                {{ item.keterangan }}
-              </TableCell>
-
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <DetailSubkon :id="item.id" @detailSubkon="handleDetailSubkon" />
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <!-- <EditData :id="item.id" @dataEdited="handleDataEdited" /> -->
+                  <DetailProgressSubkon :id="item.idProgress" />
+                  <!-- <DeleteData :item="item" @dataDeleted="handleDataDeleted" /> -->
                 </div>
               </TableCell>
             </TableRow>
@@ -191,4 +171,3 @@ function handleDataDeleted(deletedItemId) {
     </div>
   </div>
 </template>
-<style scoped></style>

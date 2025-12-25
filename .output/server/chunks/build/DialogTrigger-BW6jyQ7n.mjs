@@ -483,5 +483,5 @@ _sfc_main.setup = (props, ctx) => {
   return _sfc_setup ? _sfc_setup(props, ctx) : void 0;
 };
 
-export { _sfc_main$8 as _, _sfc_main as a, _sfc_main$6 as b, _sfc_main$3 as c, _sfc_main$1 as d, _sfc_main$4 as e, _sfc_main$7 as f, _sfc_main$5 as g, _sfc_main$2 as h };
+export { _sfc_main$8 as _, _sfc_main$6 as a, _sfc_main$3 as b, _sfc_main$1 as c, _sfc_main$4 as d, _sfc_main as e, _sfc_main$7 as f, _sfc_main$5 as g, _sfc_main$2 as h };
 //# sourceMappingURL=DialogTrigger-BW6jyQ7n.mjs.map

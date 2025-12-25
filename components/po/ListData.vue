@@ -233,7 +233,7 @@ async function openPreview(item) {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    // console.log(images)
+    console.log(`${baseUrl}/getBuktiLunas?idPo=${item.id}`)
     previewImages.value = images.map(img => ({
       id: img.id,
       url: img.url, // ini harus URL yang bisa diakses oleh frontend
