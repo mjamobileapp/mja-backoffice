@@ -37,6 +37,7 @@ const props = defineProps<{
     type: Number
     required: true
   }
+  disabled?: boolean
 }>()
 const emit = defineEmits<{
   (e: 'dataEdited'): void
@@ -177,6 +178,7 @@ async function fetchData() {
 const listJenisPayment = [{ nama: 'Cash' }, { nama: 'Tempo' }]
 
 async function openDialog() {
+  if (props.disabled) return // Guard clause
   isDialogOpen.value = true
   await fetchData()
   await fetchDataProyek()
@@ -204,7 +206,7 @@ const onSubmit = handleSubmit(async () => {
       createdDate: new Date(),
     }
 
-    console.log(JSON.stringify(dataForm))
+    // console.log(JSON.stringify(dataForm))
     const response = await fetch(`${baseUrl}/po/${props.id}`, {
       method: 'PUT',
       headers: {
@@ -248,10 +250,12 @@ function onSelectJenisPayment(item: any) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button @click="openDialog" size="sm" :disabled="props.disabled"
+              ><PencilIcon class="w-4 h-4"
+            /></Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Edit Data</p>
+            <p>{{ props.disabled ? 'Data tidak dapat diedit' : 'Edit Data' }}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

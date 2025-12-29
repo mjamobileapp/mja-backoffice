@@ -454,8 +454,16 @@ async function deleteFile(item) {
                     :disabled="item.statusPo === 'Lunas'"
                   />
                   <DetailPo :id="item.id" @detailPo="handleDetailPo" />
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <EditData
+                    :id="item.id"
+                    @dataEdited="handleDataEdited"
+                    :disabled="item.statusPo === 'Lunas'"
+                  />
+                  <DeleteData
+                    :id="item.id"
+                    @dataDeleted="handleDataDeleted"
+                    :disabled="item.statusPo === 'Lunas'"
+                  />
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger as-child>

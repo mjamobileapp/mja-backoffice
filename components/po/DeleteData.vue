@@ -12,7 +12,15 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
-const props = defineProps(['item'])
+// const props = defineProps(['item'])
+
+const props = defineProps<{
+  id: {
+    type: Number
+    required: true
+  }
+  disabled?: boolean
+}>()
 const emit = defineEmits(['dataDeleted'])
 
 const config = useRuntimeConfig()
@@ -24,7 +32,7 @@ const token = accessToken.value.token
 
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/po/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/po/${props.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -32,7 +40,7 @@ async function deleteItem() {
     })
 
     if (response.ok) {
-      emit('dataDeleted', props.item.id)
+      emit('dataDeleted', props.id)
       toast({
         title: 'Success',
         description: 'Data berhasil dihapus.',
@@ -67,7 +75,7 @@ async function deleteItem() {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button size="sm">
+            <Button size="sm" :disabled="props.disabled">
               <TrashIcon class="w-4 h-4" />
             </Button>
           </TooltipTrigger>
