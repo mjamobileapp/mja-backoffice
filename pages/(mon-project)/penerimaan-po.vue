@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ListData from '~/components/po/ListData.vue'
+import ListData from '~/components/penerimaan-po/ListData.vue'
 </script>
 
 <template>
