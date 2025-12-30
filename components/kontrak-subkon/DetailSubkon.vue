@@ -22,14 +22,23 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 const isDialogOpen = ref(false)
+
 function openDialog() {
   isDialogOpen.value = true
-  fetchData()
-  fetchDataDetailSubkon()
 }
+
 function closeDialog() {
   isDialogOpen.value = false
 }
+
+watch(isDialogOpen, async open => {
+  if (open) {
+    await fetchData()
+    await fetchDataDetailSubkon()
+  } else {
+    resetState()
+  }
+})
 
 // Header PO
 const headerSubkon = reactive({
@@ -48,6 +57,8 @@ const token = accessToken.value?.token
 // FETCH DATA
 // ===================
 async function fetchData() {
+  console.log(props.id)
+  if (!props.id) return
   try {
     const response = await fetch(`${baseUrl}/kontrakSubkon/${props.id}`, {
       method: 'GET',
@@ -74,6 +85,8 @@ async function fetchData() {
 const dataDetail = ref([{ item: '', volume: 0, satuan: '', harga: 0, total: 0, idUpah: 0 }])
 
 async function fetchDataDetailSubkon() {
+  console.log(props.id)
+  if (!props.id) return
   try {
     const response = await fetch(`${baseUrl}/detailSubkon?idSubkon=${props.id}`, {
       method: 'GET',
@@ -88,6 +101,18 @@ async function fetchDataDetailSubkon() {
     console.error('Gagal fetch Detail Subkon:', err)
     toast({ title: 'Error', description: 'Gagal mengambil Detail Subkon', variant: 'destructive' })
   }
+}
+
+function resetState() {
+  dataDetail.value = [{ item: '', volume: 0, satuan: '', harga: 0, total: 0, idUpah: 0 }]
+
+  Object.assign(headerSubkon, {
+    idSubkon: 0,
+    namaSubkon: '',
+    tanggal: '',
+    retensi: 0,
+    nilaiDp: 0,
+  })
 }
 
 // ===================
@@ -227,9 +252,16 @@ async function handleSubmit() {
 // ===================
 // Util
 // ===================
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
+function formatRupiah(value?: number | Ref<number> | null) {
+  const rawValue = isRef(value) ? value.value : value
+
+  const numericValue = rawValue ?? 0
+
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0, // Opsional: hilangkan ,00 di belakang
+  }).format(numericValue)
 }
 
 const searchQuery = ref('')
