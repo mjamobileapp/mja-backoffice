@@ -44,7 +44,7 @@ const filteredData = computed(() => {
     // ============================
     // FILTER JENIS PAYMENT
     // ============================
-    const matchesJenis = filterJenis.value === '' || item.jenisPayment === filterJenis.value
+    // const matchesJenis = filterJenis.value === '' || item.jenisPayment === filterJenis.value
 
     // ============================
     // FILTER TANGGAL (START – END)
@@ -66,21 +66,22 @@ const filteredData = computed(() => {
     // ============================
     // FILTER JATUH TEMPO (START – END)
     // ============================
-    let matchesJatuhTempo = true
+    // let matchesJatuhTempo = true
 
-    if (filterJatuhTempoStart.value && item.tglJatuhTempo) {
-      const start = new Date(filterJatuhTempoStart.value)
-      const itemDate = new Date(item.tglJatuhTempo)
-      if (!(itemDate >= start)) matchesJatuhTempo = false
-    }
+    // if (filterJatuhTempoStart.value && item.tglJatuhTempo) {
+    //   const start = new Date(filterJatuhTempoStart.value)
+    //   const itemDate = new Date(item.tglJatuhTempo)
+    //   if (!(itemDate >= start)) matchesJatuhTempo = false
+    // }
 
-    if (filterJatuhTempoEnd.value && item.tglJatuhTempo) {
-      const end = new Date(filterJatuhTempoEnd.value)
-      const itemDate = new Date(item.tglJatuhTempo)
-      if (!(itemDate <= end)) matchesJatuhTempo = false
-    }
+    // if (filterJatuhTempoEnd.value && item.tglJatuhTempo) {
+    //   const end = new Date(filterJatuhTempoEnd.value)
+    //   const itemDate = new Date(item.tglJatuhTempo)
+    //   if (!(itemDate <= end)) matchesJatuhTempo = false
+    // }
 
-    return matchesSearch && matchesJenis && matchesTanggal && matchesJatuhTempo
+    // return matchesSearch && matchesJenis && matchesTanggal && matchesJatuhTempo
+    return matchesSearch && matchesTanggal
   })
 })
 
@@ -317,7 +318,7 @@ async function deleteFile(item) {
         <Datepicker v-model="filterTanggalEnd" :format="'dd-MM-yyyy'" placeholder="Tanggal End" />
 
         <!-- Filter Jatuh Tempo -->
-        <Datepicker
+        <!-- <Datepicker
           v-model="filterJatuhTempoStart"
           :format="'dd-MM-yyyy'"
           placeholder="Jatuh Tempo Start"
@@ -326,14 +327,14 @@ async function deleteFile(item) {
           v-model="filterJatuhTempoEnd"
           :format="'dd-MM-yyyy'"
           placeholder="Jatuh Tempo End"
-        />
+        /> -->
 
         <!-- Filter Jenis Payment -->
-        <select v-model="filterJenis" class="border rounded p-2">
+        <!-- <select v-model="filterJenis" class="border rounded p-2">
           <option value="">Semua Jenis</option>
           <option value="Tempo">Tempo</option>
           <option value="Cash">Cash</option>
-        </select>
+        </select> -->
 
         <!-- Button Reset -->
         <Button @click="resetFilter" variant="default"> Reset Filter </Button>
@@ -355,11 +356,11 @@ async function deleteFile(item) {
               <TableHead>Tanggal</TableHead>
               <TableHead>Tujuan PO</TableHead>
               <TableHead>Tanggal Pengiriman</TableHead>
-              <TableHead>Jenis Payment</TableHead>
+              <!-- <TableHead>Jenis Payment</TableHead>
               <TableHead>Tgl Jatuh Tempo</TableHead>
-              <TableHead>Status PO</TableHead>
-              <TableHead>PPN %</TableHead>
-              <TableHead>Grand Total</TableHead>
+              <TableHead>Status PO</TableHead> -->
+              <!-- <TableHead>PPN %</TableHead> -->
+              <!-- <TableHead>Grand Total</TableHead> -->
               <TableHead>Status Pengiriman</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
@@ -380,8 +381,7 @@ async function deleteFile(item) {
                 {{ item.tujuanPo }}
               </TableCell>
               <TableCell>{{ formatTanggal(item.tglPengiriman) }}</TableCell>
-              <!-- Jenis Payment -->
-              <TableCell class="font-medium">
+              <!-- <TableCell class="font-medium">
                 <Button
                   v-if="item.jenisPayment"
                   size="sm"
@@ -400,13 +400,12 @@ async function deleteFile(item) {
                 </Button>
 
                 <span v-else>-</span>
-              </TableCell>
+              </TableCell> -->
 
-              <!-- Tanggal Jatuh Tempo -->
-              <TableCell>
+              <!-- <TableCell>
                 {{ item.tglJatuhTempo ? formatTanggal(item.tglJatuhTempo) : '-' }}
-              </TableCell>
-              <TableCell class="font-medium flex items-center gap-2">
+              </TableCell> -->
+              <!-- <TableCell class="font-medium flex items-center gap-2">
                 <Button
                   v-if="item.statusPo"
                   size="sm"
@@ -422,7 +421,6 @@ async function deleteFile(item) {
                   {{ item.statusPo }}
                 </Button>
 
-                <!-- ⭐ ADD PREVIEW BUTTON HANYA SAAT SUDAH LUNAS -->
                 <Button
                   v-if="item.statusPo && item.statusPo.toLowerCase() === 'lunas'"
                   size="sm"
@@ -431,14 +429,14 @@ async function deleteFile(item) {
                 >
                   Preview
                 </Button>
-              </TableCell>
+              </TableCell> -->
 
-              <TableCell class="font-medium">
+              <!-- <TableCell class="font-medium">
                 {{ item.ppn }}
-              </TableCell>
-              <TableCell class="font-medium">
+              </TableCell> -->
+              <!-- <TableCell class="font-medium">
                 {{ formatRupiah(item.grandTotal ?? 0) }}
-              </TableCell>
+              </TableCell> -->
               <TableCell class="font-medium flex gap-2">
                 {{ item.statusPenerimaan }}
                 <Button

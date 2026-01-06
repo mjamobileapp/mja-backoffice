@@ -218,18 +218,18 @@ async function handleSubmit() {
             <p class="text-xs text-gray-500">No PO</p>
             <p class="font-medium">{{ headerPo.noPo }}</p>
           </div>
-          <div>
+          <!-- <div>
             <p class="text-xs text-gray-500">RAP</p>
             <p class="font-medium text-blue-600">{{ headerPo.noRap }}</p>
-          </div>
+          </div> -->
           <div>
             <p class="text-xs text-gray-500">Tanggal</p>
             <p class="font-medium">{{ headerPo.tanggal }}</p>
           </div>
-          <div>
+          <!-- <div>
             <p class="text-xs text-gray-500">PPN</p>
             <p class="font-medium">{{ headerPo.ppn }}%</p>
-          </div>
+          </div> -->
         </div>
 
         <!-- TABLE -->
