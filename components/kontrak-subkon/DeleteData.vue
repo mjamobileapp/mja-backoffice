@@ -12,7 +12,13 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
-const props = defineProps(['item'])
+const props = defineProps<{
+  id: {
+    type: Number
+    required: true
+  }
+  disabled?: boolean
+}>()
 const emit = defineEmits(['dataDeleted'])
 
 const config = useRuntimeConfig()
@@ -67,7 +73,7 @@ async function deleteItem() {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button size="sm">
+            <Button size="sm" :disabled="props.disabled">
               <TrashIcon class="w-4 h-4" />
             </Button>
           </TooltipTrigger>

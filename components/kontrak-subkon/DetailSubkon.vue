@@ -15,14 +15,16 @@ import { toast } from '~/components/ui/toast'
 import { PlusSquareIcon } from 'lucide-vue-next'
 import { format as formatDate } from 'date-fns'
 
-const props = defineProps<{ id: number }>()
+// const props = defineProps<{ id: number; status: string }>()
+
+const props = defineProps(['item'])
 const emit = defineEmits(['detailSubkon'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 const isDialogOpen = ref(false)
-
+const lockedAkses = ref(true)
 function openDialog() {
   isDialogOpen.value = true
 }
@@ -57,10 +59,10 @@ const token = accessToken.value?.token
 // FETCH DATA
 // ===================
 async function fetchData() {
-  console.log(props.id)
-  if (!props.id) return
+  // console.log(props.item)
+  if (!props.item.id) return
   try {
-    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.id}`, {
+    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.item.id}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -85,10 +87,10 @@ async function fetchData() {
 const dataDetail = ref([{ item: '', volume: 0, satuan: '', harga: 0, total: 0, idUpah: 0 }])
 
 async function fetchDataDetailSubkon() {
-  console.log(props.id)
-  if (!props.id) return
+  // console.log(props.item.id)
+  if (!props.item.id) return
   try {
-    const response = await fetch(`${baseUrl}/detailSubkon?idSubkon=${props.id}`, {
+    const response = await fetch(`${baseUrl}/detailSubkon?idSubkon=${props.item.id}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -143,6 +145,11 @@ async function fetchMasterUpah() {
 
 onMounted(() => {
   fetchMasterUpah()
+  if (props.item.status === 'locked') {
+    lockedAkses.value = true
+  } else {
+    lockedAkses.value = false
+  }
 })
 
 // ===================
@@ -228,7 +235,7 @@ async function handleSubmit() {
       })),
   }
 
-  console.log(JSON.stringify(payload))
+  // console.log(JSON.stringify(payload))
 
   const response = await fetch(`${baseUrl}/detailSubkon`, {
     method: 'POST',
@@ -330,7 +337,7 @@ watch(searchQuery, v => {
                 <th class="px-3 py-2 text-left w-24">Satuan</th>
                 <th class="px-3 py-2 text-left w-32">Harga</th>
                 <th class="px-3 py-2 text-left">Total</th>
-                <th class="px-3 py-2 text-center w-12">🗑</th>
+                <th class="px-3 py-2 text-center w-12" :hidden="lockedAkses">🗑</th>
               </tr>
             </thead>
             <tbody>
@@ -358,6 +365,7 @@ watch(searchQuery, v => {
                         role="combobox"
                         :aria-expanded="openPopover[i]"
                         class="w-full justify-between"
+                        :disabled="lockedAkses"
                       >
                         {{ row.item || 'Pilih Item...' }}
                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -439,7 +447,7 @@ watch(searchQuery, v => {
                   </p>
                 </td>
 
-                <td class="px-3 py-2 text-center">
+                <td class="px-3 py-2 text-center" :hidden="lockedAkses">
                   <button
                     type="button"
                     class="text-red-500 hover:text-red-700"
@@ -458,20 +466,14 @@ watch(searchQuery, v => {
               <span class="font-bold">Total:</span>
               <span class="font-bold">{{ formatRupiah(subtotal) }}</span>
             </div>
-            <!-- <div class="flex justify-between w-64">
-              <span>Retensi ({{ headerSubkon.retensi }}%):</span>
-              <span class="font-semibold">{{ formatRupiah(totalRetensi) }}</span>
-            </div>
-            <div class="flex justify-between w-64 border-t pt-2 mt-1">
-              <span>Total Akhir:</span>
-              <span class="font-bold text-green-600">{{ formatRupiah(grandTotal) }}</span>
-            </div> -->
           </div>
         </div>
 
         <!-- Add Row -->
-        <div class="flex justify-between items-center">
-          <Button type="button" variant="outline" @click="addRow">+ Tambah Baris</Button>
+        <div :hidden="lockedAkses">
+          <div class="flex justify-between items-center">
+            <Button type="button" variant="outline" @click="addRow">+ Tambah Baris</Button>
+          </div>
         </div>
 
         <!-- Footer -->
@@ -481,32 +483,34 @@ watch(searchQuery, v => {
           </DialogClose>
 
           <!-- Tombol ini TETAP bagian dari form -->
-          <Button type="submit" form="poForm" :disabled="isLoading || !isValid">
-            <span v-if="!isLoading">Simpan</span>
-            <span v-else class="flex items-center gap-2">
-              <svg
-                class="animate-spin h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                />
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 018 8h-4l3.5 3.5L20 12h-4a8 8 0 01-8 8v-4l-3.5 3.5L8 20v-4a8 8 0 01-8-8z"
-                />
-              </svg>
-              Menyimpan...
-            </span>
-          </Button>
+          <div :hidden="lockedAkses">
+            <Button type="submit" form="poForm" :disabled="isLoading || !isValid">
+              <span v-if="!isLoading">Simpan</span>
+              <span v-else class="flex items-center gap-2">
+                <svg
+                  class="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 018 8h-4l3.5 3.5L20 12h-4a8 8 0 01-8 8v-4l-3.5 3.5L8 20v-4a8 8 0 01-8-8z"
+                  />
+                </svg>
+                Menyimpan...
+              </span>
+            </Button>
+          </div>
         </DialogFooter>
       </form>
     </DialogContent>

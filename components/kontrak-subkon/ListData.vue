@@ -141,6 +141,7 @@ function handleDataDeleted(deletedItemId) {
               <TableHead>DP</TableHead>
               <TableHead>Retensi %</TableHead>
               <TableHead>Keterangan</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -169,12 +170,23 @@ function handleDataDeleted(deletedItemId) {
               <TableCell class="font-medium">
                 {{ item.keterangan }}
               </TableCell>
+              <TableCell class="font-medium">
+                {{ item.status }}
+              </TableCell>
 
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <DetailSubkon :id="item.id" @detailSubkon="handleDetailSubkon" />
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <DetailSubkon :item="item" @detailSubkon="handleDetailSubkon" />
+                  <EditData
+                    :id="item.id"
+                    @dataEdited="handleDataEdited"
+                    :disabled="item.status === 'locked'"
+                  />
+                  <DeleteData
+                    :item="item"
+                    @dataDeleted="handleDataDeleted"
+                    :disabled="item.status === 'locked'"
+                  />
                 </div>
               </TableCell>
             </TableRow>

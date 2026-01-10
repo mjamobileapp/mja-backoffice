@@ -38,6 +38,7 @@ const props = defineProps<{
     type: Number
     required: true
   }
+  disabled?: boolean
 }>()
 const emit = defineEmits<{
   (e: 'dataEdited'): void
@@ -59,7 +60,6 @@ const profileFormSchema = toTypedSchema(
     idProyek: z.number(),
     namaSubkon: z.string(),
     keterangan: z.string(),
-    nilaiKontrak: z.number(),
     nilaiDp: z.number(),
     nilaiRetensi: z.number(),
     tanggal: z.date({
@@ -73,7 +73,6 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
     idProyek: 0,
-    nilaiKontrak: 0,
     nilaiDp: 0,
     nilaiRetensi: 0,
     namaSubkon: '',
@@ -130,11 +129,8 @@ async function fetchData() {
 
     if (response.ok) {
       const { data } = await response.json()
-      console.log(data)
+      // console.log(data)
 
-      // --- 1. Penanganan nilaiKontrak Kontrak (String ke Number) ---
-      // Konversi string nilaiKontrak menjadi float.
-      const nilaiKontrakNumber = parseFloat(data.nilaiKontrak)
       const nilaiDpNumber = parseFloat(data.nilaiDp)
       const nilaiRetensiNumber = parseFloat(data.nilaiRetensi)
       const tanggalString = toDate(data.tanggal)
@@ -143,7 +139,6 @@ async function fetchData() {
         idProyek: data.idProyek,
         namaSubkon: data.namaSubkon,
         // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
-        nilaiKontrak: nilaiKontrakNumber,
         nilaiDp: nilaiDpNumber,
         nilaiRetensi: nilaiRetensiNumber,
         keterangan: data.keterangan,
@@ -184,7 +179,6 @@ const onSubmit = handleSubmit(async () => {
     const dataForm = {
       idProyek: values.idProyek,
       namaSubkon: values.namaSubkon,
-      nilaiKontrak: values.nilaiKontrak,
       nilaiDp: values.nilaiDp,
       nilaiRetensi: values.nilaiRetensi,
       tanggal: values.tanggal,
@@ -225,7 +219,9 @@ const onSubmit = handleSubmit(async () => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button @click="openDialog" size="sm" :disabled="props.disabled"
+              ><PencilIcon class="w-4 h-4"
+            /></Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Edit Data</p>
@@ -325,26 +321,6 @@ const onSubmit = handleSubmit(async () => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ field }" name="nilaiKontrak">
-            <FormItem>
-              <FormLabel>Nilai Kontrak</FormLabel>
-              <FormControl>
-                <div class="space-y-1">
-                  <Input class="mb-4" type="number" v-bind="field" />
-
-                  <!-- ✅ Tampilan dalam format Rupiah -->
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
-                        : 'Rp 0'
-                    }}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
           <FormField v-slot="{ field }" name="nilaiDp">
             <FormItem>
               <FormLabel>DP</FormLabel>

@@ -36,7 +36,7 @@ const emit = defineEmits(['dataAdded'])
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilaiKontrak object stringified
+const currentUser = useCookie('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
 const proyekList = ref([])
@@ -46,7 +46,6 @@ const profileFormSchema = toTypedSchema(
     idProyek: z.number(),
     keterangan: z.string(),
     namaSubkon: z.string(),
-    nilaiKontrak: z.number(),
     nilaiDp: z.number(),
     nilaiRetensi: z.number(),
     tanggal: z.date({
@@ -55,8 +54,6 @@ const profileFormSchema = toTypedSchema(
     }),
   })
 )
-
-const displaynilaiKontrakKontrak = ref('')
 
 // Gunakan NumberFormat sekali, bukan setiap ketik
 const formatter = new Intl.NumberFormat('en-US', {
@@ -71,7 +68,6 @@ const { handleSubmit, resetForm, setFieldValue } = useForm({
   // initialValues: {
   //   idProyek: 0,
   //   noKontrak: '',
-  //   nilaiKontrakKontrak: 0,
   //   tglMulai: '',
   //   tglSelesai: '',
   // },
@@ -133,7 +129,6 @@ const onSubmit = handleSubmit(async (values: any) => {
     idProyek: values.idProyek,
     keterangan: values.keterangan,
     namaSubkon: values.namaSubkon,
-    nilaiKontrak: values.nilaiKontrak,
     nilaiDp: values.nilaiDp,
     nilaiRetensi: values.nilaiRetensi,
     tanggal: values.tanggal,
@@ -280,26 +275,6 @@ const onSubmit = handleSubmit(async (values: any) => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ field }" name="nilaiKontrak">
-            <FormItem>
-              <FormLabel>Nilai Kontrak</FormLabel>
-              <FormControl>
-                <div class="space-y-1">
-                  <Input class="mb-4" type="number" v-bind="field" />
-
-                  <!-- ✅ Tampilan dalam format Rupiah -->
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
-                        : 'Rp 0'
-                    }}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
           <FormField v-slot="{ field }" name="nilaiDp">
             <FormItem>
               <FormLabel>DP</FormLabel>
