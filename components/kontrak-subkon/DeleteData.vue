@@ -30,7 +30,7 @@ const token = accessToken.value.token
 
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -38,7 +38,7 @@ async function deleteItem() {
     })
 
     if (response.ok) {
-      emit('dataDeleted', props.item.id)
+      emit('dataDeleted', props.id)
       toast({
         title: 'Success',
         description: 'Data berhasil dihapus.',

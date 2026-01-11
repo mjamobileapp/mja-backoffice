@@ -5,6 +5,7 @@ import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 import DetailSubkon from './DetailSubkon.vue'
+import LockKontrak from './LockKontrak.vue'
 import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
@@ -94,19 +95,19 @@ onMounted(() => {
 
 const editItem = ref(null)
 function handleDataEdited() {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
   setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
     fetchData()
   }, 500)
 }
 
 function handleDetailSubkon() {
-  console.log('Event detailPo diterima, menunggu 500ms sebelum refresh data...')
-
   setTimeout(() => {
-    console.log('Melakukan fetch data setelah DetailSubkon...')
+    fetchData()
+  }, 500)
+}
+
+function handleDataLocked() {
+  setTimeout(() => {
     fetchData()
   }, 500)
 }
@@ -176,6 +177,11 @@ function handleDataDeleted(deletedItemId) {
 
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
+                  <LockKontrak
+                    :item="item"
+                    :disabled="item.status === 'locked'"
+                    @dataLocked="handleDataLocked"
+                  />
                   <DetailSubkon :item="item" @detailSubkon="handleDetailSubkon" />
                   <EditData
                     :id="item.id"
@@ -183,7 +189,7 @@ function handleDataDeleted(deletedItemId) {
                     :disabled="item.status === 'locked'"
                   />
                   <DeleteData
-                    :item="item"
+                    :id="item.id"
                     @dataDeleted="handleDataDeleted"
                     :disabled="item.status === 'locked'"
                   />
