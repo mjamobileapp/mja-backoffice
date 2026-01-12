@@ -317,25 +317,6 @@ async function deleteFile(item) {
         />
         <Datepicker v-model="filterTanggalEnd" :format="'dd-MM-yyyy'" placeholder="Tanggal End" />
 
-        <!-- Filter Jatuh Tempo -->
-        <!-- <Datepicker
-          v-model="filterJatuhTempoStart"
-          :format="'dd-MM-yyyy'"
-          placeholder="Jatuh Tempo Start"
-        />
-        <Datepicker
-          v-model="filterJatuhTempoEnd"
-          :format="'dd-MM-yyyy'"
-          placeholder="Jatuh Tempo End"
-        /> -->
-
-        <!-- Filter Jenis Payment -->
-        <!-- <select v-model="filterJenis" class="border rounded p-2">
-          <option value="">Semua Jenis</option>
-          <option value="Tempo">Tempo</option>
-          <option value="Cash">Cash</option>
-        </select> -->
-
         <!-- Button Reset -->
         <Button @click="resetFilter" variant="default"> Reset Filter </Button>
       </div>
@@ -381,62 +362,6 @@ async function deleteFile(item) {
                 {{ item.tujuanPo }}
               </TableCell>
               <TableCell>{{ formatTanggal(item.tglPengiriman) }}</TableCell>
-              <!-- <TableCell class="font-medium">
-                <Button
-                  v-if="item.jenisPayment"
-                  size="sm"
-                  :variant="item.jenisPayment.toLowerCase() === 'cash' ? 'default' : 'destructive'"
-                  :class="[
-                    'text-white',
-                    item.jenisPayment.toLowerCase() === 'cash'
-                      ? 'bg-blue-600 hover:bg-green-700'
-                      : '',
-                    item.jenisPayment.toLowerCase() === 'tempo'
-                      ? 'bg-orange-600 hover:bg-red-700'
-                      : '',
-                  ]"
-                >
-                  {{ item.jenisPayment }}
-                </Button>
-
-                <span v-else>-</span>
-              </TableCell> -->
-
-              <!-- <TableCell>
-                {{ item.tglJatuhTempo ? formatTanggal(item.tglJatuhTempo) : '-' }}
-              </TableCell> -->
-              <!-- <TableCell class="font-medium flex items-center gap-2">
-                <Button
-                  v-if="item.statusPo"
-                  size="sm"
-                  :variant="item.statusPo.toLowerCase() === 'lunas' ? 'default' : 'destructive'"
-                  :class="[
-                    'text-white',
-                    item.statusPo.toLowerCase() === 'lunas'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : '',
-                    item.statusPo.toLowerCase() === 'pending' ? 'bg-red-600 hover:bg-red-700' : '',
-                  ]"
-                >
-                  {{ item.statusPo }}
-                </Button>
-
-                <Button
-                  v-if="item.statusPo && item.statusPo.toLowerCase() === 'lunas'"
-                  size="sm"
-                  variant="default"
-                  @click="openPreview(item)"
-                >
-                  Preview
-                </Button>
-              </TableCell> -->
-
-              <!-- <TableCell class="font-medium">
-                {{ item.ppn }}
-              </TableCell> -->
-              <!-- <TableCell class="font-medium">
-                {{ formatRupiah(item.grandTotal ?? 0) }}
-              </TableCell> -->
               <TableCell class="font-medium flex gap-2">
                 {{ item.statusPenerimaan }}
                 <Button
@@ -453,11 +378,7 @@ async function deleteFile(item) {
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
                   <DetailPo :id="item.id" @detailPo="handleDetailPo" />
-                  <UploadFile
-                    :item="item"
-                    @uploadFiles="handleUploadFiles"
-                    :disabled="item.statusPenerimaan?.toLowerCase() === 'delivered'"
-                  />
+                  <UploadFile :item="item" @uploadFiles="handleUploadFiles" />
                 </div>
               </TableCell>
             </TableRow>

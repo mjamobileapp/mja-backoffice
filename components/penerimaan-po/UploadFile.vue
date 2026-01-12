@@ -8,6 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { onMounted, watch } from 'vue'
+
 import { Input } from '@/components/ui/input'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { UploadCloud, Loader2 } from 'lucide-vue-next'
@@ -58,7 +60,9 @@ const isSubmitting = ref(false)
 function openDialog() {
   if (props.disabled) return
   isDialogOpen.value = true
+  fetchPenerimaanPo()
 }
+
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
@@ -71,6 +75,34 @@ const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
 const currentUser = useCookie('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
+const id = ref(null)
+async function fetchPenerimaanPo() {
+  try {
+    const res = await fetch(`${baseUrl}/penerimaanPo/${props.item.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    const result = await res.json()
+
+    // Jika PO tidak ditemukan → biarkan form kosong
+    if (!res.ok || result.message === 'PO tidak ditemukan') {
+      return
+    }
+
+    // console.log(JSON.stringify(result.data))
+    // Isi field (kecuali file)
+    id.value = result.data.id
+    setFieldValue('tglPenerimaan', new Date(result.data.tglPenerimaan))
+    setFieldValue('namaPenerima', result.data.namaPenerima || '')
+    setFieldValue('keterangan', result.data.keterangan || '')
+
+    datePenerimaan.value = new Date(result.data.tglPenerimaan)
+  } catch (err) {
+    console.error('Gagal ambil data penerimaan PO:', err)
+  }
+}
 
 // 📁 handle file
 function handleFileChange(e: Event) {
@@ -89,11 +121,12 @@ const onSubmit = handleSubmit(async values => {
 
   const dataForm = {
     ...values,
+    id: id.value,
     idPo: props.item.id,
     createdBy: username.value,
   }
 
-  // console.log(JSON.stringify(dataForm))
+  console.log(JSON.stringify(dataForm))
 
   try {
     const response = await fetch(`${baseUrl}/penerimaanPo`, {
@@ -149,10 +182,6 @@ const onSubmit = handleSubmit(async values => {
   } finally {
     isSubmitting.value = false
   }
-})
-
-onMounted(() => {
-  setFieldValue('tglPenerimaan', datePenerimaan.value)
 })
 </script>
 
