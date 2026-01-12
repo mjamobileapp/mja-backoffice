@@ -27,6 +27,7 @@ const props = defineProps<{
     type: Number
     required: true
   }
+  disabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -152,7 +153,7 @@ const onSubmit = handleSubmit(async formValues => {
 <template>
   <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog" size="sm">
+      <Button @click="openDialog" size="sm" :disabled="props.disabled">
         <PencilIcon class="w-4 h-4" />
       </Button>
     </DialogTrigger>

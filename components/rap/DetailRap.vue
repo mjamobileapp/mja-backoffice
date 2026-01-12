@@ -15,8 +15,8 @@ import { toast } from '~/components/ui/toast'
 import { PlusSquareIcon, ChevronsUpDown, Check, Loader2, Trash2 } from 'lucide-vue-next'
 import { format as formatDate } from 'date-fns'
 import { cn } from '@/lib/utils'
+const props = defineProps(['item'])
 
-const props = defineProps<{ id: number }>()
 const emit = defineEmits(['detailRap'])
 
 const config = useRuntimeConfig()
@@ -54,7 +54,7 @@ const token = accessToken.value?.token
 async function fetchHeaderRap() {
   isLoadingHeader.value = true
   try {
-    const response = await fetch(`${baseUrl}/rap/${props.id}`, {
+    const response = await fetch(`${baseUrl}/rap/${props.item.id}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -81,7 +81,7 @@ const dataDetail = ref([
 async function fetchDetailRap() {
   isLoadingDetail.value = true
   try {
-    const response = await fetch(`${baseUrl}/detailRap?idRap=${props.id}`, {
+    const response = await fetch(`${baseUrl}/detailRap?idRap=${props.item.id}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -129,8 +129,15 @@ async function fetchMasterBarang() {
   }
 }
 
+const lockedAkses = ref(true)
+
 onMounted(() => {
   fetchMasterBarang()
+  if (props.item.status === 'locked') {
+    lockedAkses.value = true
+  } else {
+    lockedAkses.value = false
+  }
 })
 
 const filteredBarang = computed(() => {
@@ -267,7 +274,7 @@ function formatRupiah(val: number) {
                 <th class="p-3 text-left w-24">Satuan</th>
                 <th class="p-3 text-left w-40">Harga Satuan</th>
                 <th class="p-3 text-left w-44">Total Anggaran</th>
-                <th class="p-3 text-center w-12"></th>
+                <th class="p-3 text-center w-12" :hidden="lockedAkses">🗑</th>
               </tr>
             </thead>
             <tbody class="divide-y">
@@ -277,7 +284,11 @@ function formatRupiah(val: number) {
                 <td class="p-3">
                   <Popover v-model:open="openPopover[i]">
                     <PopoverTrigger as-child>
-                      <Button variant="outline" class="w-full justify-between font-normal">
+                      <Button
+                        variant="outline"
+                        :disabled="lockedAkses"
+                        class="w-full justify-between font-normal"
+                      >
                         {{ row.item || 'Pilih Material...' }}
                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
@@ -328,7 +339,7 @@ function formatRupiah(val: number) {
                 <td class="p-3">
                   <div class="font-bold">{{ formatRupiah(row.total) }}</div>
                 </td>
-                <td class="p-3 text-center">
+                <td class="p-3 text-center" :hidden="lockedAkses">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -350,7 +361,9 @@ function formatRupiah(val: number) {
           </div>
         </div>
 
-        <Button @click="addRow" class="w-full border-dashed"> + Tambah Baris Anggaran </Button>
+        <div :hidden="lockedAkses">
+          <Button @click="addRow" class="w-full border-dashed"> + Tambah Baris Anggaran </Button>
+        </div>
       </div>
 
       <div
@@ -362,10 +375,12 @@ function formatRupiah(val: number) {
         </div>
         <div class="flex gap-2">
           <Button variant="secondary" @click="closeDialog">Batal</Button>
-          <Button @click="handleSubmit" :disabled="isSubmitting || !isValid">
-            <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
-            Simpan Rincian RAP
-          </Button>
+          <div :hidden="lockedAkses">
+            <Button @click="handleSubmit" :disabled="isSubmitting || !isValid">
+              <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
+              Simpan Rincian RAP
+            </Button>
+          </div>
         </div>
       </div>
     </DialogContent>
