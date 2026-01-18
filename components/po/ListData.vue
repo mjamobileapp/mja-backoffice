@@ -195,11 +195,11 @@ async function handleUploadFiles() {
 }
 
 const downloadingId = ref<number | null>(null)
-
+const isDownloading = ref(false)
 const downloadPdf = async item => {
   try {
     downloadingId.value = item.id
-
+    isDownloading.value = true
     const res = await fetch(`${baseUrl}/po/generatePO/${item.id}/pdf`, {
       method: 'GET',
       headers: {
@@ -221,6 +221,7 @@ const downloadPdf = async item => {
     alert('Gagal mengunduh file PO!')
   } finally {
     downloadingId.value = null
+    isDownloading.value = false
   }
 }
 
@@ -453,7 +454,7 @@ async function deleteFile(item) {
                     @uploadFiles="handleUploadFiles"
                     :disabled="item.statusPo === 'Lunas'"
                   />
-                  <DetailPo :id="item.id" @detailPo="handleDetailPo" />
+                  <DetailPo :id="item.id" :status-po="item.statusPo" @detailPo="handleDetailPo" />
                   <EditData
                     :id="item.id"
                     @dataEdited="handleDataEdited"

@@ -16,7 +16,7 @@ import { PlusSquareIcon } from 'lucide-vue-next'
 import { format as formatDate } from 'date-fns'
 
 /* ================= PROPS ================= */
-const props = defineProps<{ id: number }>()
+const props = defineProps<{ id: number; statusPo: string }>()
 const emit = defineEmits(['detailPo'])
 
 const config = useRuntimeConfig()
@@ -56,11 +56,20 @@ function normalizeNumber(val: any) {
   return Number(String(val).replace(',', '.')) || 0
 }
 
+const isHidden = ref(false)
 /* ================= OPEN ================= */
 async function openDialog() {
   isDialogOpen.value = true
   await loadHeader()
   await loadDetailPoOrRap()
+  if (props.statusPo === 'Lunas') {
+    isHidden.value = true
+    // console.log('1')
+  } else {
+    // console.log('2')
+    isHidden.value = false
+  }
+  // console.log(props.statusPo)
 }
 
 /* ================= LOAD HEADER ================= */
@@ -82,21 +91,23 @@ async function loadHeader() {
 
 /* ================= LOAD DETAIL ================= */
 async function loadDetailPoOrRap() {
-  // 1️⃣ Coba ambil detail PO dulu
+  // 1️⃣ Coba ambil detail PO
   const resPo = await fetch(`${baseUrl}/detailPo?idPo=${headerPo.idPo}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   const poDetails = (await resPo.json()).data || []
 
   if (poDetails.length > 0) {
-    // ✅ PO SUDAH ADA
+    // PO SUDAH ADA
     dataDetail.value = poDetails.map((d: any) => ({
       idDetailRap: d.idDetailRap,
       item: d.item,
       ukuran: d.ukuran,
       satuan: d.satuan,
 
-      qty: Number(d.qtyPo),
+      qtyRap: Number(d.qtyRap),
+      qtyPo: Number(d.qtyPo),
+
       hargaRap: Number(d.hargaRap),
       hargaPo: Number(d.hargaPo),
 
@@ -105,7 +116,7 @@ async function loadDetailPoOrRap() {
     return
   }
 
-  // 2️⃣ PO BARU → GENERATE DARI RAP
+  // 2️⃣ PO BARU → AMBIL DARI RAP (SISA QTY)
   const resRap = await fetch(`${baseUrl}/detailPo/available-items-rap/${headerPo.idRap}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -117,12 +128,32 @@ async function loadDetailPoOrRap() {
     ukuran: r.ukuran,
     satuan: r.satuan,
 
-    qty: Number(r.qtyRap),
-    hargaRap: Number(r.harga),
-    hargaPo: Number(r.harga),
+    qtyRap: Number(r.qtyRap), // SISA RAP (DISPLAY)
+    qtyPo: 0, // INPUT USER
 
-    total: Number(r.qtyRap) * Number(r.harga),
+    hargaRap: Number(r.hargaRap),
+    hargaPo: Number(r.hargaRap),
+
+    total: 0,
   }))
+}
+
+/* ================= QTY CHANGE ================= */
+function handleQtyChange(index: number) {
+  const row = dataDetail.value[index]
+
+  if (row.qtyPo > row.qtyRap) {
+    toast({
+      title: 'Qty PO melebihi sisa RAP',
+      description: `Maksimal ${row.qtyRap}`,
+      variant: 'destructive',
+    })
+    row.qtyPo = row.qtyRap
+  }
+
+  if (row.qtyPo < 0) row.qtyPo = 0
+
+  row.total = row.qtyPo * row.hargaPo
 }
 
 /* ================= HARGA CHANGE ================= */
@@ -141,7 +172,7 @@ function handleHargaChange(index: number, val: any) {
     row.hargaPo = harga
   }
 
-  row.total = row.qty * row.hargaPo
+  row.total = row.qtyPo * row.hargaPo
 }
 
 /* ================= TOTAL ================= */
@@ -151,8 +182,10 @@ const grandTotal = computed(() => subtotal.value + totalPpn.value)
 
 const isValid = computed(
   () =>
-    dataDetail.value.length > 0 &&
-    dataDetail.value.every(d => d.hargaPo > 0 && d.hargaPo <= d.hargaRap)
+    dataDetail.value.some(d => d.qtyPo > 0) &&
+    dataDetail.value.every(
+      d => d.qtyPo >= 0 && d.qtyPo <= d.qtyRap && d.hargaPo > 0 && d.hargaPo <= d.hargaRap
+    )
 )
 
 /* ================= SUBMIT ================= */
@@ -163,15 +196,17 @@ async function handleSubmit() {
   const payload = {
     idPo: headerPo.idPo,
     createdBy: username.value,
-    dataDetail: dataDetail.value.map(d => ({
-      idDetailRap: d.idDetailRap,
-      harga: d.hargaPo,
-    })),
     ppn: headerPo.ppn,
+    dataDetail: dataDetail.value
+      .filter(d => d.qtyPo > 0)
+      .map(d => ({
+        idDetailRap: d.idDetailRap,
+        qty: d.qtyPo,
+        harga: d.hargaPo,
+      })),
   }
 
   console.log(JSON.stringify(payload))
-
   try {
     const res = await fetch(`${baseUrl}/detailPo`, {
       method: 'POST',
@@ -208,11 +243,11 @@ async function handleSubmit() {
 
     <DialogContent class="sm:max-w-[95vw] max-h-[95vh] flex flex-col p-0">
       <DialogHeader class="p-6 border-b">
-        <DialogTitle> Detail Purchase Order – Ref: {{ headerPo.noRap }} </DialogTitle>
+        <DialogTitle>Detail Purchase Order – Ref: {{ headerPo.noRap }}</DialogTitle>
       </DialogHeader>
 
       <div class="flex-1 overflow-y-auto p-6 space-y-6">
-        <!-- HEADER INFO -->
+        <!-- HEADER -->
         <div class="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded border">
           <div>
             <p class="text-xs text-gray-500">No PO</p>
@@ -233,13 +268,14 @@ async function handleSubmit() {
         </div>
 
         <!-- TABLE -->
-        <table class="w-full text-sm border rounded overflow-hidden">
+        <table class="w-full text-sm border rounded">
           <thead class="bg-slate-100 border-b">
             <tr>
-              <th class="p-3">No</th>
-              <th class="p-3 text-left">Item</th>
-              <th class="p-3 text-left">Ukuran</th>
-              <th>Qty</th>
+              <th>No</th>
+              <th class="text-left">Item</th>
+              <th>Ukuran</th>
+              <th>Qty RAP</th>
+              <th>Qty PO</th>
               <th>Harga RAP</th>
               <th>Harga PO</th>
               <th>Total</th>
@@ -247,15 +283,23 @@ async function handleSubmit() {
           </thead>
 
           <tbody>
-            <tr
-              v-for="(row, i) in dataDetail"
-              :key="row.idDetailRap"
-              class="border-b hover:bg-slate-50"
-            >
-              <td class="p-3 text-center">{{ i + 1 }}</td>
-              <td class="p-3 font-medium">{{ row.item }}</td>
-              <td class="p-3">{{ row.ukuran }}</td>
-              <td class="text-center font-bold">{{ row.qty }}</td>
+            <tr v-for="(row, i) in dataDetail" :key="row.idDetailRap" class="border-b">
+              <td class="text-center">{{ i + 1 }}</td>
+              <td>{{ row.item }}</td>
+              <td>{{ row.ukuran }}</td>
+
+              <td class="text-center font-bold">{{ row.qtyRap }}</td>
+
+              <td>
+                <Input
+                  type="number"
+                  min="0"
+                  :max="row.qtyRap"
+                  v-model.number="row.qtyPo"
+                  @input="() => handleQtyChange(i)"
+                  class="text-center"
+                />
+              </td>
 
               <td class="text-right text-gray-500">
                 {{ formatRupiah(row.hargaRap) }}
@@ -268,12 +312,9 @@ async function handleSubmit() {
                   v-model="row.hargaPo"
                   @input="e => handleHargaChange(i, (e.target as HTMLInputElement).value)"
                 />
-                <p class="text-xs text-gray-400 mt-0.5 text-right">
-                  {{ formatRupiah(row.hargaPo) }}
-                </p>
               </td>
 
-              <td class="p-3 text-right font-bold">
+              <td class="text-right font-bold">
                 {{ formatRupiah(row.total) }}
               </td>
             </tr>
@@ -281,7 +322,7 @@ async function handleSubmit() {
         </table>
 
         <!-- TOTAL -->
-        <div class="w-80 ml-auto border p-4 rounded bg-slate-50 text-sm space-y-2">
+        <div class="w-80 ml-auto border p-4 rounded bg-slate-50 space-y-2">
           <div class="flex justify-between">
             <span>Subtotal</span>
             <span class="font-bold">{{ formatRupiah(subtotal) }}</span>
@@ -303,9 +344,11 @@ async function handleSubmit() {
         <DialogClose as-child>
           <Button variant="secondary">Batal</Button>
         </DialogClose>
-        <Button @click="handleSubmit" :disabled="isLoading || !isValid">
-          {{ isLoading ? 'Menyimpan...' : 'Simpan Detail PO' }}
-        </Button>
+        <div :hidden="isHidden">
+          <Button :disabled="isLoading || !isValid" @click="handleSubmit">
+            {{ isLoading ? 'Menyimpan...' : 'Simpan Detail PO' }}
+          </Button>
+        </div>
       </DialogFooter>
     </DialogContent>
   </Dialog>

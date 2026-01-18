@@ -75,7 +75,17 @@ async function fetchHeaderRap() {
 }
 
 const dataDetail = ref([
-  { idBarang: 0, item: '', ukuran: '', banyak: 0, satuan: '', harga: 0, total: 0, refHarga: 0 },
+  {
+    idBarang: 0,
+    item: '',
+    ukuran: '',
+    banyak: 0,
+    totalQtyPo: 0,
+    satuan: '',
+    harga: 0,
+    total: 0,
+    refHarga: 0,
+  },
 ])
 
 async function fetchDetailRap() {
@@ -96,6 +106,7 @@ async function fetchDetailRap() {
           item: '',
           ukuran: '',
           banyak: 0,
+          totalQtyPo: 0,
           satuan: '',
           harga: 0,
           total: 0,
@@ -271,6 +282,7 @@ function formatRupiah(val: number) {
                 <th class="p-3 text-left">Item / Material</th>
                 <th class="p-3 text-left">Spesifikasi</th>
                 <th class="p-3 text-left w-24">Qty</th>
+                <th class="p-3 text-left w-24">Total Qty PO</th>
                 <th class="p-3 text-left w-24">Satuan</th>
                 <th class="p-3 text-left w-40">Harga Satuan</th>
                 <th class="p-3 text-left w-44">Total Anggaran</th>
@@ -326,6 +338,7 @@ function formatRupiah(val: number) {
                 <td class="p-3">
                   <Input type="number" v-model="row.banyak" @input="calculateTotal(i)" />
                 </td>
+                <td class="p-3 text-muted-foreground">{{ row.qtyPo || '-' }}</td>
                 <td class="p-3 text-muted-foreground">{{ row.satuan || '-' }}</td>
                 <!-- <td class="p-3">
                   <Input type="number" v-model="row.harga" @input="calculateTotal(i)" />
