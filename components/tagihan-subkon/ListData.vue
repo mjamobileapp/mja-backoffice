@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
+import { DownloadCloud, PencilIcon, Trash2Icon, Loader2, FileDown } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
@@ -84,6 +84,39 @@ onMounted(() => {
   fetchData()
 })
 
+const downloadingId = ref<number | null>(null)
+const isDownloading = ref(false)
+const downloadPdf = async item => {
+  console.log(item)
+  try {
+    downloadingId.value = item.id
+    // console.log(downloadingId.value)
+    isDownloading.value = true
+    const res = await fetch(`${baseUrl}/progressSubkon/generatePdf/${item.idProgress}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!res.ok) throw new Error('Gagal mengunduh file')
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `PrgressSubkon_${item.noPenagihan}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('Download gagal:', err)
+    alert('Gagal mengunduh file Progress Subkon!')
+  } finally {
+    downloadingId.value = null
+    isDownloading.value = false
+  }
+}
+
 const editItem = ref(null)
 function handleDataEdited(editedItem) {
   console.log(editItem)
@@ -102,6 +135,8 @@ function formatRupiah(value: number | Ref<number>) {
   const val = typeof value === 'object' ? value.value : value
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
+
+const openEdit = ref(false)
 </script>
 <template>
   <Card class="w-full">
@@ -152,9 +187,33 @@ function formatRupiah(value: number | Ref<number>) {
               </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <!-- <EditData :id="item.id" @dataEdited="handleDataEdited" /> -->
+                  <EditData :idProgress="item.idProgress" @updated="fetchData" />
                   <DetailProgressSubkon :id="item.idProgress" />
-                  <!-- <DeleteData :item="item" @dataDeleted="handleDataDeleted" /> -->
+                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button
+                          :disabled="
+                            Number(item.totalProgress) === 0 || downloadingId === item.idProgress
+                          "
+                          @click="downloadPdf(item)"
+                          size="sm"
+                        >
+                          <template v-if="downloadingId === item.id">
+                            <Loader2 class="w-4 h-4 animate-spin" />
+                          </template>
+                          <template v-else>
+                            <FileDown class="w-4 h-4" />
+                          </template>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span v-if="isDownloading">Mengunduh...</span>
+                        <span v-else>Download PDF</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </TableCell>
             </TableRow>
