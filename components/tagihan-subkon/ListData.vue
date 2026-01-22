@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
+import LockData from './LockData.vue'
 import DetailProgressSubkon from './DetailProgressSubkon.vue'
 import { formatDate } from 'date-fns'
 
@@ -136,6 +137,8 @@ function formatRupiah(value: number | Ref<number>) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
+const refresh = () => setTimeout(fetchData, 500)
+
 const openEdit = ref(false)
 </script>
 <template>
@@ -187,9 +190,22 @@ const openEdit = ref(false)
               </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <EditData :idProgress="item.idProgress" @updated="fetchData" />
+                  <LockData
+                    :item="item"
+                    @dataLocked="refresh"
+                    :disabled="item.statusProgress === 'Locked'"
+                  />
+                  <EditData
+                    :idProgress="item.idProgress"
+                    @dataUpdated="fetchData"
+                    :disabled="item.statusProgress !== 'Draft'"
+                  />
                   <DetailProgressSubkon :id="item.idProgress" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <DeleteData
+                    :item="item"
+                    @dataDeleted="fetchData"
+                    :disabled="item.statusProgress !== 'Draft'"
+                  />
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger as-child>

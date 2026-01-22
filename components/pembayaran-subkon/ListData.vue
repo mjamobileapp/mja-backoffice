@@ -162,10 +162,10 @@ async function openPreview(item) {
               <TableHead>No Termin</TableHead>
               <TableHead>Tanggal Pembayaran</TableHead>
               <TableHead>Nilai Progress</TableHead>
-              <TableHead>Nilai Tagihan</TableHead>
               <TableHead>Potongan DP</TableHead>
               <TableHead>Nilai Retensi</TableHead>
               <TableHead>Nilai Dibayar</TableHead>
+              <TableHead>Sisa Tagihan</TableHead>
               <TableHead>Status</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
@@ -185,10 +185,6 @@ async function openPreview(item) {
               <TableCell class="font-medium">
                 {{ formatRupiah(item.nilaiProgress) }}
               </TableCell>
-
-              <TableCell class="font-medium">
-                {{ formatRupiah(item.nilaiTagihan) }}
-              </TableCell>
               <TableCell class="font-medium">
                 {{ formatRupiah(item.potonganDp) }}
               </TableCell>
@@ -197,6 +193,9 @@ async function openPreview(item) {
               </TableCell>
               <TableCell class="font-medium">
                 {{ formatRupiah(item.nilaiDibayar) }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ formatRupiah(item.sisaTermin) }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.status }}

@@ -116,7 +116,16 @@ function normalizeNumber(val: any) {
 <template>
   <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button size="sm" @click="openDialog"><PlusSquareIcon class="w-4 h-4" /></Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button size="sm" @click="openDialog"><PlusSquareIcon class="w-4 h-4" /></Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Detail Data</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </DialogTrigger>
 
     <DialogContent

@@ -223,7 +223,11 @@ const refresh = () => setTimeout(fetchData, 500)
               <TableCell>{{ item.status }}</TableCell>
               <TableCell>
                 <div class="flex justify-center gap-2">
-                  <LockData :item="item" @dataLocked="refresh" />
+                  <LockData
+                    :item="item"
+                    @dataLocked="refresh"
+                    :disabled="item.status === 'locked'"
+                  />
                   <DetailRap :item="item" @detailRap="refresh" />
                   <EditData
                     :id="item.id"

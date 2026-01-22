@@ -12,19 +12,29 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
-const props = defineProps(['item'])
-const emit = defineEmits(['dataDeleted'])
 
+type Item = {
+  idProgress: number
+  noPenagihan: string
+  namaSubkon: string
+}
+
+const props = defineProps<{
+  item: Item
+  disabled: boolean
+}>()
+const emit = defineEmits(['dataDeleted'])
+// console.log(props.item.idProgress)
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
-
+// console.log(token)
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/progressSubkon/${props.item.idProgress}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -32,7 +42,7 @@ async function deleteItem() {
     })
 
     if (response.ok) {
-      emit('dataDeleted', props.item.id)
+      emit('dataDeleted')
       toast({
         title: 'Success',
         description: 'Data berhasil dihapus.',
@@ -67,7 +77,7 @@ async function deleteItem() {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button size="sm">
+            <Button size="sm" :disabled="props.disabled">
               <TrashIcon class="w-4 h-4" />
             </Button>
           </TooltipTrigger>
@@ -79,7 +89,10 @@ async function deleteItem() {
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Apakah anda yakin menghapus data ini? </AlertDialogTitle>
+        <AlertDialogTitle
+          >Apakah anda yakin menghapus data {{ props.item.namaSubkon }} -
+          {{ props.item.noPenagihan }}?
+        </AlertDialogTitle>
         <AlertDialogDescription>
           data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus
           data ini.

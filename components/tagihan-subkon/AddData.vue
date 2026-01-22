@@ -81,7 +81,7 @@ const tglPenagihan = ref<Date | null>(null)
 const loadKontrak = async () => {
   loadingKontrak.value = true
   try {
-    const res: any = await $fetch(`${baseUrl}/kontrakSubkon`, {
+    const res: any = await $fetch(`${baseUrl}/kontrakSubkon/lock`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     kontrakList.value = res.data || []
@@ -90,7 +90,7 @@ const loadKontrak = async () => {
   }
 }
 
-onMounted(loadKontrak)
+// onMounted(loadKontrak)
 
 /* =========================
    LOAD DETAIL SUBKON
@@ -164,6 +164,15 @@ const hasAnyProgress = computed(() =>
     return volume > 0
   })
 )
+
+/**
+ * Cek apakah kontrak subkon masih punya progress Draft
+ */
+const hasDraftProgress = (kontrak: any) => {
+  if (!kontrak?.statusProgressTerakhir) return false
+  return String(kontrak.statusProgressTerakhir).toUpperCase() === 'DRAFT'
+}
+
 /* =========================
    SUBMIT (PERBAIKAN FUNGSI BLOCKING)
 ========================= */
@@ -240,6 +249,7 @@ const total = computed(() => {
 
 function openDialog() {
   isDialogOpen.value = true
+  loadKontrak()
   resetForm()
 }
 
@@ -276,8 +286,16 @@ const dateMulai = ref(null)
                     <SelectItem v-if="loadingKontrak" value="loading" disabled>
                       Memuat data...
                     </SelectItem>
-                    <SelectItem v-for="k in kontrakList" :key="k.id" :value="k.id">
-                      {{ k.namaSubkon }}
+                    <SelectItem
+                      v-for="k in kontrakList"
+                      :key="k.idSubkon"
+                      :value="k.idSubkon"
+                      :disabled="hasDraftProgress(k)"
+                    >
+                      {{ k.namaSubkon }} - {{ k.namaPekerjaan }}
+                      <span v-if="hasDraftProgress(k)" class="ml-2 text-xs text-red-500 italic">
+                        (Masih Draft)
+                      </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>

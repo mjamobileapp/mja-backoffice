@@ -341,7 +341,7 @@ const onSubmit = handleSubmit(async form => {
                 </FormControl>
                 <SelectContent>
                   <SelectItem v-for="s in listSubkonProgress" :key="s.id" :value="s.id.toString()">
-                    {{ s.namaSubkon }}
+                    {{ s.namaSubkon }} - {{ s.namaPekerjaan }}
                   </SelectItem>
                 </SelectContent>
               </Select>

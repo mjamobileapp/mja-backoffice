@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,304 +10,231 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { PencilIcon } from 'lucide-vue-next'
-import { useForm } from 'vee-validate'
-import { ref, onMounted } from 'vue'
-import { toast } from 'vue-sonner'
-import * as z from 'zod'
-
 import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'date-fns'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { FieldArray, useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import { Loader2, Pencil } from 'lucide-vue-next'
+import { toast } from '@/components/ui/toast'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
 const props = defineProps<{
-  id: {
-    type: Number
-    required: true
-  }
+  idProgress: number | string | null
+  disabled: boolean
 }>()
-const emit = defineEmits<{
-  (e: 'dataEdited'): void
-}>()
+
+const emit = defineEmits(['dataUpdated'])
+
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
+const currentUser = useCookie('currentUser')
+const username = computed(() => currentUser.value?.username || 'no-user')
+const accessToken = useCookie('accessToken')
+const token = accessToken.value?.token
 
-// const editedItem = ref({ ...props.item })
-// console.log(props.id)
-// onMounted(() => {
-//   fetchData()
-//   // console.log(props.item.code)
-// })
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilaiKontrak object stringified
-const username = computed(() => currentUser.value?.username || 'no-email@example.com')
+const isDialogOpen = ref(false)
+const isSubmitting = ref(false)
+const isLoadingData = ref(false)
+const detailList = ref<any[]>([])
+const dateMulai = ref<any>(null)
 
-const profileFormSchema = toTypedSchema(
+// 🔥 Schema Form (Identik dengan Add)
+const progressSchema = toTypedSchema(
   z.object({
-    idProyek: z.number(),
-    namaSubkon: z.string(),
+    idSubkon: z.number(),
     keterangan: z.string(),
-    nilaiKontrak: z.number(),
-    nilaiDp: z.number(),
-    nilaiRetensi: z.number(),
-    tanggal: z.date({
+    namaSubkon: z.string(),
+    namaPekerjaan: z.string(),
+    tglPenagihan: z.date({
       required_error: 'Please select a valid date.',
       invalid_type_error: 'Please select a valid date.',
     }),
+    items: z.array(
+      z.object({
+        idDetail: z.number(),
+        volumeProgress: z.union([z.number(), z.string()]).optional(),
+        bobotProgress: z.union([z.number(), z.string()]).optional(),
+      })
+    ),
   })
 )
 
-const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
-  validationSchema: profileFormSchema,
-  initialValues: {
-    idProyek: 0,
-    nilaiKontrak: 0,
-    nilaiDp: 0,
-    nilaiRetensi: 0,
-    namaSubkon: '',
-    tanggal: '',
-    keterangan: '', // Use prop value directly as fallback
-  },
+const { handleSubmit, setFieldValue, values, resetForm, setFieldError } = useForm({
+  validationSchema: progressSchema,
 })
 
-const isDialogOpen = ref(false)
-const open = ref(false)
-
-// Asumsi: dateMulai dan dateSelesai adalah ref() untuk Calendar
-// Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
-// Asumsi: setValues adalah fungsi dari VeeValidate useForm
-
-const dateMulai = ref(null)
-
-const proyekList = ref([])
-
-async function fetchDataProyek() {
+/* =========================
+   FETCH DETAIL DATA
+========================= */
+const fetchProgressDetail = async () => {
+  if (!props.idProgress) return
+  isLoadingData.value = true
   try {
-    const response = await fetch(`${baseUrl}/proyek`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res: any = await $fetch(`${baseUrl}/progressSubkon/detail/${props.idProgress}`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData.data)
 
-    if (Array.isArray(fetchedData.data)) {
-      proyekList.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      proyekList.value = []
-    }
+    const data = res.data
+
+    // Inisialisasi Field Utama
+    setFieldValue('idSubkon', data.idSubkon)
+    setFieldValue('keterangan', data.keterangan)
+    setFieldValue('namaSubkon', data.namaSubkon)
+    setFieldValue('namaPekerjaan', data.namaPekerjaan)
+
+    const tgl = new Date(data.tglPenagihan)
+    dateMulai.value = tgl
+    setFieldValue('tglPenagihan', tgl)
+
+    // Simpan list detail untuk tabel display
+    // volumeSisa dihitung ulang (sisa saat ini + volume yang sudah diinput di baris ini)
+    detailList.value = data.items.map((item: any) => ({
+      ...item,
+      volumeSisaOriginal: Number(item.volumeSisa) || 0,
+    }))
+
+    // Inisialisasi Field Array
+    setFieldValue(
+      'items',
+      data.items.map((item: any) => ({
+        idDetail: item.idDetail,
+        volumeProgress: item.volumeProgress,
+        bobotProgress: item.bobotProgress,
+      }))
+    )
   } catch (error) {
-    console.error('Gagal mengambil data:', error)
-    proyekList.value = []
+    toast({ title: 'Error', description: 'Gagal memuat detail', variant: 'destructive' })
+  } finally {
+    isLoadingData.value = false
   }
 }
 
-async function fetchData() {
-  try {
-    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+/* =========================
+   LOGIKA HITUNG (Identik dengan Add)
+========================= */
+function hitungBobotProgress(idx: number, val: any) {
+  const volumeProgress = Number(val) || 0
+  const detail = detailList.value[idx]
+  if (!detail) return
 
-    if (response.ok) {
-      const { data } = await response.json()
-      console.log(data)
+  const volumeKontrak = Number(detail.volumeKontrak || 0)
+  const volumeMax = Number(detail.volumeSisa || 0)
+  const bobotItem = Number(detail.bobot || 0)
 
-      // --- 1. Penanganan nilaiKontrak Kontrak (String ke Number) ---
-      // Konversi string nilaiKontrak menjadi float.
-      const nilaiKontrakNumber = parseFloat(data.nilaiKontrak)
-      const nilaiDpNumber = parseFloat(data.nilaiDp)
-      const nilaiRetensiNumber = parseFloat(data.nilaiRetensi)
-      const tanggalString = toDate(data.tanggal)
-      // --- 3. setValues ke VeeValidate ---
-      setValues({
-        idProyek: data.idProyek,
-        namaSubkon: data.namaSubkon,
-        // Kirim sebagai number agar validasi Zod/VeeValidate 'number' berhasil
-        nilaiKontrak: nilaiKontrakNumber,
-        nilaiDp: nilaiDpNumber,
-        nilaiRetensi: nilaiRetensiNumber,
-        keterangan: data.keterangan,
-        // Kirim Date Object yang sudah valid atau undefined/null
-        tanggal: tanggalString,
-      })
-
-      dateMulai.value = tanggalString
-    } else {
-      console.error('Gagal mengambil data. Status:', response.status)
-    }
-  } catch (error) {
-    console.error('Fetch error:', error.message)
-    // Tampilkan notifikasi error ke user jika perlu
+  if (volumeProgress > volumeMax) {
+    setFieldError(
+      `items[${idx}].volumeProgress`,
+      `Maksimal sisa ${volumeMax.toLocaleString('id-ID')}`
+    )
+    setFieldValue(`items[${idx}].volumeProgress`, volumeMax)
+    const bobotProgress = volumeKontrak > 0 ? (volumeMax / volumeKontrak) * bobotItem : 0
+    setFieldValue(`items[${idx}].bobotProgress`, Number(bobotProgress.toFixed(4)))
+    return
   }
+
+  setFieldError(`items[${idx}].volumeProgress`, undefined)
+  const bobotProgress = volumeKontrak > 0 ? (volumeProgress / volumeKontrak) * bobotItem : 0
+  setFieldValue(`items[${idx}].bobotProgress`, Number(bobotProgress.toFixed(4)))
 }
 
-async function openDialog() {
-  isDialogOpen.value = true
-  await fetchData()
-  await fetchDataProyek()
-}
+// ===================
+// Perhitungan Total
+// ===================
+const totalKontrak = computed(() =>
+  detailList.value.reduce((sum, row) => sum + Number(row.total || 0), 0)
+)
+const totalBobotProgress = computed(
+  () =>
+    values.items?.reduce((sum: number, item: any) => sum + Number(item.bobotProgress || 0), 0) || 0
+)
+const total = computed(() => (totalKontrak.value * totalBobotProgress.value) / 100)
 
-function closeDialog() {
-  isDialogOpen.value = false
-  open.value = false
-  resetForm()
-}
+const hasAnyProgress = computed(() => values.items?.some((i: any) => Number(i.volumeProgress) > 0))
 
-const isSubmitting = ref(false)
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-
-const onSubmit = handleSubmit(async () => {
+const onSubmit = handleSubmit(async form => {
   isSubmitting.value = true
   try {
-    const dataForm = {
-      idProyek: values.idProyek,
-      namaSubkon: values.namaSubkon,
-      nilaiKontrak: values.nilaiKontrak,
-      nilaiDp: values.nilaiDp,
-      nilaiRetensi: values.nilaiRetensi,
-      tanggal: values.tanggal,
-      keterangan: values.keterangan,
-      createdBy: username.value,
-      createdDate: new Date(),
+    const payload = {
+      ...form,
+      totalProgress: total.value,
+      updatedBy: username.value,
     }
 
-    console.log(JSON.stringify(dataForm))
-    const response = await fetch(`${baseUrl}/kontrakSubkon/${props.id}`, {
+    // console.log(JSON.stringify(payload))
+    const response = await fetch(`${baseUrl}/progressSubkon/${props.idProgress}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
     })
 
     if (response.ok) {
-      emit('dataEdited') // Send updated data
-      toast.success('Data Berhasil Di Update')
-      closeDialog()
-      resetForm()
-    } else {
-      console.error('Gagal mengedit data')
+      toast({ title: 'Success', description: 'Progress berhasil diperbarui' })
+      emit('dataUpdated')
+      isDialogOpen.value = false
     }
-  } catch (error) {
-    console.error('Error:', error)
   } finally {
     isSubmitting.value = false
   }
 })
+
+function formatRupiah(value: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value || 0)
+}
+
+console.log(props.disabled)
+watch(isDialogOpen, val => {
+  if (val) fetchProgressDetail()
+  else resetForm()
+})
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <TooltipProvider>
+      <!-- <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button size="sm"> <Pencil class="w-4 h-4" /> </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Edit Data</p>
+            <p>Edit</p>
           </TooltipContent>
         </Tooltip>
-      </TooltipProvider>
+      </TooltipProvider> -->
+      <Button size="sm" :disabled="props.disabled"> <Pencil class="w-4 h-4" /> </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+
+    <DialogContent class="sm:max-w-[1200px] [&>button]:hidden">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
-          <DialogTitle>Edit Data Kontrak Subkon</DialogTitle>
+          <DialogTitle>Edit Progress Pekerjaan Subkon</DialogTitle>
         </DialogHeader>
 
-        <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
-          <!-- 🧱 Field: Proyek -->
-          <FormField v-slot="{ value }" name="idProyek">
-            <FormItem class="flex flex-col">
-              <FormLabel>Pilih Proyek</FormLabel>
+        <div v-if="isLoadingData" class="flex justify-center p-20">
+          <Loader2 class="w-10 h-10 animate-spin text-primary" />
+        </div>
 
-              <Popover v-model:open="open">
-                <PopoverTrigger as-child>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      :aria-expanded="open"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
-                    >
-                      {{
-                        value
-                          ? proyekList.find(item => item.id === value)?.namaPekerjaan
-                          : 'Select Proyek...'
-                      }}
-
-                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent class="p-0">
-                  <Command>
-                    <CommandInput placeholder="Search Proyek..." />
-                    <CommandEmpty>No Proyek found.</CommandEmpty>
-                    <CommandList>
-                      <CommandGroup>
-                        <CommandItem
-                          v-for="item in proyekList"
-                          :key="item.id"
-                          :value="item.namaPekerjaan"
-                          @select="
-                            () => {
-                              setFieldValue('idProyek', item.id)
-                              open = false
-                            }
-                          "
-                        >
-                          <Check
-                            :class="
-                              cn('mr-2 h-4 w-4', value === item.id ? 'opacity-100' : 'opacity-0')
-                            "
-                          />
-                          {{ item.namaPekerjaan }}
-                        </CommandItem>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="namaSubkon">
+        <div v-else class="max-h-[65vh] overflow-y-auto pr-4 space-y-6">
+          <FormField name="namaSubkon" v-slot="{ componentField }">
             <FormItem>
-              <FormLabel>Nama Subkon</FormLabel>
+              <FormLabel>Kontrak Subkon</FormLabel>
               <FormControl>
-                <Input type="text" v-bind="componentField" />
+                <Input v-bind="componentField" disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-          <!-- 🗓️ Field: Tanggal Mulai -->
-          <FormField v-slot="{ field, value }" name="tanggal">
+          <FormField v-slot="{ field, value }" name="tglPenagihan">
             <FormItem class="flex flex-col">
               <FormLabel>Tanggal</FormLabel>
               <Datepicker
@@ -325,76 +253,94 @@ const onSubmit = handleSubmit(async () => {
             <input type="hidden" v-bind="field" />
           </FormField>
 
-          <FormField v-slot="{ field }" name="nilaiKontrak">
-            <FormItem>
-              <FormLabel>Nilai Kontrak</FormLabel>
-              <FormControl>
-                <div class="space-y-1">
-                  <Input class="mb-4" type="number" v-bind="field" />
-
-                  <!-- ✅ Tampilan dalam format Rupiah -->
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
-                        : 'Rp 0'
-                    }}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ field }" name="nilaiDp">
-            <FormItem>
-              <FormLabel>DP</FormLabel>
-              <FormControl>
-                <div class="space-y-1">
-                  <Input class="mb-4" type="number" v-bind="field" />
-
-                  <!-- ✅ Tampilan dalam format Rupiah -->
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
-                        : 'Rp 0'
-                    }}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="nilaiRetensi">
-            <FormItem>
-              <FormLabel>Retensi %</FormLabel>
-              <FormControl> <Input type="number" v-bind="componentField" /> </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
           <FormField v-slot="{ componentField }" name="keterangan">
             <FormItem>
               <FormLabel>Keterangan</FormLabel>
               <FormControl>
-                <Textarea type="text" v-bind="componentField"></Textarea>
+                <Textarea v-bind="componentField"></Textarea>
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
+
+          <FieldArray name="items" v-slot="{ fields }">
+            <div v-if="fields.length > 0" class="border rounded-xl overflow-hidden shadow-sm">
+              <table class="w-full text-sm table-auto">
+                <thead class="bg-gray-50 border-b">
+                  <tr>
+                    <th class="p-3 text-left font-semibold w-[5%]">No</th>
+                    <th class="p-3 text-left font-semibold w-[25%]">Item Pekerjaan</th>
+                    <th class="p-3 text-left font-semibold w-[10%]">Satuan</th>
+                    <th class="p-3 text-left font-semibold w-[10%]">Vol. Kontrak</th>
+                    <th class="p-3 text-left font-semibold w-[10%]">Vol. Sisa (Max)</th>
+                    <th class="p-3 text-center font-semibold w-[8%]">Vol. Progress</th>
+                    <th class="p-3 text-center font-semibold w-[7%]">Bobot Progress %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(field, idx) in fields"
+                    :key="field.key"
+                    class="border-b hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="p-3 text-center">{{ idx + 1 }}</td>
+                    <td class="p-3 font-medium">{{ detailList[idx]?.item }}</td>
+                    <td class="p-3">{{ detailList[idx]?.satuan }}</td>
+                    <td class="p-3">
+                      {{ detailList[idx]?.volumeKontrak?.toLocaleString('id-ID') }}
+                    </td>
+                    <td class="p-3 text-orange-600 font-medium">
+                      {{ detailList[idx]?.volumeSisaOriginal?.toLocaleString('id-ID') }}
+                    </td>
+                    <td class="p-1">
+                      <FormField :name="`items[${idx}].volumeProgress`" v-slot="{ componentField }">
+                        <FormItem class="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              v-bind="componentField"
+                              @input="e => hitungBobotProgress(idx, e.target.value)"
+                            />
+                          </FormControl>
+                          <FormMessage class="absolute -bottom-5 text-xs" />
+                        </FormItem>
+                      </FormField>
+                    </td>
+                    <td class="p-1">
+                      <FormField :name="`items[${idx}].bobotProgress`" v-slot="{ componentField }">
+                        <FormItem class="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              disabled
+                              v-bind="componentField"
+                              class="text-right h-8 bg-gray-50"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      </FormField>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="flex flex-col items-end p-4 bg-gray-50 border-t text-sm">
+                <div class="flex justify-between w-64 border-t pt-2 mt-1">
+                  <span>Total</span>
+                  <span class="font-bold text-green-600">{{ formatRupiah(total) }}</span>
+                </div>
+              </div>
+            </div>
+          </FieldArray>
         </div>
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="isDialogOpen = false">Tutup</Button>
           </DialogClose>
           <span v-if="isSubmitting">
-            <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
-              Updating..
-            </Button>
+            <Button disabled> <Loader2 class="w-4 h-4 mr-2 animate-spin" /> Menyimpan... </Button>
           </span>
-          <Button type="submit" v-else>Update </Button>
+          <Button type="submit" v-else :disabled="!hasAnyProgress">Simpan Perubahan</Button>
         </DialogFooter>
       </form>
     </DialogContent>
