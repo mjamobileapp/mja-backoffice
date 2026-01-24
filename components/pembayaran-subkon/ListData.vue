@@ -19,9 +19,7 @@ const filteredData = computed(() => {
   return data.value.filter(
     item =>
       item.namaPekerjaan.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.namaSubkon.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.noKontrak.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.keterangan.toLowerCase().includes(searchQuery.value.toLowerCase())
+      item.namaSubkon.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
@@ -143,7 +141,11 @@ async function openPreview(item) {
   <Card class="w-full">
     <CardHeader>
       <CardTitle>
-        <Input type="text" v-model="searchQuery" placeholder="Search..." />
+        <Input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Search By Nama Subkon & Nama Proyek..."
+        />
       </CardTitle>
     </CardHeader>
     <CardContent>
