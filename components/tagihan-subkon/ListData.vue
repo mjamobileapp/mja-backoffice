@@ -90,10 +90,10 @@ const isDownloading = ref(false)
 const downloadPdf = async item => {
   console.log(item)
   try {
-    downloadingId.value = item.id
+    downloadingId.value = item.idProgress
     // console.log(downloadingId.value)
     isDownloading.value = true
-    const res = await fetch(`${baseUrl}/progressSubkon/generatePdf/${item.idProgress}`, {
+    const res = await fetch(`${baseUrl}/progressSubkon/${item.idProgress}/pdf`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -216,7 +216,7 @@ const openEdit = ref(false)
                           @click="downloadPdf(item)"
                           size="sm"
                         >
-                          <template v-if="downloadingId === item.id">
+                          <template v-if="downloadingId === item.idProgress">
                             <Loader2 class="w-4 h-4 animate-spin" />
                           </template>
                           <template v-else>
