@@ -7,6 +7,8 @@ import EditData from './EditData.vue'
 import DetailSubkon from './DetailSubkon.vue'
 import LockKontrak from './LockKontrak.vue'
 import { formatDate } from 'date-fns'
+import UploadFile from './UploadFile.vue'
+import { toast } from '../ui/toast'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
@@ -106,10 +108,40 @@ function handleDetailSubkon() {
   }, 500)
 }
 
+async function handleUploadFiles() {
+  await new Promise(resolve => setTimeout(resolve, 500))
+  await fetchData()
+}
+
 function handleDataLocked() {
   setTimeout(() => {
     fetchData()
   }, 500)
+}
+
+const previewOpen = ref(false)
+const previewImages = ref([])
+
+async function openPreview(item) {
+  try {
+    const images = await $fetch(`${baseUrl}/uploadBuktiDp?idSubkon=${item.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    previewImages.value = images.map(img => ({
+      id: img.id,
+      url: img.url, // ini harus URL yang bisa diakses oleh frontend
+    }))
+    console.log(previewImages.value)
+    previewOpen.value = true
+  } catch (error) {
+    console.error(error)
+    toast({
+      title: 'Error',
+      description: 'Gagal mengambil bukti lunas',
+      variant: 'destructive',
+    })
+  }
 }
 
 function handleDataDeleted(deletedItemId) {
@@ -140,6 +172,7 @@ function handleDataDeleted(deletedItemId) {
               <TableHead>Tanggal</TableHead>
               <TableHead>Nilai Kontrak</TableHead>
               <TableHead>DP</TableHead>
+              <TableHead>Preview DP</TableHead>
               <TableHead>Retensi %</TableHead>
               <TableHead>Keterangan</TableHead>
               <TableHead>Status</TableHead>
@@ -166,6 +199,16 @@ function handleDataDeleted(deletedItemId) {
                 {{ formatRupiah(item.nilaiDp) }}
               </TableCell>
               <TableCell class="font-medium">
+                <Button
+                  v-if="item.statusUploadDp && item.statusUploadDp === 1"
+                  size="sm"
+                  variant="default"
+                  @click="openPreview(item)"
+                >
+                  Preview
+                </Button>
+              </TableCell>
+              <TableCell class="font-medium">
                 {{ item.nilaiRetensi }}
               </TableCell>
               <TableCell class="font-medium">
@@ -177,6 +220,11 @@ function handleDataDeleted(deletedItemId) {
 
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
+                  <UploadFile
+                    :item="item"
+                    @uploadFiles="handleUploadFiles"
+                    :disabled="item.statusUploadDp === 1"
+                  />
                   <LockKontrak
                     :item="item"
                     :disabled="item.status === 'locked'"
@@ -198,6 +246,27 @@ function handleDataDeleted(deletedItemId) {
             </TableRow>
           </TableBody>
         </Table>
+
+        <Dialog v-model:open="previewOpen">
+          <DialogContent class="max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Preview Bukti DP</DialogTitle>
+            </DialogHeader>
+
+            <div class="flex flex-col gap-4">
+              <img
+                v-for="img in previewImages"
+                :key="img.id"
+                :src="img.url"
+                class="rounded-lg border shadow"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button @click="previewOpen = false">Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </CardContent>
   </Card>
