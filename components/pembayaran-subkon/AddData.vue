@@ -95,19 +95,13 @@ async function fetchDataProgressSummary() {
 onMounted(fetchDataProgressSummary)
 
 /* ============================================================
-   COMPUTED CORE
+   COMPUTED CORE (FIXED)
 ============================================================ */
 const selectedSubkon = computed(() => listSubkonProgress.value.find(s => s.id === values.idSubkon))
-
 const terminList = computed(() => selectedSubkon.value?.termin || [])
-
 const selectedTermin = computed(() =>
   terminList.value.find(t => t.idProgress === values.idProgress)
 )
-
-watch(selectedTermin, val => {
-  console.log('DEBUG TERMIN:', val)
-})
 
 /**
  * FLAG: pembayaran pertama termin?
@@ -118,59 +112,64 @@ const isFirstPaymentOfTermin = computed(() => {
 })
 
 /**
- * Potongan DP (HANYA SEKALI)
+ * POTONGAN STANDAR (Target Permanen)
+ * Kita hitung berapa POTONGAN TOTAL yang seharusnya ada untuk termin ini
  */
-const potonganDP = computed(() => {
-  if (
-    !selectedTermin.value ||
-    !isFirstPaymentOfTermin.value ||
-    selectedTermin.value.noTermin !== 'Termin-01'
-  )
-    return 0
+const targetPotonganDP = computed(() => {
+  if (!selectedTermin.value || selectedTermin.value.noTermin !== 'Termin-01') return 0
+  // Pastikan menggunakan Number() untuk menghindari string yang menyebabkan NaN
+  return Number(selectedSubkon.value?.nilaiDP || 0)
+})
 
-  return selectedSubkon.value?.nilaiDP || 0
+const targetPotonganRetensi = computed(() => {
+  if (!selectedTermin.value || !selectedSubkon.value) return 0
+  const persen = Number(selectedSubkon.value.persenRetensi || 0)
+  const bruto = Number(selectedTermin.value.nilaiProgress || 0)
+  return bruto * (persen / 100)
 })
 
 /**
- * Retensi (HANYA SEKALI)
- */
-const potonganRetensi = computed(() => {
-  if (
-    !selectedTermin.value ||
-    !selectedSubkon.value ||
-    !isFirstPaymentOfTermin.value ||
-    selectedTermin.value.noTermin !== 'Termin-01'
-  )
-    return 0
-
-  return selectedTermin.value.nilaiProgress * (selectedSubkon.value.persenRetensi / 100)
-})
-
-/**
- * Netto termin
+ * NETTO TERMIN (Nilai yang KONSISTEN)
+ * Nilai ini tidak boleh berubah meski isFirstPaymentOfTermin berubah
  */
 const nilaiNetto = computed(() => {
   if (!selectedTermin.value) return 0
-  return selectedTermin.value.nilaiProgress - potonganDP.value - potonganRetensi.value
+  return selectedTermin.value.nilaiProgress - targetPotonganDP.value - targetPotonganRetensi.value
 })
 
 /**
- * SISA BAYAR (PER TERMIN, BUKAN KUMULATIF)
+ * SISA BAYAR (Sesuai dengan logika Backend)
  */
 const sisaBayar = computed(() => {
   if (!selectedTermin.value) return 0
-  return Math.max(nilaiNetto.value - selectedTermin.value.totalDibayar, 0)
+  // Sisa adalah Netto dikurangi apa yang sudah dibayar
+  const sisa = nilaiNetto.value - selectedTermin.value.totalDibayar
+  return sisa > 0 ? Math.round(sisa) : 0
 })
+
+/**
+ * POTONGAN YANG DIKIRIM KE BACKEND (Hanya untuk insert baris ini)
+ */
+const potonganDPPayload = computed(() =>
+  isFirstPaymentOfTermin.value ? targetPotonganDP.value : 0
+)
+const potonganRetensiPayload = computed(() =>
+  isFirstPaymentOfTermin.value ? targetPotonganRetensi.value : 0
+)
 
 /* ============================================================
    HELPERS
 ============================================================ */
-const formatRupiah = (val: number) =>
-  new Intl.NumberFormat('id-ID', {
+const formatRupiah = (val: number) => {
+  // Jika val adalah NaN atau tidak terdefinisi, kembalikan Rp 0
+  if (isNaN(val) || val === null || val === undefined) return 'Rp 0'
+
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
-  }).format(val || 0)
+  }).format(val)
+}
 
 /* ============================================================
    UI STATE
@@ -218,8 +217,8 @@ const onSubmit = handleSubmit(async form => {
   try {
     const payload = {
       ...form,
-      potonganDP: potonganDP.value,
-      retensi: potonganRetensi.value,
+      potonganDP: potonganDPPayload.value, // Pakai payload yang dinamis
+      retensi: potonganRetensiPayload.value, // Pakai payload yang dinamis
       createdBy: username.value,
     }
 
@@ -241,7 +240,7 @@ const onSubmit = handleSubmit(async form => {
 
     // 2. Parsing JSON untuk mendapatkan ID yang baru dibuat
     const result = await response.json()
-    console.log(result)
+    // console.log(result)
     const newId = result.data?.id // Pastikan controller Anda mengembalikan { data: { id: ... } }
 
     toast({
@@ -384,36 +383,45 @@ const onSubmit = handleSubmit(async form => {
             class="rounded-xl border bg-slate-50 p-4 text-sm space-y-2.5 shadow-sm"
           >
             <div class="flex items-center gap-2 font-bold text-slate-800 border-b pb-2 mb-2">
-              <Calculator class="w-4 h-4" /> Rincian Kewajiban
+              <Calculator class="w-4 h-4" /> Rincian Kewajiban ({{ selectedTermin.noTermin }})
             </div>
+
             <div class="flex justify-between">
-              <span class="text-slate-500">Nilai Progress</span>
+              <span class="text-slate-500">Nilai Bruto Progress</span>
               <span class="font-medium text-slate-900">{{
                 formatRupiah(selectedTermin.nilaiProgress)
               }}</span>
             </div>
 
-            <div v-if="potonganDP > 0" class="flex justify-between text-rose-600 italic">
-              <span>Potongan DP (Termin 1)</span> <span>- {{ formatRupiah(potonganDP) }}</span>
+            <div class="flex justify-between text-rose-600 italic">
+              <span>Total Potongan (DP + Retensi)</span>
+              <span>- {{ formatRupiah(targetPotonganDP + targetPotonganRetensi) }}</span>
             </div>
-            <div v-if="potonganRetensi > 0" class="flex justify-between text-rose-600 italic">
-              <span>Retensi ({{ selectedSubkon?.persenRetensi }}%)</span>
-              <span>- {{ formatRupiah(potonganRetensi) }}</span>
-            </div>
+
             <div class="flex justify-between font-bold border-t pt-2 text-slate-900">
-              <span>Total Netto</span> <span>{{ formatRupiah(nilaiNetto) }}</span>
+              <span>Total Netto Wajib Bayar</span>
+              <span>{{ formatRupiah(nilaiNetto) }}</span>
             </div>
+
             <div class="flex justify-between text-blue-600">
               <span>Sudah Terbayar</span>
               <span>{{ formatRupiah(selectedTermin.totalDibayar) }}</span>
             </div>
+
             <div
               class="flex justify-between font-bold text-base text-emerald-700 border-t-2 border-dashed pt-2"
             >
-              <span>Sisa Maks. Bayar (Kumulatif)</span> <span>{{ formatRupiah(sisaBayar) }}</span>
+              <span>Sisa Maks. Bayar</span>
+              <span>{{ formatRupiah(sisaBayar) }}</span>
             </div>
-            <div v-if="!isFirstPaymentOfTermin" class="text-xs italic text-slate-400 pt-2">
-              * Potongan DP & retensi sudah diterapkan pada pembayaran sebelumnya
+
+            <div
+              v-if="!isFirstPaymentOfTermin"
+              class="bg-amber-50 text-amber-700 p-2 rounded text-[11px] mt-2 border border-amber-200"
+            >
+              <strong>Catatan Parsial:</strong> Potongan DP & Retensi sebesar
+              {{ formatRupiah(targetPotonganDP + targetPotonganRetensi) }}
+              sudah didebet pada pembayaran pertama. Angka di atas adalah sisa pelunasan Netto.
             </div>
           </div>
 

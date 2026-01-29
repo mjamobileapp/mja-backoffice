@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
-import AddData from './AddData.vue'
-import DeleteData from './DeleteData.vue'
-import EditData from './EditData.vue'
 import { formatDate } from 'date-fns'
+import AddPembayaranRetensi from './AddPembayaranRetensi.vue'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
@@ -55,8 +53,7 @@ const token = accessToken.value.token
 async function fetchData() {
   isLoading.value = true
   try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/pembayaranSubkon`, {
+    const response = await fetch(`${baseUrl}/pembayaranRetensi`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -86,23 +83,9 @@ onMounted(() => {
   fetchData()
 })
 
-const editItem = ref(null)
-function handleDataEdited() {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
-  setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
-    fetchData()
-  }, 500)
-}
-
 function formatRupiah(value: number | Ref<number>) {
   const val = typeof value === 'object' ? value.value : value
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
-}
-
-function handleDataDeleted(deletedItemId) {
-  data.value = data.value.filter(item => item.id !== deletedItemId)
 }
 
 const previewOpen = ref(false)
@@ -110,7 +93,7 @@ const previewImages = ref([])
 
 async function openPreview(item) {
   try {
-    const img = await $fetch(`${baseUrl}/getBuktiBayarSubkon?idPembayaran=${item.id}`, {
+    const img = await $fetch(`${baseUrl}/getBuktiBayarRetensi?idPembayaran=${item.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -150,7 +133,7 @@ async function openPreview(item) {
     </CardHeader>
     <CardContent>
       <div class="mb-5">
-        <AddData @dataAdded="fetchData" />
+        <AddPembayaranRetensi @dataAdded="fetchData" />
       </div>
       <div v-if="isLoading" class="flex justify-center items-center p-8">
         <div
@@ -163,14 +146,9 @@ async function openPreview(item) {
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Nama Proyek + Nama Subkon</TableHead>
-              <TableHead>No Termin</TableHead>
               <TableHead>Tanggal Pembayaran</TableHead>
-              <TableHead>Nilai Progress</TableHead>
-              <TableHead>Potongan DP</TableHead>
               <TableHead>Nilai Retensi</TableHead>
               <TableHead>Nilai Dibayar</TableHead>
-              <TableHead>Sisa Tagihan</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -182,34 +160,17 @@ async function openPreview(item) {
               <TableCell class="font-medium">
                 {{ item.namaPekerjaan }} - {{ item.namaSubkon }}
               </TableCell>
-              <TableCell class="font-medium">
-                {{ item.noTermin }}
-              </TableCell>
               <TableCell>{{ formatTanggal(item.tanggalPembayaran) }}</TableCell>
-              <TableCell class="font-medium">
-                {{ formatRupiah(item.nilaiProgress) }}
-              </TableCell>
-              <TableCell class="font-medium">
-                {{ formatRupiah(item.potonganDp) }}
-              </TableCell>
               <TableCell class="font-medium">
                 {{ formatRupiah(item.nilaiRetensi) }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ formatRupiah(item.nilaiDibayar) }}
               </TableCell>
-              <TableCell class="font-medium">
-                {{ formatRupiah(item.sisaTermin) }}
-              </TableCell>
-              <TableCell class="font-medium">
-                {{ item.status }}
-              </TableCell>
 
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
                   <Button size="sm" variant="default" @click="openPreview(item)"> Preview </Button>
-                  <!-- <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" /> -->
                 </div>
               </TableCell>
             </TableRow>
@@ -219,7 +180,7 @@ async function openPreview(item) {
         <Dialog v-model:open="previewOpen">
           <DialogContent class="max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Preview Bukti Lunas</DialogTitle>
+              <DialogTitle>Preview Bukti Pembayaran</DialogTitle>
             </DialogHeader>
 
             <div class="flex flex-col gap-4">
