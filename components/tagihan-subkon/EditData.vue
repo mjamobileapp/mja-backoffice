@@ -80,7 +80,7 @@ const fetchProgressDetail = async () => {
   if (!props.idProgress) return
   isLoadingData.value = true
   try {
-    const res: any = await $fetch(`${baseUrl}/progressSubkon/detail/${props.idProgress}`, {
+    const res: any = await $fetch(`${baseUrl}/progressSubkon/${props.idProgress}/detail`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
