@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { useRuntimeConfig } from '#app' // jika kamu pakai Nuxt 3
 import CustomChartTooltip from './CustomChartTooltip.vue'
 
@@ -12,7 +11,7 @@ const props = defineProps({
   },
 })
 
-console.log(props.idProyek)
+// console.log(props.idProyek)
 
 // get token====================
 const accessToken = useCookie('accessToken')

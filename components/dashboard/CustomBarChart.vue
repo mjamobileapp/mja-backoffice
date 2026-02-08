@@ -16,7 +16,7 @@ const chartData = computed(() => ({
       label: 'Nilai Proyek (Rp)',
       data: props.data.map(d => Number(d.total) || 0),
       backgroundColor: props.data.map(d => {
-        console.log(d.color)
+        // console.log(d.color)
         // mapping warna dasar dari API
         switch ((d.color || '').toLowerCase()) {
           case 'red':

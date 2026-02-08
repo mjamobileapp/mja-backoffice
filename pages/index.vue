@@ -17,6 +17,7 @@ const dataCard = ref({
 })
 
 const dataProyekTerbaru = ref([])
+const listDataChart = ref([])
 const proyekList = ref([])
 const selectedProyek = ref(1)
 
@@ -93,6 +94,9 @@ async function fetchDataBarchart(idProyek) {
           color: item.color || null,
         }))
       : []
+
+    listDataChart.value = result.data
+    // console.log(JSON.stringify(listDataChart))
   } catch (error) {
     console.error('Error fetching barchart:', error)
     dataBarchart.value = []
@@ -245,32 +249,17 @@ watch(selectedProyek, newId => {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Proyek Baru</CardTitle>
+            <!-- <CardTitle>Proyek Baru</CardTitle> -->
           </CardHeader>
           <CardContent class="grid gap-8">
-            <div
-              v-for="itemProyek in dataProyekTerbaru"
-              :key="itemProyek.namaPekerjaan"
-              class="flex items-center gap-4"
-            >
-              <Avatar class="hidden h-9 w-9 sm:flex">
-                <AvatarFallback>{{
-                  itemProyek.namaPekerjaan
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                }}</AvatarFallback>
-              </Avatar>
+            <div v-for="item in listDataChart" :key="item.name" class="flex items-center gap-4">
               <div class="grid gap-1">
                 <p class="text-sm font-medium leading-none">
-                  {{ itemProyek.namaPekerjaan }}
-                </p>
-                <p class="text-sm text-muted-foreground">
-                  {{ itemProyek.lokasi }}
+                  {{ item.name }}
                 </p>
               </div>
               <div class="ml-auto font-medium">
-                <NumberFlowRp :value="itemProyek.nilaiKontrak" />
+                <NumberFlowRp :value="item.total" />
               </div>
             </div>
           </CardContent>
