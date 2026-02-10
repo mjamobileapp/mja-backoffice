@@ -97,19 +97,12 @@ async function fetchDataDetailProgressSubkon() {
   }
 }
 
-const currentUser = useCookie('currentUser')
-
 // ===================
 // Util
 // ===================
 function formatRupiah(value: number | Ref<number>) {
   const val = typeof value === 'object' ? value.value : value
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
-}
-
-function normalizeNumber(val: any) {
-  if (val === null || val === undefined) return 0
-  return Number(String(val).replace(',', '.')) || 0
 }
 </script>
 

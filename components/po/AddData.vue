@@ -82,6 +82,7 @@ async function fetchDataRAP() {
       idRap: item.idRap || item.id, // Normalisasi agar template tidak bingung
       noRap: item.noRap,
       namaRap: item.namaRap,
+      namaProyek: item.namaPekerjaan,
     }))
   } catch (error) {
     console.error('Gagal mengambil data RAP:', error)
@@ -198,7 +199,7 @@ const onSubmit = handleSubmit(async formValues => {
                                 )
                               "
                             />
-                            {{ item.noRap }} - {{ item.namaRap }}
+                            {{ item.noRap }} - {{ item.namaRap }} - {{ item.namaProyek }}
                           </CommandItem>
                         </CommandGroup>
                       </CommandList>
