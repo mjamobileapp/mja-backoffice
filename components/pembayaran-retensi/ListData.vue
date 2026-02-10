@@ -146,6 +146,7 @@ async function openPreview(item) {
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Nama Proyek + Nama Subkon</TableHead>
+              <TableHead>Keterangan</TableHead>
               <TableHead>Tanggal Pembayaran</TableHead>
               <TableHead>Nilai Retensi</TableHead>
               <TableHead>Nilai Dibayar</TableHead>
@@ -159,6 +160,9 @@ async function openPreview(item) {
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.namaPekerjaan }} - {{ item.namaSubkon }}
+              </TableCell>
+              <TableCell class="font-medium">
+                {{ item.keterangan }}
               </TableCell>
               <TableCell>{{ formatTanggal(item.tanggalPembayaran) }}</TableCell>
               <TableCell class="font-medium">

@@ -43,7 +43,12 @@ const schema = toTypedSchema(
   z.object({
     idSubkon: z.number({ required_error: 'Pilih subkon' }),
     tanggal: z.date({ required_error: 'Pilih tanggal' }),
-    nilaiBayar: z.number(),
+    nilaiBayar: z
+      .number({ required_error: 'Nominal wajib diisi' })
+      .positive('Nominal harus > 0')
+      .refine(val => val <= sisaSaldoRetensi.value, {
+        message: 'Nominal melebihi sisa saldo retensi',
+      }),
     keterangan: z.string().optional(),
     files: z.array(z.any()).min(1, 'Minimal 1 bukti transfer harus diupload'),
   })
@@ -108,10 +113,13 @@ const handleNilaiBayar = (raw: string) => {
   if (!selectedSubkon.value) return
 
   const cleaned = raw.replace(/\D/g, '')
-  const inputVal = Number(cleaned || 0)
+  let inputVal = Number(cleaned || 0)
 
-  // 🔒 Paksa selalu ke total sisa retensi
-  setFieldValue('nilaiBayar', sisaSaldoRetensi.value)
+  if (inputVal > sisaSaldoRetensi.value) {
+    inputVal = sisaSaldoRetensi.value
+  }
+
+  setFieldValue('nilaiBayar', inputVal)
 }
 
 function handleFileChange(e: Event) {
@@ -124,12 +132,15 @@ const closeDialog = () => {
   resetForm()
 }
 
+const sisaSetelahBayar = computed(() => {
+  return Math.max(sisaSaldoRetensi.value - (values.nilaiBayar || 0), 0)
+})
 const onSubmit = handleSubmit(async form => {
   isSubmitting.value = true
 
-  if (form.nilaiBayar !== sisaSaldoRetensi.value) {
-    setFieldValue('nilaiBayar', sisaSaldoRetensi.value)
-  }
+  // if (form.nilaiBayar !== sisaSaldoRetensi.value) {
+  //   setFieldValue('nilaiBayar', sisaSaldoRetensi.value)
+  // }
 
   try {
     const payload = {
@@ -175,12 +186,18 @@ const onSubmit = handleSubmit(async form => {
   }
 })
 
+// watch(
+//   () => values.idSubkon,
+//   () => {
+//     if (sisaSaldoRetensi.value > 0) {
+//       setFieldValue('nilaiBayar', sisaSaldoRetensi.value)
+//     }
+//   }
+// )
 watch(
   () => values.idSubkon,
   () => {
-    if (sisaSaldoRetensi.value > 0) {
-      setFieldValue('nilaiBayar', sisaSaldoRetensi.value)
-    }
+    setFieldValue('nilaiBayar', 0)
   }
 )
 </script>
@@ -220,7 +237,7 @@ watch(
                     :key="s.idSubkon"
                     :value="s.idSubkon.toString()"
                   >
-                    {{ s.namaSubkon }} (Saldo:
+                    {{ s.namaSubkon }} - {{ s.keterangan }} (Saldo:
                     {{ formatRupiah(s.totalRetensiTersedia - s.sudahDibayarRetensi) }})
                   </SelectItem>
                 </SelectContent>
@@ -254,6 +271,11 @@ watch(
             <div class="flex justify-between font-bold text-base text-emerald-900 border-t pt-2">
               <span>Sisa Retensi Tersedia</span>
               <span>{{ formatRupiah(sisaSaldoRetensi) }}</span>
+            </div>
+
+            <div class="flex justify-between text-indigo-700 font-semibold">
+              <span>Sisa Setelah Pembayaran Ini</span>
+              <span>{{ formatRupiah(sisaSetelahBayar) }}</span>
             </div>
           </div>
 
