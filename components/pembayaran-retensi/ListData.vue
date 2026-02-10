@@ -145,7 +145,7 @@ async function openPreview(item) {
           <TableHeader>
             <TableRow>
               <TableHead class="w-[100px]"> No </TableHead>
-              <TableHead>Nama Proyek + Nama Subkon</TableHead>
+              <TableHead>Nama Proyek + Nama Subkon + Keterangan</TableHead>
               <TableHead>Keterangan</TableHead>
               <TableHead>Tanggal Pembayaran</TableHead>
               <TableHead>Nilai Retensi</TableHead>
@@ -159,7 +159,7 @@ async function openPreview(item) {
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.namaPekerjaan }} - {{ item.namaSubkon }}
+                {{ item.namaPekerjaan }} - {{ item.namaSubkon }} - {{ item.keteranganSubkon }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.keterangan }}
