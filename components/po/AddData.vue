@@ -181,14 +181,14 @@ const onSubmit = handleSubmit(async formValues => {
                   </PopoverTrigger>
                   <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
                     <Command>
-                      <CommandInput placeholder="Cari By Nama RAP..." />
+                      <CommandInput placeholder="Cari..." />
                       <CommandList>
                         <CommandEmpty>RAP tidak ditemukan.</CommandEmpty>
                         <CommandGroup>
                           <CommandItem
                             v-for="item in rapList"
                             :key="item.id"
-                            :value="String(item.namaRap)"
+                            :value="`${item.namaRap} ${item.namaProyek} ${item.noRap}`"
                             @select="onSelectRAP(item)"
                           >
                             <Check

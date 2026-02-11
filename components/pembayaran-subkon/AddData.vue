@@ -44,6 +44,7 @@ const username = computed(() => currentUser.value?.username || 'system')
 
 const lastSelectedSubkonId = ref<number | null>(null)
 const lastSelectedProgressId = ref<number | null>(null)
+const openSubkon = ref(false)
 
 /* ============================================================
    VALIDATION
@@ -348,7 +349,7 @@ const onSubmit = handleSubmit(async form => {
         </DialogHeader>
 
         <div class="grid gap-4 max-h-[65vh] overflow-y-auto pr-2">
-          <FormField name="idSubkon" v-slot="{ value }">
+          <!-- <FormField name="idSubkon" v-slot="{ value }">
             <FormItem>
               <FormLabel>Sub Kontraktor</FormLabel>
               <Select
@@ -372,8 +373,68 @@ const onSubmit = handleSubmit(async form => {
               </Select>
               <FormMessage />
             </FormItem>
-          </FormField>
+          </FormField> -->
 
+          <FormField name="idSubkon" v-slot="{ value }">
+            <FormItem class="flex flex-col">
+              <FormLabel>Sub Kontraktor</FormLabel>
+
+              <Popover v-model:open="openSubkon">
+                <PopoverTrigger as-child>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                    >
+                      {{
+                        value
+                          ? listSubkonProgress.find(s => s.id === value)?.namaSubkon +
+                            ' - ' +
+                            listSubkonProgress.find(s => s.id === value)?.namaPekerjaan
+                          : 'Pilih Subkon...'
+                      }}
+                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandInput placeholder="Cari Subkon / Pekerjaan..." />
+                    <CommandList>
+                      <CommandEmpty>Subkon tidak ditemukan.</CommandEmpty>
+
+                      <CommandGroup>
+                        <CommandItem
+                          v-for="s in listSubkonProgress"
+                          :key="s.id"
+                          :value="`${s.namaSubkon} ${s.namaPekerjaan}`.toLowerCase()"
+                          @select="
+                            () => {
+                              setFieldValue('idSubkon', s.id)
+                              setFieldValue('idProgress', undefined)
+                              setFieldValue('nilaiBayar', undefined)
+                              openSubkon = false
+                            }
+                          "
+                        >
+                          <Check
+                            :class="
+                              cn('mr-2 h-4 w-4', value === s.idSubkon ? 'opacity-100' : 'opacity-0')
+                            "
+                          />
+                          {{ s.namaSubkon }} - {{ s.namaPekerjaan }}
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              <FormMessage />
+            </FormItem>
+          </FormField>
           <FormField name="idProgress" v-slot="{ value }" v-if="terminList.length">
             <FormItem>
               <FormLabel>Termin Pembayaran</FormLabel>

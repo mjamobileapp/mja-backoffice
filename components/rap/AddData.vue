@@ -125,7 +125,7 @@ const onSubmit = handleSubmit(async formValues => {
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @update:open="val => !val && closeDialog()">
     <DialogTrigger as-child>
       <Button @click="openDialog">Add New RAP</Button>
     </DialogTrigger>

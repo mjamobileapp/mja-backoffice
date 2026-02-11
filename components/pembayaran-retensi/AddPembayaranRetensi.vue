@@ -66,6 +66,16 @@ const { handleSubmit, setFieldValue, values, resetForm } = useForm({
 /* ============================================================
    DATA FETCHING
 ============================================================ */
+const openSubkonRetensi = ref(false)
+const selectedSubkonRetensiLabel = computed(() => {
+  const found = listSubkonRetensi.value.find(s => s.idSubkon === Number(values.idSubkon))
+
+  return found
+    ? `${found.namaSubkon} - ${found.keterangan} (Saldo: ${formatRupiah(
+        found.totalRetensiTersedia - found.sudahDibayarRetensi
+      )})`
+    : ''
+})
 const listSubkonRetensi = ref<any[]>([])
 
 async function fetchRetensiSummary() {
@@ -221,7 +231,7 @@ watch(
         </DialogHeader>
 
         <div class="grid gap-4">
-          <FormField name="idSubkon" v-slot="{ value }">
+          <!-- <FormField name="idSubkon" v-slot="{ value }">
             <FormItem>
               <FormLabel>Pilih Sub Kontraktor</FormLabel>
               <Select
@@ -244,8 +254,63 @@ watch(
               </Select>
               <FormMessage />
             </FormItem>
-          </FormField>
+          </FormField> -->
+          <FormField name="idSubkon" v-slot="{ value }">
+            <FormItem class="flex flex-col">
+              <FormLabel>Pilih Sub Kontraktor</FormLabel>
 
+              <Popover v-model:open="openSubkonRetensi">
+                <PopoverTrigger as-child>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                    >
+                      {{ value ? selectedSubkonRetensiLabel : 'Pilih Subkon' }}
+                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandInput placeholder="Cari subkon / keterangan..." />
+                    <CommandList>
+                      <CommandEmpty>Subkon tidak ditemukan.</CommandEmpty>
+
+                      <CommandGroup>
+                        <CommandItem
+                          v-for="s in listSubkonRetensi"
+                          :key="s.idSubkon"
+                          :value="`${s.namaSubkon} ${s.keterangan}`.toLowerCase()"
+                          @select="
+                            () => {
+                              setFieldValue('idSubkon', s.idSubkon)
+                              openSubkonRetensi = false
+                            }
+                          "
+                        >
+                          <Check
+                            :class="
+                              cn('mr-2 h-4 w-4', value === s.idSubkon ? 'opacity-100' : 'opacity-0')
+                            "
+                          />
+                          {{ s.namaSubkon }} - {{ s.keterangan }}
+                          <span class="ml-2 text-xs text-emerald-600">
+                            (Saldo:
+                            {{ formatRupiah(s.totalRetensiTersedia - s.sudahDibayarRetensi) }})
+                          </span>
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              <FormMessage />
+            </FormItem>
+          </FormField>
           <div
             v-if="selectedSubkon"
             class="rounded-xl border bg-emerald-50 p-4 text-sm space-y-2 shadow-sm border-emerald-200"
@@ -283,7 +348,14 @@ watch(
             <FormField name="tanggal" v-slot="{ field }">
               <FormItem>
                 <FormLabel>Tanggal Cair</FormLabel>
-                <Datepicker v-model="field.value" :enable-time-picker="false" auto-apply />
+                <!-- <Datepicker v-model="field.value" :enable-time-picker="false" auto-apply /> -->
+                <Datepicker
+                  v-model="field.value"
+                  :enable-time-picker="false"
+                  :format="'dd-MM-yyyy'"
+                  auto-apply
+                  @update:model-value="val => field.onChange(val)"
+                />
                 <FormMessage />
               </FormItem>
             </FormField>

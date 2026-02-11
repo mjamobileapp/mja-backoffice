@@ -75,6 +75,11 @@ const kontrakList = ref<any[]>([])
 const detailList = ref<any[]>([])
 const tglPenagihan = ref<Date | null>(null)
 
+const openKontrak = ref(false)
+const selectedKontrakLabel = computed(() => {
+  const found = kontrakList.value.find(k => k.idSubkon === Number(values.idSubkon))
+  return found ? `${found.namaSubkon} - ${found.namaPekerjaan}` : ''
+})
 /* =========================
    LOAD KONTRAK
 ========================= */
@@ -274,7 +279,7 @@ const dateMulai = ref(null)
         </DialogHeader>
 
         <div class="max-h-[65vh] overflow-y-auto pr-4 space-y-6">
-          <FormField name="idSubkon" v-slot="{ componentField }">
+          <!-- <FormField name="idSubkon" v-slot="{ componentField }">
             <FormItem>
               <FormLabel>Pilih Kontrak Subkon</FormLabel>
               <FormControl>
@@ -300,6 +305,63 @@ const dateMulai = ref(null)
                   </SelectContent>
                 </Select>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField> -->
+          <FormField name="idSubkon" v-slot="{ value }">
+            <FormItem class="flex flex-col">
+              <FormLabel>Pilih Kontrak Subkon</FormLabel>
+
+              <Popover v-model:open="openKontrak">
+                <PopoverTrigger as-child>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                    >
+                      {{ value ? selectedKontrakLabel : 'Pilih kontrak...' }}
+                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+
+                <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandInput placeholder="Cari subkon / pekerjaan..." />
+                    <CommandList>
+                      <CommandEmpty>Kontrak tidak ditemukan.</CommandEmpty>
+
+                      <CommandGroup>
+                        <CommandItem
+                          v-for="k in kontrakList"
+                          :key="k.idSubkon"
+                          :value="`${k.namaSubkon} ${k.namaPekerjaan}`.toLowerCase()"
+                          :disabled="hasDraftProgress(k)"
+                          @select="
+                            () => {
+                              setFieldValue('idSubkon', k.idSubkon)
+                              openKontrak = false
+                            }
+                          "
+                        >
+                          <Check
+                            :class="
+                              cn('mr-2 h-4 w-4', value === k.idSubkon ? 'opacity-100' : 'opacity-0')
+                            "
+                          />
+                          {{ k.namaSubkon }} - {{ k.namaPekerjaan }}
+
+                          <span v-if="hasDraftProgress(k)" class="ml-2 text-xs text-red-500 italic">
+                            (Masih Draft)
+                          </span>
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
               <FormMessage />
             </FormItem>
           </FormField>
