@@ -59,7 +59,7 @@ const token = accessToken.value.token
 
 async function fetchUserData() {
   try {
-    const response = await fetch(`${baseUrl}/users/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

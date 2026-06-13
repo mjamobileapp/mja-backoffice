@@ -1,56 +1,134 @@
-## 🚀 Project Monitoring Application
+# 🚀 Laundry Management System
 
-Project Monitoring Application adalah sebuah sistem terintegrasi yang dirancang untuk memfasilitasi pemantauan, pelacakan, dan manajemen menyeluruh terhadap perkembangan setiap proyek yang sedang berjalan. Aplikasi ini bertujuan memberikan visibilitas real-time terhadap berbagai aspek keuangan dan administratif proyek.
+Laundry Management System adalah aplikasi terintegrasi yang dirancang untuk membantu operasional bisnis laundry secara lebih efisien dan terpusat. Sistem ini mendukung pengelolaan mitra, cabang, mesin laundry, transaksi, serta monitoring operasional secara real-time.
 
 ## ✨ Fitur Utama
 
-Aplikasi ini dibangun di atas beberapa modul utama yang saling terhubung untuk memberikan gambaran proyek yang komprehensif:
+Aplikasi ini terdiri dari beberapa modul utama yang saling terintegrasi untuk mendukung seluruh proses bisnis laundry.
 
-1. Modul Transaksi Proyek
-   -Modul ini berfungsi sebagai pusat pencatatan seluruh aktivitas finansial dan administratif proyek, meliputi:
-   -Nilai Proyek (Project Value): Pencatatan nilai total awal dari setiap proyek.
-   -Kas Masuk (Cash Inflow): Pencatatan penerimaan dana secara berkala dari klien atau sumber terkait.
-   -Kontrak Subkontraktor (Subcontractor Contracts): Manajemen dan pelacakan detail kontrak dengan pihak ketiga.
-   -Kontrak Adendum (Addendum Contracts): Pencatatan setiap perubahan atau penambahan lingkup proyek yang memengaruhi nilai atau jadwal.
-   -Purchase Order (PO): Manajemen pemesanan barang dan jasa yang dibutuhkan untuk pelaksanaan proyek.
-   dll
+### 1. Modul Master Data
 
-2. Dashboard Monitoring
-   -Menyajikan visualisasi data kunci (KPIs) proyek secara real-time sehingga manajemen dapat mengambil keputusan berdasarkan data yang akurat dan terkini. Dasbor mencakup:
-   -Perkembangan Proyek: Status kemajuan proyek (misalnya: On Schedule, At Risk, Complete).
-   -Analisis Keuangan: Visualisasi arus kas (Kas Masuk vs. Pengeluaran).
-   -Status Administrasi: Tinjauan cepat terhadap status Kontrak Subkon, Adendum, dan PO yang belum/sudah disetujui.
+Mengelola seluruh data utama yang digunakan dalam operasional laundry, meliputi:
+
+- Manajemen Mitra (Partner Management)
+- Manajemen Cabang (Branch Management)
+- Manajemen Mesin Laundry
+- Manajemen Paket Layanan Laundry
+- Manajemen Pengguna dan Hak Akses
+
+### 2. Modul Mesin Laundry
+
+Mengelola dan memonitor seluruh mesin laundry yang tersedia di setiap cabang.
+
+Fitur:
+
+- Registrasi Mesin Washer dan Dryer
+- Monitoring Status Mesin (Ready, In Use, Error)
+- Monitoring IP Address dan MAC Address Mesin
+- Pengelompokan Mesin berdasarkan Mitra dan Cabang
+- Riwayat Aktivitas Mesin
+
+### 3. Modul Transaksi Laundry
+
+Mencatat seluruh aktivitas transaksi laundry secara terstruktur.
+
+Fitur:
+
+- Pencatatan Order Laundry
+- Monitoring Status Pengerjaan Laundry
+- Riwayat Transaksi
+- Manajemen Pembayaran
+- Pelacakan Status Cucian
+
+### 4. Dashboard Monitoring
+
+Menyajikan informasi operasional laundry secara real-time melalui dashboard interaktif.
+
+Dashboard mencakup:
+
+- Total Mitra
+- Total Cabang
+- Total Mesin Aktif
+- Status Mesin Laundry
+- Statistik Penggunaan Mesin
+- Ringkasan Transaksi Laundry
+- Monitoring Operasional Cabang
+
+### 5. Reporting & Analytics
+
+Menyediakan laporan dan analisis untuk membantu pengambilan keputusan bisnis.
+
+Fitur:
+
+- Laporan Transaksi
+- Laporan Penggunaan Mesin
+- Laporan Performa Cabang
+- Statistik Operasional Laundry
 
 ## 🛠️ Teknologi yang Digunakan
 
-- Backend: express.js (Framework Node.JS)
-- Frontend: Nuxt.js (Framework Vue.Js)
-- Database: MySQL
+### Backend
+
+- Express.js (Node.js Framework)
+
+### Frontend
+
+- Nuxt.js (Vue.js Framework)
+- Shadcn Vue
+- UnoCSS
+
+### Database
+
+- MySQL
 
 ## ⚙️ Cara Menjalankan Proyek
 
-Langkah-langkah berikut akan membantu Anda menjalankan aplikasi ini secara lokal:
+Langkah-langkah berikut akan membantu Anda menjalankan aplikasi secara lokal:
 
-```bash [Terminal]
-git clone https://github.com/gitshandy/monitoring-project-apps.git
-pnpm i # If you don't have pnpm installed, run: npm install -g pnpm
+```bash
+git clone https://github.com/gitshandy/laundry-management-system.git
+
+cd laundry-management-system
+
+pnpm install
+
+pnpm run dev
 ```
 
-## Contributing
+Aplikasi akan berjalan pada:
 
-1. Clone this repository.
-2. Install dependencies `pnpm install`.
-3. Use `pnpm run dev` to start dev server.
+```bash
+http://localhost:3000
+```
 
-## Credits
+## 📦 Build Production
 
-- [Nuxt.js](https://nuxtjs.org/)
-- [Shadcn Vue](https://shadcn-vue.com/)
-- [UnoCSS](https://unocss.com/)
+```bash
+pnpm run build
+pnpm run preview
+```
 
-## License
+## 🤝 Contributing
 
-MIT
+1. Fork repository ini.
+2. Buat branch baru untuk fitur atau perbaikan.
+3. Commit perubahan Anda.
+4. Push ke branch Anda.
+5. Buat Pull Request.
 
-[nuxt-src]: https://img.shields.io/badge/Built%20With%20Nuxt-18181B?logo=nuxt.js
-[nuxt-href]: https://nuxt.com/
+## 📚 Credits
+
+- Nuxt.js
+- Vue.js
+- Express.js
+- Shadcn Vue
+- UnoCSS
+- MySQL
+
+## 📄 License
+
+MIT License
+
+Copyright (c) 2025 Shandy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.

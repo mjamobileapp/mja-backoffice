@@ -34,7 +34,7 @@ const token = accessToken.value.token
 onMounted(async () => {
   if (!username.value) return
   try {
-    const response = await $fetch(`${baseUrl}/getAkses/${username.value}`, {
+    const response = await $fetch(`${baseUrl}/api/backoffice/akses/user/${username.value}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

@@ -91,7 +91,7 @@ const isLoading = ref(false)
 
 async function fetchMenuHeader() {
   try {
-    const response = await fetch(`${baseUrl}/getMenuHeader`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/getMenuHeader`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -128,7 +128,7 @@ const token = accessToken.value.token
 async function fetchData() {
   try {
     isLoading.value = true
-    const response = await fetch(`${baseUrl}/menus/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/menus/${props.id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -183,7 +183,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   }
   // console.log(dataForm)
   try {
-    const response = await fetch(`${baseUrl}/menus/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/menus/${props.id}`, {
       method: 'PUT', // atau PATCH
       headers: {
         'Content-Type': 'application/json',

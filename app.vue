@@ -24,7 +24,7 @@ useHead({
   },
 })
 
-const title = 'Monitoring Project'
+const title = 'MJA Backoffice'
 const description =
   'This dashboard, built with Nuxt, Shadcn UI, and UnoCSS. It includes a dark mode toggle and is optimized for performance and data efficiency.'
 
@@ -33,7 +33,7 @@ useSeoMeta({
   description,
   ogTitle: title,
   ogDescription: description,
-  ogUrl: 'https://plnindoneisapower.co.id',
+  ogUrl: 'https://www.muliajayaabadi.com',
   ogImage: 'https://nuxt-shadcn-dashboard.vercel.app/social-card.png',
   twitterTitle: title,
   twitterDescription: description,

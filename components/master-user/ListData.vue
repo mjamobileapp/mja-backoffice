@@ -21,7 +21,7 @@ async function fetchData() {
   isLoading.value = true
   try {
     const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/users?t=${timestamp}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/users?t=${timestamp}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

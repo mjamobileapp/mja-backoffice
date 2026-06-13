@@ -36,7 +36,7 @@ const token = accessToken.value.token
 
 async function fetchGetAkses() {
   try {
-    const response = await fetch(`${baseUrl}/getAksesRole/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/akses/role/${props.id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ async function onSubmit() {
   })
 
   try {
-    const response = await fetch(`${baseUrl}/saveAksesRole/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/akses/role/${props.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(selectedMenus),

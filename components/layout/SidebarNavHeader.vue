@@ -16,7 +16,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const activeTeam = ref({
-  name: 'Monitoring Project',
+  name: 'MJA Backoffice',
   logo: 'i-lucide-gallery-vertical-end',
   plan: 'Application',
 })

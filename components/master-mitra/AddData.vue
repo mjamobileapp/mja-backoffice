@@ -1,37 +1,59 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
+
 import {
   Dialog,
+  DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
-import { toast } from '~/components/ui/toast'
+import { Loader2, Notebook } from 'lucide-vue-next'
+import { FieldArray, useForm } from 'vee-validate'
+import { h, ref } from 'vue'
 import * as z from 'zod'
+import { toast } from '~/components/ui/toast'
+import {
+  CalendarDate,
+  DateFormatter,
+  type DateValue,
+  getLocalTimeZone,
+  today,
+} from '@internationalized/date'
+import { toDate } from 'date-fns'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
+import Textarea from '../ui/textarea/Textarea.vue'
 
 const emit = defineEmits(['dataAdded'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-const formSchema = toTypedSchema(
+const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const username = computed(() => currentUser.value?.username || 'no-username@example.com')
+
+const df = new DateFormatter('en-US', {
+  dateStyle: 'long',
+})
+
+const profileFormSchema = toTypedSchema(
   z.object({
-    namaRole: z.string().min(2).max(50),
-    description: z.string().min(2).max(200),
+    namaMitra: z.string(),
+    alamatMitra: z.string(),
   })
 )
 
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: formSchema,
+const isSubmitting = ref(false)
+
+const { handleSubmit, resetForm, setFieldValue } = useForm({
+  validationSchema: profileFormSchema,
 })
 
 const isDialogOpen = ref(false)
@@ -45,22 +67,22 @@ function closeDialog() {
   resetForm()
 }
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.email || 'no-email@example.com')
-const isSubmitting = ref(false)
+// get token====================
+const accessToken = useCookie('accessToken')
+const token = accessToken.value.token
+
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
+
   const dataForm = {
-    namaRole: values.namaRole,
-    description: values.description,
-    createdBy: email.value,
-    createdDate: new Date(),
+    namaMitra: values.namaMitra,
+    alamatMitra: values.alamatMitra,
+    createdBy: username.value,
   }
 
-  isDialogOpen.value = false
-  // console.log(JSON.stringify(dataForm))
+  // console.log(dataForm)
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,11 +97,9 @@ const onSubmit = handleSubmit(async (values: any) => {
         description: 'Data berhasil disimpan.',
       })
 
-      setTimeout(() => {
-        emit('dataAdded')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
+      emit('dataAdded')
+      resetForm()
+      isDialogOpen.value = false
     } else {
       toast({
         title: 'Error',
@@ -88,6 +108,7 @@ const onSubmit = handleSubmit(async (values: any) => {
     }
   } catch (error) {
     console.error('Error submitting data:', error)
+
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengirim data.',
@@ -104,29 +125,32 @@ const onSubmit = handleSubmit(async (values: any) => {
       <Button @click="openDialog">Add Data</Button>
     </DialogTrigger>
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
-      <DialogHeader>
-        <DialogTitle>Add Data Master Role</DialogTitle>
-      </DialogHeader>
-      <form class="space-y-5" @submit="onSubmit">
-        <FormField v-slot="{ componentField }" name="namaRole">
-          <FormItem>
-            <FormLabel>Nama Role</FormLabel>
-            <FormControl>
-              <Input type="text" placeholder="Nama Role" v-bind="componentField" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormField>
-        <FormField v-slot="{ componentField }" name="description">
-          <FormItem>
-            <FormLabel>Deskripsi</FormLabel>
-            <FormControl>
-              <Textarea placeholder="deskripsi" v-bind="componentField" cols="5"></Textarea>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormField>
+      <form class="space-y-8" @submit.prevent="onSubmit">
+        <DialogHeader>
+          <DialogTitle>Add Data Mitra</DialogTitle>
+        </DialogHeader>
 
+        <!-- <div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6"> -->
+        <!-- 🧱 Field: Nama Mitra -->
+        <FormField v-slot="{ componentField }" name="namaMitra">
+          <FormItem>
+            <FormLabel>Nama Mitra</FormLabel>
+            <FormControl>
+              <Input type="text" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="alamatMitra">
+          <FormItem>
+            <FormLabel>Alamat Mitra</FormLabel>
+            <FormControl>
+              <Textarea v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <!-- </div> -->
         <DialogFooter>
           <DialogClose as-child>
             <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>

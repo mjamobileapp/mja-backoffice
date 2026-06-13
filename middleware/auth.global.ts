@@ -23,21 +23,23 @@ export default defineNuxtRouteMiddleware(to => {
     }
   }
 
-  // Kalau belum login → paksa ke login
-  if (!user && to.path !== '/login') {
+  // Route yang bisa diakses tanpa login
+  const publicRoutes = ['/login', '/forgot-password']
+
+  // Belum login → hanya boleh akses public routes
+  if (!user && !publicRoutes.includes(to.path)) {
     return navigateTo('/login')
   }
 
-  // Kalau sudah login → cegah buka halaman login
-  if (user && to.path === '/login') {
+  // Sudah login → cegah akses login & forgot-password
+  if (user && publicRoutes.includes(to.path)) {
     return navigateTo('/')
   }
 
-  // **Redirect khusus user non-admin**
+  // Redirect khusus user non-admin
   if (user && to.path === '/') {
     const role = user.role?.toLowerCase()
 
-    // Admin atau Super Admin tetap di "/"
     if (role !== 'admin' && role !== 'super admin') {
       return navigateTo('/user-home')
     }

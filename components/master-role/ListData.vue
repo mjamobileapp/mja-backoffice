@@ -23,7 +23,7 @@ async function fetchData() {
   isLoading.value = true
   try {
     const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/roles`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

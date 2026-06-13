@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
-
 const props = defineProps(['item'])
 const emit = defineEmits(['dataDeleted'])
+
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
@@ -24,7 +24,7 @@ const token = accessToken.value.token
 
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/cabang/${props.item.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -38,9 +38,24 @@ async function deleteItem() {
         description: 'Data berhasil dihapus.',
       })
     } else {
-      console.error('Gagal menghapus data')
+      // Ambil pesan dari response body
+      const errorData = await response.json()
+      const message = errorData?.message || 'Gagal Menghapus Data'
+
+      // Tampilkan toast error
+      toast({
+        title: 'Gagal',
+        description: message,
+        variant: 'destructive',
+      })
+      console.error('Gagal menghapus:', message)
     }
   } catch (error) {
+    toast({
+      title: 'Error',
+      description: 'Terjadi kesalahan saat menghapus data.',
+      variant: 'destructive',
+    })
     console.error('Error:', error)
   }
 }
@@ -64,9 +79,7 @@ async function deleteItem() {
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle
-          >Apakah anda yakin menghapus data {{ props.item.username }}?
-        </AlertDialogTitle>
+        <AlertDialogTitle>Apakah anda yakin menghapus data ini ? </AlertDialogTitle>
         <AlertDialogDescription>
           data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus
           data ini.

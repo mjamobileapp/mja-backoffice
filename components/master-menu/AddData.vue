@@ -102,7 +102,7 @@ const isDialogOpen = ref(false)
 
 async function fetchMenuHeader() {
   try {
-    const response = await fetch(`${baseUrl}/getMenuHeader`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/getMenuHeader`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -148,7 +148,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   }
   console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/menus`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/menus`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(dataForm),

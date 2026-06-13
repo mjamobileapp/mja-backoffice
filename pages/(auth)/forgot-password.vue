@@ -7,19 +7,15 @@ definePageMeta({
 <template>
   <div class="flex flex-col items-center justify-center gap-6 bg-muted p-6 min-h-svh md:p-10">
     <div class="max-w-sm w-full flex flex-col gap-6">
-      <NuxtLink to="#" class="flex items-center self-center gap-2 font-medium">
-        <div class="h-6 w-6 flex items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Icon name="i-lucide-gallery-vertical-end" class-name="size-4" />
-        </div>
-        Acme Inc.
+      <NuxtLink to="#" class="flex items-center self-center gap-3 font-medium">
+        <img src="/mja-logo.png" alt="MJA Logo" class="h-20 w-20 object-contain" />
+        <span>MJA Back Office</span>
       </NuxtLink>
       <Card>
         <CardHeader class="text-center">
-          <CardTitle class="text-xl">
-            Forgot Password
-          </CardTitle>
+          <CardTitle class="text-xl"> Forgot Password </CardTitle>
           <CardDescription>
-            Enter your email below to reset your password
+            Enter your username/email below to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -27,10 +23,7 @@ definePageMeta({
             <AuthForgotPassword />
             <p class="text-center text-sm text-muted-foreground">
               Already have an account?
-              <NuxtLink
-                to="/login"
-                class="underline underline-offset-4 hover:text-primary"
-              >
+              <NuxtLink to="/login" class="underline underline-offset-4 hover:text-primary">
                 Login
               </NuxtLink>
             </p>
@@ -41,6 +34,4 @@ definePageMeta({
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

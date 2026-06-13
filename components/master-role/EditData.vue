@@ -59,7 +59,7 @@ function closeDialog() {
 async function fetchData() {
   try {
     isLoading.value = true
-    const response = await fetch(`${baseUrl}/roles/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/roles/${props.id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

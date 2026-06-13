@@ -22,7 +22,7 @@ async function onSubmit(event: Event) {
   // isLoading.value = true;
 
   try {
-    const { data, error } = await useFetch(`${baseUrl}/Login`, {
+    const { data, error } = await useFetch(`${baseUrl}/api/backoffice/login`, {
       method: 'POST',
       body: {
         username: username.value,
@@ -127,9 +127,9 @@ async function onSubmit(event: Event) {
     <div class="grid gap-2">
       <div class="flex items-center">
         <Label for="password"> Password </Label>
-        <!-- <NuxtLink to="/forgot-password" class="ml-auto inline-block text-sm underline">
+        <NuxtLink to="/forgot-password" class="ml-auto inline-block text-sm underline">
           Forgot your password?
-        </NuxtLink> -->
+        </NuxtLink>
       </div>
       <PasswordInput id="password" v-model="password" />
     </div>
