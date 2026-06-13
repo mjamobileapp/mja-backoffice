@@ -203,7 +203,7 @@ watch(selectedProyek, newId => {
       <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 md:gap-8">
         <Card>
           <CardHeader class="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle class="text-sm font-medium"> Jumlah Semua Proyek </CardTitle>
+            <CardTitle class="text-sm font-medium"> Jumlah Mitra </CardTitle>
             <Activity class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -215,24 +215,24 @@ watch(selectedProyek, newId => {
         </Card>
         <Card>
           <CardHeader class="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle class="text-sm font-medium">Total Nilai Kontrak Seluruh Proyek </CardTitle>
+            <CardTitle class="text-sm font-medium">Jumlah Cabang </CardTitle>
             <Activity class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              <NumberFlowRp :value="totalNilaiKontrak" />
+              <!-- <NumberFlowRp :value="totalNilaiKontrak" /> -->
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>
         </Card>
         <Card>
           <CardHeader class="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle class="text-sm font-medium"> Nilai Proyek Saat Ini </CardTitle>
+            <CardTitle class="text-sm font-medium"> Jumlah Mesin </CardTitle>
             <Activity class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              <NumberFlowRp :value="totalNilaiProyek" />
+              <!-- <NumberFlowRp :value="totalNilaiProyek" /> -->
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>

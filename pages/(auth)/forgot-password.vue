@@ -1,7 +1,49 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 definePageMeta({
   layout: 'blank',
 })
+
+const config = useRuntimeConfig()
+const baseUrl = config.public.apiBase
+
+// State untuk handle loading dan feedback
+const isLoading = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+
+// Fungsi untuk mengirim request reset password ke API
+async function handleResetPassword(emailData: { email: string }) {
+  if (!emailData.email) {
+    errorMessage.value = 'Email tidak boleh kosong.'
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    // Menggunakan useFetch atau $fetch dari Nuxt 3
+    // Mengganti ':email' di URL dengan email yang diinput user
+    const response = await $fetch(
+      `${baseUrl}/api/backoffice/users/${encodeURIComponent(emailData.email)}/resetpassword`,
+      {
+        method: 'POST',
+        // Jika API membutuhkan payload tambahan di body, bisa ditambahkan di sini
+      }
+    )
+    console.log('email: ', emailData.email)
+    console.log(response)
+    successMessage.value = 'Instruksi reset password telah dikirim ke email Anda.'
+  } catch (error: any) {
+    console.error('Reset password error:', error)
+    errorMessage.value = error.data?.message || 'Terjadi kesalahan, silakan coba lagi nanti.'
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -20,7 +62,15 @@ definePageMeta({
         </CardHeader>
         <CardContent>
           <div class="grid mx-auto max-w-sm gap-6">
-            <AuthForgotPassword />
+            <AuthForgotPassword :loading="isLoading" @submit="handleResetPassword" />
+
+            <p v-if="errorMessage" class="text-center text-sm text-destructive font-medium">
+              {{ errorMessage }}
+            </p>
+            <p v-if="successMessage" class="text-center text-sm text-green-600 font-medium">
+              {{ successMessage }}
+            </p>
+
             <p class="text-center text-sm text-muted-foreground">
               Already have an account?
               <NuxtLink to="/login" class="underline underline-offset-4 hover:text-primary">
