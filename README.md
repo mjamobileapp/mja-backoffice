@@ -86,7 +86,7 @@ Fitur:
 Langkah-langkah berikut akan membantu Anda menjalankan aplikasi secara lokal:
 
 ```bash
-git clone https://github.com/gitshandy/laundry-management-system.git
+git clone https://github.com/mjamobileapp/mja-backoffice.git
 
 cd laundry-management-system
 
@@ -129,6 +129,6 @@ pnpm run preview
 
 MIT License
 
-Copyright (c) 2025 Shandy
+Copyright (c) 2026 Hamdan IT Solution
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
