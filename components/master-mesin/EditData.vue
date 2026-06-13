@@ -202,14 +202,11 @@ const onSubmit = handleSubmit(async () => {
   isSubmitting.value = true
   try {
     const dataForm = {
-      cabangId: values.cabangId,
-      idMitra: values.idMitra,
       namaMesin: values.namaMesin,
       tipeMesin: values.tipeMesin,
       kapasitas: values.kapasitas,
       ipAddressEsp: values.ipAddressEsp,
       macAddress: values.macAddress,
-      status: values.status,
       updatedBy: username.value,
     }
 
@@ -262,10 +259,11 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ value }" name="idMitra">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Mitra</FormLabel>
-              <Popover v-model:open="openMitra">
+              <Popover :open="false">
                 <PopoverTrigger as-child>
                   <FormControl>
                     <Button
+                      disabled
                       variant="outline"
                       role="combobox"
                       :class="cn('justify-between', !value && 'text-muted-foreground')"
@@ -312,10 +310,11 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ value }" name="cabangId">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Cabang</FormLabel>
-              <Popover v-model:open="openCabang">
+              <Popover :open="false">
                 <PopoverTrigger as-child>
                   <FormControl>
                     <Button
+                      disabled
                       variant="outline"
                       role="combobox"
                       :class="cn('justify-between', !value && 'text-muted-foreground')"
@@ -426,6 +425,7 @@ const onSubmit = handleSubmit(async () => {
               <FormLabel>Status</FormLabel>
 
               <Select
+                disabled
                 :model-value="componentField.modelValue"
                 @update:model-value="componentField['onUpdate:modelValue']"
               >
