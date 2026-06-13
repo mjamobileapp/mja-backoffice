@@ -82,7 +82,7 @@ const dataRole = ref([])
 
 async function fetchRoles() {
   try {
-    const response = await fetch(`${baseUrl}/roles`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
