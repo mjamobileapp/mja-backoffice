@@ -1,166 +1,275 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
 import { toTypedSchema } from '@vee-validate/zod'
-import { FieldArray, useForm } from 'vee-validate'
-import { h, ref } from 'vue'
+import { Eye, UploadCloud, X } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
 import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
 
-const verifiedEmails = ref(['m@example.com', 'm@google.com', 'm@support.com'])
+const config = useRuntimeConfig()
+const baseUrl = config.public.apiBase
 
-const profileFormSchema = toTypedSchema(z.object({
-  username: z
-    .string()
-    .min(2, {
-      message: 'Username must be at least 2 characters.',
-    })
-    .max(30, {
-      message: 'Username must not be longer than 30 characters.',
-    }),
-  email: z
-    .string({
-      required_error: 'Please select an email to display.',
-    })
-    .email(),
-  bio: z.string().max(160, { message: 'Bio must not be longer than 160 characters.' }).min(4, { message: 'Bio must be at least 2 characters.' }),
-  urls: z
-    .array(
-      z.object({
-        value: z.string().url({ message: 'Please enter a valid URL.' }),
+const accessToken = useCookie('accessToken')
+const token = accessToken.value?.token
+
+const currentUser = useCookie('currentUser')
+
+const avatarPreview = ref(
+  currentUser.value?.avatarUrl
+    ? `${baseUrl}${currentUser.value.avatarUrl}`
+    : '/avatar-placeholder.png'
+)
+
+const selectedFile = ref<File | null>(null)
+
+const profileFormSchema = toTypedSchema(
+  z.object({
+    username: z
+      .string()
+      .min(2, {
+        message: 'Username minimal 2 karakter.',
+      })
+      .max(30, {
+        message: 'Username maksimal 30 karakter.',
       }),
-    )
-    .optional(),
-}))
+    email: z
+      .string({
+        required_error: 'Email wajib diisi.',
+      })
+      .email({
+        message: 'Format email tidak valid.',
+      }),
+    fullName: z.string().min(2, {
+      message: 'Nama lengkap minimal 2 karakter.',
+    }),
+    phoneNumber: z.string().optional(),
+    bio: z
+      .string()
+      .max(160, {
+        message: 'Bio maksimal 160 karakter.',
+      })
+      .optional(),
+  })
+)
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, values } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
-    bio: 'I own a computer.',
-    urls: [
-      { value: 'https://shadcn.com' },
-      { value: 'http://twitter.com/shadcn' },
-    ],
+    username: currentUser.value?.username || '',
+    email: currentUser.value?.email || '',
+    fullName: currentUser.value?.fullName || '',
+    phoneNumber: currentUser.value?.phoneNumber || '',
+    bio: currentUser.value?.bio || '',
   },
 })
 
-const onSubmit = handleSubmit((values) => {
-  toast({
-    title: 'You submitted the following values:',
-    description: h('pre', { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' }, h('code', { class: 'text-white' }, JSON.stringify(values, null, 2))),
-  })
+const initials = computed(() => {
+  const name = values.fullName || values.username || 'User'
+  return name
+    .split(' ')
+    .map(item => item[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase()
+})
+
+function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  if (!target.files?.length) return
+
+  const file = target.files[0]
+
+  if (!file.type.startsWith('image/')) {
+    toast({
+      title: 'Error',
+      description: 'File harus berupa gambar.',
+      variant: 'destructive',
+    })
+    return
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    toast({
+      title: 'Error',
+      description: 'Ukuran gambar maksimal 2MB.',
+      variant: 'destructive',
+    })
+    return
+  }
+
+  selectedFile.value = file
+  avatarPreview.value = URL.createObjectURL(file)
+}
+
+function removeAvatar() {
+  selectedFile.value = null
+  avatarPreview.value = '/avatar-placeholder.png'
+}
+
+const onSubmit = handleSubmit(async values => {
+  try {
+    const formData = new FormData()
+
+    formData.append('username', values.username)
+    formData.append('email', values.email)
+    formData.append('fullName', values.fullName)
+    formData.append('phoneNumber', values.phoneNumber || '')
+    formData.append('bio', values.bio || '')
+
+    if (selectedFile.value) {
+      formData.append('avatar', selectedFile.value)
+    }
+
+    await $fetch(`${baseUrl}/api/backoffice/profile`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+
+    toast({
+      title: 'Success',
+      description: 'Profile berhasil diperbarui.',
+    })
+  } catch (error: any) {
+    console.error('Update profile error:', error)
+
+    toast({
+      title: 'Error',
+      description: error.data?.message || 'Gagal memperbarui profile.',
+      variant: 'destructive',
+    })
+  }
 })
 </script>
 
 <template>
   <div>
-    <h3 class="text-lg font-medium">
-      Profile
-    </h3>
-    <p class="text-sm text-muted-foreground">
-      This is how others will see you on the site.
-    </p>
+    <h3 class="text-lg font-medium">Profile</h3>
+    <p class="text-sm text-muted-foreground">Kelola informasi profile dan foto akun Anda.</p>
   </div>
+
   <Separator />
-  <form class="space-y-8" @submit="onSubmit">
-    <FormField v-slot="{ componentField }" name="username">
-      <FormItem>
-        <FormLabel>Username</FormLabel>
-        <FormControl>
-          <Input type="text" placeholder="shadcn" v-bind="componentField" />
-        </FormControl>
-        <FormDescription>
-          This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.
-        </FormDescription>
-        <FormMessage />
-      </FormItem>
-    </FormField>
 
-    <FormField v-slot="{ componentField }" name="email">
-      <FormItem>
-        <FormLabel>Email</FormLabel>
+  <div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+    <Card>
+      <CardHeader>
+        <CardTitle>Foto Profile</CardTitle>
+        <CardDescription> Upload foto profile agar akun lebih mudah dikenali. </CardDescription>
+      </CardHeader>
 
-        <Select v-bind="componentField">
-          <FormControl>
-            <SelectTrigger>
-              <SelectValue placeholder="Select an email" />
-            </SelectTrigger>
-          </FormControl>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem v-for="email in verifiedEmails" :key="email" :value="email">
-                {{ email }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <FormDescription>
-          You can manage verified email addresses in your email settings.
-        </FormDescription>
-        <FormMessage />
-      </FormItem>
-    </FormField>
+      <CardContent class="flex flex-col items-center gap-4">
+        <Avatar class="h-32 w-32">
+          <AvatarImage :src="avatarPreview" />
+          <AvatarFallback class="text-2xl">
+            {{ initials }}
+          </AvatarFallback>
+        </Avatar>
 
-    <FormField v-slot="{ componentField }" name="bio">
-      <FormItem>
-        <FormLabel>Bio</FormLabel>
-        <FormControl>
-          <Textarea placeholder="Tell us a little bit about yourself" v-bind="componentField" />
-        </FormControl>
-        <FormDescription>
-          You can <span>@mention</span> other users and organizations to link to them.
-        </FormDescription>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-
-    <div>
-      <FieldArray v-slot="{ fields, push, remove }" name="urls">
-        <div v-for="(field, index) in fields" :key="`urls-${field.key}`">
-          <FormField v-slot="{ componentField }" :name="`urls[${index}].value`">
-            <FormItem>
-              <FormLabel :class="cn(index !== 0 && 'sr-only')">
-                URLs
-              </FormLabel>
-              <FormDescription :class="cn(index !== 0 && 'sr-only')">
-                Add links to your website, blog, or social media profiles.
-              </FormDescription>
-              <div class="relative flex items-center">
-                <FormControl>
-                  <Input type="url" v-bind="componentField" />
-                </FormControl>
-                <button type="button" class="absolute end-0 py-2 pe-3 text-muted-foreground" @click="remove(index)">
-                  <Icon name="i-radix-icons-cross1" class="w-3" />
-                </button>
-              </div>
-              <FormMessage />
-            </FormItem>
-          </FormField>
+        <div class="text-center">
+          <p class="font-medium">
+            {{ values.fullName || values.username || 'User' }}
+          </p>
+          <p class="text-sm text-muted-foreground">
+            {{ values.email || '-' }}
+          </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          class="mt-2 w-20 text-xs"
-          @click="push({ value: '' })"
-        >
-          Add URL
-        </Button>
-      </FieldArray>
-    </div>
+        <!-- <div class="flex flex-col gap-2 w-full">
+          <Label
+            for="avatar"
+            class="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+          >
+            <UploadCloud class="mr-2 h-4 w-4" />
+            Upload Foto
+          </Label>
 
-    <div class="flex justify-start gap-2">
-      <Button type="submit">
-        Update profile
-      </Button>
+          <Input
+            id="avatar"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="handleFileChange"
+          />
 
-      <Button
-        type="button"
-        variant="outline"
-        @click="resetForm"
-      >
-        Reset form
-      </Button>
-    </div>
-  </form>
+          <Button type="button" variant="outline" size="sm" @click="removeAvatar">
+            <X class="mr-2 h-4 w-4" />
+            Hapus Foto
+          </Button>
+        </div>
+
+        <p class="text-xs text-muted-foreground text-center">
+          Format JPG, PNG, atau WEBP. Maksimal 2MB.
+        </p> -->
+      </CardContent>
+    </Card>
+
+    <form class="space-y-8" @submit="onSubmit">
+      <FormField v-slot="{ componentField }" name="username">
+        <FormItem>
+          <FormLabel>Username</FormLabel>
+          <FormControl>
+            <Input type="text" placeholder="Masukkan username" v-bind="componentField" />
+          </FormControl>
+          <FormDescription>
+            Username digunakan sebagai identitas login atau tampilan akun.
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
+      <FormField v-slot="{ componentField }" name="fullName">
+        <FormItem>
+          <FormLabel>Nama Lengkap</FormLabel>
+          <FormControl>
+            <Input type="text" placeholder="Masukkan nama lengkap" v-bind="componentField" />
+          </FormControl>
+          <FormDescription> Nama ini akan ditampilkan pada profile akun Anda. </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
+      <FormField v-slot="{ componentField }" name="email">
+        <FormItem>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input type="email" placeholder="nama@email.com" v-bind="componentField" />
+          </FormControl>
+          <FormDescription> Email digunakan untuk notifikasi dan pemulihan akun. </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
+      <FormField v-slot="{ componentField }" name="phoneNumber">
+        <FormItem>
+          <FormLabel>Nomor Telepon</FormLabel>
+          <FormControl>
+            <Input type="text" placeholder="08xxxxxxxxxx" v-bind="componentField" />
+          </FormControl>
+          <FormDescription> Nomor telepon opsional untuk kebutuhan kontak akun. </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
+      <FormField v-slot="{ componentField }" name="bio">
+        <FormItem>
+          <FormLabel>Bio</FormLabel>
+          <FormControl>
+            <Textarea placeholder="Tulis deskripsi singkat tentang Anda" v-bind="componentField" />
+          </FormControl>
+          <FormDescription> Bio singkat maksimal 160 karakter. </FormDescription>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+
+      <div class="flex justify-start gap-2">
+        <Button type="submit"> Update Profile </Button>
+
+        <Button type="button" variant="outline" @click="resetForm"> Reset form </Button>
+      </div>
+    </form>
+  </div>
 </template>

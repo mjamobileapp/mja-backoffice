@@ -21,6 +21,16 @@ function handleLogout() {
   navigateTo('/login')
 }
 
+function goToProfile() {
+  setOpenMobile(false)
+  navigateTo('/settings/profile')
+}
+
+function goToChangePassword() {
+  setOpenMobile(false)
+  navigateTo('/settings/change-password')
+}
+
 const showModalTheme = ref(false)
 </script>
 
@@ -76,6 +86,20 @@ const showModalTheme = ref(false)
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem @click="goToProfile">
+            <Icon name="i-lucide-user" />
+            Profile
+          </DropdownMenuItem>
+
+          <DropdownMenuItem @click="goToChangePassword">
+            <Icon name="i-lucide-lock-keyhole" />
+            Change Password
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
           <DropdownMenuItem @click="handleLogout">
             <Icon name="i-lucide-log-out" />
             Log out

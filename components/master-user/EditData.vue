@@ -41,7 +41,7 @@ const formSchema = toTypedSchema(
   z.object({
     username: z.string(),
     nama: z.string(),
-    password: z.string().optional(),
+    // password: z.string().optional(),
     roleId: z.string(),
   })
 )
@@ -121,7 +121,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   const dataForm = {
     username: values.username,
     nama: values.nama,
-    password: values.password,
+    // password: values.password,
     roleId: values.roleId,
     createdBy: email.value,
     createdDate: new Date(),
@@ -189,7 +189,7 @@ const onSubmit = handleSubmit(async (values: any) => {
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="password">
+        <!-- <FormField v-slot="{ componentField }" name="password">
           <FormItem>
             <FormLabel>Password</FormLabel>
             <FormControl>
@@ -197,7 +197,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             </FormControl>
             <FormMessage />
           </FormItem>
-        </FormField>
+        </FormField> -->
 
         <FormField v-slot="{ field }" name="roleId">
           <FormItem>

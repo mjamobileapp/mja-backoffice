@@ -21,7 +21,9 @@ const listDataChart = ref([])
 const proyekList = ref([])
 const selectedProyek = ref(1)
 
-const jumlahProyek = ref(0)
+const jumlahMitra = ref(0)
+const jumlahMesin = ref(0)
+const jumlahCabang = ref(0)
 const totalNilaiKontrak = ref(0)
 const totalNilaiProyek = ref(0)
 const objProyek = ref({})
@@ -43,6 +45,40 @@ async function fetchListTopProyek() {
     dataProyekTerbaru.value = fetchedData.data || []
   } catch (error) {
     console.error('Gagal mengambil data proyek terbaru:', error)
+  }
+}
+
+async function fetchDataMitra() {
+  try {
+    const response = await fetch(`${baseUrl}/api/backoffice/dashboard/getmitra`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const fetchedData = await response.json()
+    jumlahMitra.value = fetchedData.total
+  } catch (error) {
+    console.error('Gagal mengambil data Mitra terbaru:', error)
+  }
+}
+async function fetchDataCabang() {
+  try {
+    const response = await fetch(`${baseUrl}/api/backoffice/dashboard/getcabang`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const fetchedData = await response.json()
+    jumlahCabang.value = fetchedData.total
+  } catch (error) {
+    console.error('Gagal mengambil data Mitra terbaru:', error)
+  }
+}
+async function fetchDataMesin() {
+  try {
+    const response = await fetch(`${baseUrl}/api/backoffice/dashboard/getmesin`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const fetchedData = await response.json()
+    jumlahMesin.value = fetchedData.total
+  } catch (error) {
+    console.error('Gagal mengambil data Mitra terbaru:', error)
   }
 }
 
@@ -82,7 +118,7 @@ async function fetchDataBarchart(idProyek) {
 
     if (!result.success) throw new Error(result.message || 'Gagal mengambil data')
 
-    jumlahProyek.value = result.jumlahProyek
+    jumlahMitra.value = result.jumlahMitra
     totalNilaiKontrak.value = result.totalNilaiKontrak
     totalNilaiProyek.value = result.totalNilaiProyek
 
@@ -136,10 +172,13 @@ const formattedValue = computed(() =>
 // ==================== LIFECYCLE ====================
 onMounted(async () => {
   await Promise.all([
-    fetchDataProyek(),
-    fetchListTopProyek(),
-    fetchDataProyekById(selectedProyek.value),
-    fetchDataBarchart(selectedProyek.value),
+    fetchDataCabang(),
+    fetchDataMesin(),
+    fetchDataMitra(),
+    // fetchDataProyek(),
+    // fetchListTopProyek(),
+    // fetchDataProyekById(selectedProyek.value),
+    // fetchDataBarchart(selectedProyek.value),
   ])
 })
 
@@ -157,7 +196,7 @@ watch(selectedProyek, newId => {
     <div class="flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-2xl font-bold tracking-tight">Dashboard</h2>
 
-      <div class="flex items-center space-x-2 w-full md:w-[400px]">
+      <!-- <div class="flex items-center space-x-2 w-full md:w-[400px]">
         <Popover v-model:open="open">
           <PopoverTrigger as-child>
             <Button
@@ -197,7 +236,7 @@ watch(selectedProyek, newId => {
             </Command>
           </PopoverContent>
         </Popover>
-      </div>
+      </div> -->
     </div>
     <main class="flex flex-1 flex-col gap-4 md:gap-8">
       <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 md:gap-8">
@@ -208,7 +247,7 @@ watch(selectedProyek, newId => {
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              <NumberFlow :value="jumlahProyek" />
+              <NumberFlow :value="jumlahMitra" />
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>
@@ -221,6 +260,7 @@ watch(selectedProyek, newId => {
           <CardContent>
             <div class="text-2xl font-bold">
               <!-- <NumberFlowRp :value="totalNilaiKontrak" /> -->
+              <NumberFlow :value="jumlahCabang" />
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>
@@ -233,12 +273,13 @@ watch(selectedProyek, newId => {
           <CardContent>
             <div class="text-2xl font-bold">
               <!-- <NumberFlowRp :value="totalNilaiProyek" /> -->
+              <NumberFlow :value="jumlahMesin" />
             </div>
             <!-- <p class="text-xs text-muted-foreground">terkini</p> -->
           </CardContent>
         </Card>
       </div>
-      <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 md:gap-8">
+      <!-- <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3 md:gap-8">
         <Card class="xl:col-span-2">
           <CardHeader>
             <CardTitle>Monitoring Project</CardTitle>
@@ -249,7 +290,7 @@ watch(selectedProyek, newId => {
         </Card>
         <Card>
           <CardHeader>
-            <!-- <CardTitle>Proyek Baru</CardTitle> -->
+          
           </CardHeader>
           <CardContent class="grid gap-8">
             <div v-for="item in listDataChart" :key="item.name" class="flex items-center gap-4">
@@ -264,7 +305,7 @@ watch(selectedProyek, newId => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> -->
     </main>
   </div>
 </template>
