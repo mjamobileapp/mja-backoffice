@@ -21,13 +21,20 @@ async function onSubmit(event: Event) {
   // Gunakan variabel isLoading yang sudah Anda deklarasikan
   // isLoading.value = true;
 
+  const formLogin = {
+    username: username.value,
+    password: password.value,
+  }
+
+  // console.log(formLogin)
   try {
     const { data, error } = await useFetch(`${baseUrl}/api/backoffice/login`, {
       method: 'POST',
-      body: {
-        username: username.value,
-        password: password.value,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
+      body: formLogin,
       // Penting: atur key unik untuk fetch agar tidak ada konflik
       // key: 'login-attempt',
     })
@@ -72,16 +79,6 @@ async function onSubmit(event: Event) {
     })
     // Simpan hanya data user yang penting, atau seluruh apiResponse
     userCookie.value = userData
-
-    // getToken============
-    // const responseToken = await useFetch(`${urlToken}`, {
-    //   method: 'POST',
-    //   body: {
-    //     username: username.value,
-    //     password: password.value,
-    //     idApplication: '38351BF3-1D55-4651-9A1C-397B6A90AAA4',
-    //   },
-    // })
 
     // simpanToken
     const accessToken = useCookie('accessToken', {

@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware(to => {
   }
 
   // Route yang bisa diakses tanpa login
-  const publicRoutes = ['/login', '/forgot-password']
+  const publicRoutes = ['/login', '/forgot-password', '/activate-account']
 
   // Belum login → hanya boleh akses public routes
   if (!user && !publicRoutes.includes(to.path)) {
