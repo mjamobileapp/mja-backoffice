@@ -12,6 +12,10 @@ const baseUrl = config.public.apiBase
 const accessToken = useCookie('accessToken')
 const token = accessToken.value?.token
 
+const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const email = computed(() => currentUser.value?.username || 'no-email@example.com')
+const idUser = computed(() => currentUser.value?.id || 0)
+
 const isLoading = ref(false)
 const showOldPassword = ref(false)
 const showNewPassword = ref(false)
@@ -49,7 +53,7 @@ const onSubmit = handleSubmit(async values => {
   isLoading.value = true
 
   try {
-    await $fetch(`${baseUrl}/api/backoffice/auth/change-password`, {
+    await $fetch(`${baseUrl}/api/backoffice/users/${idUser.value}/changepassword`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -57,7 +61,7 @@ const onSubmit = handleSubmit(async values => {
       body: {
         oldPassword: values.oldPassword,
         newPassword: values.newPassword,
-        confirmPassword: values.confirmPassword,
+        ConfirmNewPassword: values.confirmPassword,
       },
     })
 
