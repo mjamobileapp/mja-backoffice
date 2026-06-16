@@ -59,7 +59,7 @@ const profileFormSchema = toTypedSchema(
   z.object({
     namaLengkap: z.string(),
     username: z.string(),
-    role: z.string(),
+    // role: z.string(),
     idMitra: z.number({ required_error: 'Pilih Mitra terlebih dahulu' }),
     noTelp: z.string(),
     email: z.string(),
@@ -72,7 +72,7 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
     namaLengkap: '',
     username: '',
     idMitra: 0,
-    role: '',
+    // role: '',
     noTelp: '',
     email: '', // Use prop value directly as fallback
   },
@@ -99,7 +99,7 @@ async function fetchData() {
         email: data.email,
         noTelp: data.noTelp,
         idMitra: data.idMitra,
-        role: data.role,
+        // role: data.role,
       })
     } else {
       console.error('Gagal mengambil data. Status:', response.status)
@@ -159,7 +159,7 @@ const onSubmit = handleSubmit(async () => {
       namaLengkap: values.namaLengkap,
       idMitra: values.idMitra,
       username: values.username,
-      role: values.role,
+      // role: values.role,
       noTelp: values.noTelp,
       email: values.email,
       updatedBy: username.value,
@@ -207,7 +207,7 @@ const onSubmit = handleSubmit(async () => {
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
-          <DialogTitle>Edit Data Proyek</DialogTitle>
+          <DialogTitle>Edit Data User Owner</DialogTitle>
         </DialogHeader>
 
         <div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6">
@@ -225,12 +225,12 @@ const onSubmit = handleSubmit(async () => {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input type="text" v-bind="componentField" />
+                <Input type="text" v-bind="componentField" disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="role">
+          <!-- <FormField v-slot="{ componentField }" name="role">
             <FormItem>
               <FormLabel>Role</FormLabel>
               <FormControl>
@@ -238,7 +238,7 @@ const onSubmit = handleSubmit(async () => {
               </FormControl>
               <FormMessage />
             </FormItem>
-          </FormField>
+          </FormField> -->
           <FormField v-slot="{ value }" name="idMitra">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Mitra</FormLabel>
@@ -246,6 +246,7 @@ const onSubmit = handleSubmit(async () => {
                 <PopoverTrigger as-child>
                   <FormControl>
                     <Button
+                      disabled
                       variant="outline"
                       role="combobox"
                       :class="cn('justify-between', !value && 'text-muted-foreground')"

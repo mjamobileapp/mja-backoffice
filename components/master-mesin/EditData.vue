@@ -252,7 +252,7 @@ const onSubmit = handleSubmit(async () => {
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
-          <DialogTitle>Edit Data Proyek</DialogTitle>
+          <DialogTitle>Edit Data Mesin</DialogTitle>
         </DialogHeader>
 
         <div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6">

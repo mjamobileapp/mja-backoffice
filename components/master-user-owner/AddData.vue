@@ -46,7 +46,7 @@ const profileFormSchema = toTypedSchema(
   z.object({
     namaLengkap: z.string(),
     username: z.string(),
-    role: z.string(),
+    // role: z.string(),
     idMitra: z.number({ required_error: 'Pilih Mitra terlebih dahulu' }),
     noTelp: z.string(),
     email: z.string(),
@@ -107,13 +107,13 @@ const onSubmit = handleSubmit(async (values: any) => {
     namaLengkap: values.namaLengkap,
     idMitra: values.idMitra,
     username: values.username,
-    role: values.role,
+    // role: values.role,
     noTelp: values.noTelp,
     email: values.email,
     createdBy: username.value,
   }
   isDialogOpen.value = false
-  console.log(JSON.stringify(dataForm))
+  // console.log(JSON.stringify(dataForm))
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/userowner`, {
       method: 'POST',
@@ -185,7 +185,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="role">
+          <!-- <FormField v-slot="{ componentField }" name="role">
             <FormItem>
               <FormLabel>Role</FormLabel>
               <FormControl>
@@ -193,7 +193,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               </FormControl>
               <FormMessage />
             </FormItem>
-          </FormField>
+          </FormField> -->
           <FormField v-slot="{ value }" name="idMitra">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Mitra</FormLabel>
