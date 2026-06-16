@@ -33,23 +33,23 @@ const profileFormSchema = toTypedSchema(
       .max(30, {
         message: 'Username maksimal 30 karakter.',
       }),
-    email: z
-      .string({
-        required_error: 'Email wajib diisi.',
-      })
-      .email({
-        message: 'Format email tidak valid.',
-      }),
-    fullName: z.string().min(2, {
+    // email: z
+    //   .string({
+    //     required_error: 'Email wajib diisi.',
+    //   })
+    //   .email({
+    //     message: 'Format email tidak valid.',
+    //   }),
+    nama: z.string().min(2, {
       message: 'Nama lengkap minimal 2 karakter.',
     }),
-    phoneNumber: z.string().optional(),
-    bio: z
-      .string()
-      .max(160, {
-        message: 'Bio maksimal 160 karakter.',
-      })
-      .optional(),
+    // phoneNumber: z.string().optional(),
+    // bio: z
+    //   .string()
+    //   .max(160, {
+    //     message: 'Bio maksimal 160 karakter.',
+    //   })
+    //   .optional(),
   })
 )
 
@@ -57,15 +57,15 @@ const { handleSubmit, resetForm, values } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
     username: currentUser.value?.username || '',
-    email: currentUser.value?.email || '',
-    fullName: currentUser.value?.fullName || '',
-    phoneNumber: currentUser.value?.phoneNumber || '',
-    bio: currentUser.value?.bio || '',
+    // email: currentUser.value?.email || '',
+    nama: currentUser.value?.nama || '',
+    // phoneNumber: currentUser.value?.phoneNumber || '',
+    // bio: currentUser.value?.bio || '',
   },
 })
 
 const initials = computed(() => {
-  const name = values.fullName || values.username || 'User'
+  const name = values.nama || values.username || 'User'
   return name
     .split(' ')
     .map(item => item[0])
@@ -114,7 +114,7 @@ const onSubmit = handleSubmit(async values => {
 
     formData.append('username', values.username)
     formData.append('email', values.email)
-    formData.append('fullName', values.fullName)
+    formData.append('nama', values.nama)
     formData.append('phoneNumber', values.phoneNumber || '')
     formData.append('bio', values.bio || '')
 
@@ -171,7 +171,7 @@ const onSubmit = handleSubmit(async values => {
 
         <div class="text-center">
           <p class="font-medium">
-            {{ values.fullName || values.username || 'User' }}
+            {{ values.nama || values.username || 'User' }}
           </p>
           <p class="text-sm text-muted-foreground">
             {{ values.email || '-' }}
@@ -212,7 +212,7 @@ const onSubmit = handleSubmit(async values => {
         <FormItem>
           <FormLabel>Username</FormLabel>
           <FormControl>
-            <Input type="text" placeholder="Masukkan username" v-bind="componentField" />
+            <Input type="text" placeholder="Masukkan username" disabled v-bind="componentField" />
           </FormControl>
           <FormDescription>
             Username digunakan sebagai identitas login atau tampilan akun.
@@ -221,18 +221,23 @@ const onSubmit = handleSubmit(async values => {
         </FormItem>
       </FormField>
 
-      <FormField v-slot="{ componentField }" name="fullName">
+      <FormField v-slot="{ componentField }" name="nama">
         <FormItem>
           <FormLabel>Nama Lengkap</FormLabel>
           <FormControl>
-            <Input type="text" placeholder="Masukkan nama lengkap" v-bind="componentField" />
+            <Input
+              type="text"
+              placeholder="Masukkan nama lengkap"
+              disabled
+              v-bind="componentField"
+            />
           </FormControl>
           <FormDescription> Nama ini akan ditampilkan pada profile akun Anda. </FormDescription>
           <FormMessage />
         </FormItem>
       </FormField>
 
-      <FormField v-slot="{ componentField }" name="email">
+      <!-- <FormField v-slot="{ componentField }" name="email">
         <FormItem>
           <FormLabel>Email</FormLabel>
           <FormControl>
@@ -263,13 +268,13 @@ const onSubmit = handleSubmit(async values => {
           <FormDescription> Bio singkat maksimal 160 karakter. </FormDescription>
           <FormMessage />
         </FormItem>
-      </FormField>
+      </FormField> -->
 
-      <div class="flex justify-start gap-2">
+      <!-- <div class="flex justify-start gap-2">
         <Button type="submit"> Update Profile </Button>
 
         <Button type="button" variant="outline" @click="resetForm"> Reset form </Button>
-      </div>
+      </div> -->
     </form>
   </div>
 </template>
