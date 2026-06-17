@@ -24,7 +24,7 @@ const token = accessToken.value.token
 
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/masterUpah/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/item/${props.item.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
