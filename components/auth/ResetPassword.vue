@@ -14,6 +14,7 @@ const baseUrl = config.public.apiBase
 
 // State Form
 const token = ref('')
+const type = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
@@ -27,9 +28,10 @@ const showConfirmPassword = ref(false)
 // Ambil email dari URL query ketika halaman dimuat (?email=user@example.com)
 onMounted(() => {
   token.value = route.query.token as string
+  type.value = route.query.type as string
 
-  if (!token.value) {
-    errorMessage.value = 'Token aktivasi tidak ditemukan atau sudah tidak valid.'
+  if (!token.value || !type.value) {
+    errorMessage.value = 'Link aktivasi tidak valid atau sudah kadaluarsa.'
   }
 })
 
@@ -148,7 +150,8 @@ async function handleSubmit(event: Event) {
               <!-- Tombol Submit -->
               <Button type="submit" :disabled="isLoading || !token" class="w-full">
                 <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
-                Reset Password
+
+                {{ type === 'forgotPassword' ? 'Reset Password' : 'Aktivasi User' }}
               </Button>
             </form>
 
@@ -166,7 +169,7 @@ async function handleSubmit(event: Event) {
               {{ successMessage }}
             </p>
 
-            <p class="text-center text-sm text-muted-foreground">
+            <p v-if="type === 'forgotPassword'" class="text-center text-sm text-muted-foreground">
               Back to
               <NuxtLink to="/login" class="underline underline-offset-4 hover:text-primary">
                 Login

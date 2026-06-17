@@ -39,7 +39,12 @@ async function handleResetPassword(emailData: { email: string }) {
     successMessage.value = 'Instruksi reset password telah dikirim ke email Anda.'
   } catch (error: any) {
     console.error('Reset password error:', error)
-    errorMessage.value = error.data?.message || 'Terjadi kesalahan, silakan coba lagi nanti.'
+
+    errorMessage.value =
+      error?.data?.error ||
+      error?.data?.message ||
+      error?.message ||
+      'Terjadi kesalahan, silakan coba lagi nanti.'
   } finally {
     isLoading.value = false
   }
