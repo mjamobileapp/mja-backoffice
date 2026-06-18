@@ -32,6 +32,9 @@ const baseUrl = config.public.apiBase
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
 
+const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const username = computed(() => currentUser.value?.username || 'no-username@example.com')
+
 const formSchema = toTypedSchema(
   z.object({
     namaRole: z.string().min(2).max(50),
@@ -87,20 +90,17 @@ async function fetchData() {
     isLoading.value = false
   }
 }
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.email || 'no-email@example.com')
 const isSubmitting = ref(false)
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
   const dataForm = {
     namaRole: values.namaRole,
     description: values.description,
-    createdBy: email.value,
-    createdDate: new Date(),
+    updatedBy: username.value,
   }
-  //   console.log(dataForm)
+  console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/roles/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/roles/${props.id}`, {
       method: 'PUT', // atau PATCH
       headers: {
         'Content-Type': 'application/json',
