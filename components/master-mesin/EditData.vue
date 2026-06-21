@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogClose,
@@ -11,152 +12,82 @@ import {
 } from '@/components/ui/dialog'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import { toTypedSchema } from '@vee-validate/zod'
-import { PencilIcon } from 'lucide-vue-next'
+import { Loader2, PencilIcon } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
 
-import Datepicker from '@vuepic/vue-datepicker'
-import '@vuepic/vue-datepicker/dist/main.css'
-
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'date-fns'
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
 const props = defineProps<{
-  id: {
-    type: Number
-    required: true
-  }
+  espId: string
 }>()
+
 const emit = defineEmits<{
   (e: 'dataEdited'): void
 }>()
+
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-// const editedItem = ref({ ...props.item })
-// console.log(props.id)
-// onMounted(() => {
-//   fetchData()
-//   // console.log(props.item.code)
-// })
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 
-const mitraList = ref([])
-const openMitra = ref(false)
+const accessToken = useCookie('accessToken')
+const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
   z.object({
-    namaMesin: z.string(),
-    cabangId: z.number({ required_error: 'Pilih Cabang terlebih dahulu' }),
-    idMitra: z.number({ required_error: 'Pilih Mitra terlebih dahulu' }),
-    tipeMesin: z.enum(['washer', 'dryer'], {
-      message: 'Tipe mesin harus Washer atau Dryer',
+    cabangId: z.number({
+      required_error: 'Pilih Cabang terlebih dahulu',
     }),
-    kapasitas: z.string(),
-    ipAddressEsp: z.string(),
-    macAddress: z.string(),
-    status: z.enum(['ready', 'in_use', 'error'], {
-      message: 'Status harus Ready, In Use atau Error',
+    idMitra: z.number({
+      required_error: 'Pilih Mitra terlebih dahulu',
     }),
+    espId: z.string().min(1, 'ESP ID wajib diisi'),
+    washer: z.boolean().default(false),
+    dryer: z.boolean().default(false),
   })
 )
 
-const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
+const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
-    namaMesin: '',
     cabangId: 0,
     idMitra: 0,
-    tipeMesin: 'washer',
-    kapasitas: '',
-    ipAddressEsp: '',
-    macAddress: '', // Use prop value directly as fallback
-    status: 'ready', // Use prop value directly as fallback
+    espId: '',
+    washer: false,
+    dryer: false,
   },
 })
 
 const isDialogOpen = ref(false)
+const isSubmitting = ref(false)
+
+const mitraList = ref<any[]>([])
+const cabangList = ref<any[]>([])
 
 async function fetchDataMitra() {
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+
     const fetchedData = await response.json()
-    mitraList.value = fetchedData.data.map(item => ({
+
+    mitraList.value = fetchedData.data.map((item: any) => ({
       ...item,
-      idMitra: item.idRap || item.id, // Normalisasi agar template tidak bingung
-      kodeMitra: item.kodeMitra, // Normalisasi agar template tidak bingung
+      idMitra: item.idRap || item.id,
+      kodeMitra: item.kodeMitra,
       namaMitra: item.namaMitra,
     }))
   } catch (error) {
     console.error('Gagal mengambil data Mitra:', error)
+    mitraList.value = []
   }
 }
-
-async function onSelectMitra(rap: any) {
-  const selectedIdMitra = rap.idMitra || rap.id
-
-  setFieldValue('idMitra', selectedIdMitra)
-  setFieldValue('cabangId', undefined) // reset cabang saat ganti mitra
-
-  cabangList.value = []
-  openMitra.value = false
-
-  await fetchDataCabangByMitra(selectedIdMitra)
-}
-
-async function fetchData() {
-  try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (response.ok) {
-      const { data } = await response.json()
-      console.log(JSON.stringify(data))
-
-      // --- 3. setValues ke VeeValidate ---
-      setValues({
-        namaMesin: data.namaMesin,
-        cabangId: data.cabangId,
-        idMitra: data.idMitra,
-        tipeMesin: data.tipeMesin,
-        kapasitas: data.kapasitas,
-        ipAddressEsp: data.ipAddressEsp,
-        macAddress: data.macAddress,
-        status: data.status,
-      })
-
-      await fetchDataCabangByMitra(Number(data.idMitra))
-    } else {
-      console.error('Gagal mengambil data. Status:', response.status)
-    }
-  } catch (error) {
-    console.error('Fetch error:', error.message)
-    // Tampilkan notifikasi error ke user jika perlu
-  }
-}
-
-const cabangList = ref([])
-const openCabang = ref(false)
 
 async function fetchDataCabangByMitra(idMitra: number) {
   try {
@@ -166,7 +97,7 @@ async function fetchDataCabangByMitra(idMitra: number) {
 
     const fetchedData = await response.json()
 
-    cabangList.value = fetchedData.data.map(item => ({
+    cabangList.value = fetchedData.data.map((item: any) => ({
       ...item,
       cabangId: item.id,
       kodeCabang: item.kodeCabang,
@@ -177,15 +108,41 @@ async function fetchDataCabangByMitra(idMitra: number) {
     cabangList.value = []
   }
 }
-function onSelectCabang(rap: any) {
-  setFieldValue('cabangId', rap.cabangId || rap.id)
-  openCabang.value = false
+
+async function fetchData() {
+  try {
+    const response = await fetch(`${baseUrl}/api/backoffice/mesin/esp/${props.espId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (response.ok) {
+      const { data } = await response.json()
+
+      setValues({
+        cabangId: data.cabangId,
+        idMitra: data.idMitra,
+        espId: data.espId,
+        washer: data.washer === 1 || data.washer === true,
+        dryer: data.dryer === 1 || data.dryer === true,
+      })
+
+      console.log(JSON.stringify(data))
+      await fetchDataCabangByMitra(Number(data.idMitra))
+    } else {
+      console.error('Gagal mengambil data. Status:', response.status)
+    }
+  } catch (error: any) {
+    console.error('Fetch error:', error.message)
+  }
 }
 
 async function openDialog() {
   isDialogOpen.value = true
-  await fetchData()
   await fetchDataMitra()
+  await fetchData()
 }
 
 function closeDialog() {
@@ -193,24 +150,20 @@ function closeDialog() {
   resetForm()
 }
 
-const isSubmitting = ref(false)
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
-
 const onSubmit = handleSubmit(async () => {
   isSubmitting.value = true
-  try {
-    const dataForm = {
-      namaMesin: values.namaMesin,
-      tipeMesin: values.tipeMesin,
-      kapasitas: values.kapasitas,
-      ipAddressEsp: values.ipAddressEsp,
-      macAddress: values.macAddress,
-      updatedBy: username.value,
-    }
 
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${props.id}`, {
+  const dataForm = {
+    idMitra: values.idMitra,
+    cabangId: values.cabangId,
+    espId: values.espId,
+    washer: values.washer ? 1 : 0,
+    dryer: values.dryer ? 1 : 0,
+    updatedBy: username.value,
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${props.espId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -225,10 +178,11 @@ const onSubmit = handleSubmit(async () => {
       closeDialog()
       resetForm()
     } else {
-      console.error('Gagal mengedit data')
+      toast.error('Gagal mengedit data')
     }
   } catch (error) {
     console.error('Error:', error)
+    toast.error('Terjadi kesalahan saat mengedit data')
   } finally {
     isSubmitting.value = false
   }
@@ -241,7 +195,9 @@ const onSubmit = handleSubmit(async () => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button @click="openDialog" size="sm">
+              <PencilIcon class="w-4 h-4" />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Edit Data</p>
@@ -249,6 +205,7 @@ const onSubmit = handleSubmit(async () => {
         </Tooltip>
       </TooltipProvider>
     </DialogTrigger>
+
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
@@ -259,6 +216,7 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ value }" name="idMitra">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Mitra</FormLabel>
+
               <Popover :open="false">
                 <PopoverTrigger as-child>
                   <FormControl>
@@ -270,46 +228,23 @@ const onSubmit = handleSubmit(async () => {
                     >
                       {{
                         value
-                          ? mitraList.find(r => (r.idMitra || r.id) === value)?.namaMitra
+                          ? mitraList.find(item => (item.idMitra || item.id) === value)?.namaMitra
                           : 'Pilih Mitra...'
                       }}
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    <CommandInput placeholder="Cari..." />
-                    <CommandList>
-                      <CommandEmpty>Mitra tidak ditemukan.</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          v-for="item in mitraList"
-                          :key="item.id"
-                          :value="`${item.namaMitra}`"
-                          @select="onSelectMitra(item)"
-                        >
-                          <Check
-                            :class="
-                              cn(
-                                'mr-2 h-4 w-4',
-                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0'
-                              )
-                            "
-                          />
-                          {{ item.kodeMitra }} - {{ item.namaMitra }}
-                        </CommandItem>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
               </Popover>
+
               <FormMessage />
             </FormItem>
           </FormField>
+
           <FormField v-slot="{ value }" name="cabangId">
             <FormItem class="flex flex-col">
               <FormLabel>Pilih Cabang</FormLabel>
+
               <Popover :open="false">
                 <PopoverTrigger as-child>
                   <FormControl>
@@ -321,143 +256,64 @@ const onSubmit = handleSubmit(async () => {
                     >
                       {{
                         value
-                          ? cabangList.find(r => (r.cabangId || r.id) === value)?.namaCabang
+                          ? cabangList.find(item => (item.cabangId || item.id) === value)
+                              ?.namaCabang
                           : 'Pilih Cabang...'
                       }}
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    <CommandInput placeholder="Cari..." />
-                    <CommandList>
-                      <CommandEmpty>Cabang tidak ditemukan.</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          v-for="item in cabangList"
-                          :key="item.id"
-                          :value="`${item.namaCabang}`"
-                          @select="onSelectCabang(item)"
-                        >
-                          <Check
-                            :class="
-                              cn(
-                                'mr-2 h-4 w-4',
-                                value === (item.cabangId || item.id) ? 'opacity-100' : 'opacity-0'
-                              )
-                            "
-                          />
-                          {{ item.kodeCabang }} - {{ item.namaCabang }}
-                        </CommandItem>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
               </Popover>
+
               <FormMessage />
             </FormItem>
           </FormField>
 
-          <FormField v-slot="{ componentField }" name="namaMesin">
+          <FormField v-slot="{ componentField }" name="espId">
             <FormItem>
-              <FormLabel>Nama Mesin</FormLabel>
+              <FormLabel>ESP ID</FormLabel>
               <FormControl>
-                <Input type="text" v-bind="componentField" />
+                <Input placeholder="A10:CF:12:3A:5B:7C" v-bind="componentField" />
               </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>
-          <FormField v-slot="{ componentField }" name="tipeMesin">
-            <FormItem>
-              <FormLabel>Tipe Mesin</FormLabel>
 
-              <Select
-                :model-value="componentField.modelValue"
-                @update:model-value="componentField['onUpdate:modelValue']"
-              >
+          <div class="space-y-3">
+            <Label>Tipe Mesin</Label>
+
+            <FormField v-slot="{ value, handleChange }" name="washer">
+              <FormItem class="flex flex-row items-center gap-3 space-y-0">
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Tipe Mesin" />
-                  </SelectTrigger>
+                  <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
+                <FormLabel class="font-normal"> Washer </FormLabel>
+              </FormItem>
+            </FormField>
 
-                <SelectContent>
-                  <SelectItem value="washer"> Washer </SelectItem>
-                  <SelectItem value="dryer"> Dryer </SelectItem>
-                </SelectContent>
-              </Select>
-
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="kapasitas">
-            <FormItem>
-              <FormLabel>Kapasitas</FormLabel>
-              <FormControl>
-                <Input v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="ipAddressEsp">
-            <FormItem>
-              <FormLabel>IP Address ESP</FormLabel>
-              <FormControl>
-                <Input v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="macAddress">
-            <FormItem>
-              <FormLabel>Mac Address</FormLabel>
-              <FormControl>
-                <Input v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="status">
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-
-              <Select
-                disabled
-                :model-value="componentField.modelValue"
-                @update:model-value="componentField['onUpdate:modelValue']"
-              >
+            <FormField v-slot="{ value, handleChange }" name="dryer">
+              <FormItem class="flex flex-row items-center gap-3 space-y-0">
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Status" />
-                  </SelectTrigger>
+                  <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
-
-                <SelectContent>
-                  <SelectItem value="ready"> Ready </SelectItem>
-                  <SelectItem value="in_use"> In Use </SelectItem>
-                  <SelectItem value="error"> Error </SelectItem>
-                </SelectContent>
-              </Select>
-
-              <FormMessage />
-            </FormItem>
-          </FormField>
+                <FormLabel class="font-normal"> Dryer </FormLabel>
+              </FormItem>
+            </FormField>
+          </div>
         </div>
 
         <DialogFooter>
           <DialogClose as-child>
             <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
           </DialogClose>
-          <span v-if="isSubmitting">
-            <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
-              Updating..
-            </Button>
-          </span>
-          <Button type="submit" v-else>Update </Button>
+
+          <Button v-if="isSubmitting" disabled>
+            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            Updating..
+          </Button>
+
+          <Button v-else type="submit"> Update </Button>
         </DialogFooter>
       </form>
     </DialogContent>

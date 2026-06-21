@@ -1,16 +1,31 @@
 <script setup lang="ts">
 import ListData from '~/components/master-mesin/ListData.vue'
+import ListDataDetail from '~/components/master-mesin/ListDataDetail.vue'
 </script>
-
 <template>
-  <div class="w-full flex flex-col gap-4">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <h2 class="text-2xl font-bold tracking-tight">Master Mesin</h2>
-    </div>
-    <div>
-      <ListData />
-    </div>
-  </div>
+  <Card class="w-full">
+    <CardHeader>
+      <CardTitle>Data Mesin</CardTitle>
+    </CardHeader>
+
+    <CardContent>
+      <Tabs default-value="mesin" class="w-full">
+        <TabsList>
+          <TabsTrigger value="mesin"> Data Mesin </TabsTrigger>
+
+          <TabsTrigger value="detail"> Detail Mesin </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="mesin">
+          <ListData />
+        </TabsContent>
+
+        <TabsContent value="detail">
+          <ListDataDetail />
+        </TabsContent>
+      </Tabs>
+    </CardContent>
+  </Card>
 </template>
 
 <style lang=""></style>

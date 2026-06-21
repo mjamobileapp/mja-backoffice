@@ -107,13 +107,12 @@ const onSubmit = handleSubmit(async (values: any) => {
     namaLengkap: values.namaLengkap,
     idMitra: values.idMitra,
     username: values.username,
-    // role: values.role,
     noTelp: values.noTelp,
     email: values.email,
     createdBy: username.value,
   }
   isDialogOpen.value = false
-  // console.log(JSON.stringify(dataForm))
+  console.log(JSON.stringify(dataForm))
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/userowner`, {
       method: 'POST',

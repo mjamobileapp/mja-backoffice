@@ -99,7 +99,7 @@ async function fetchMenuHeader() {
     })
     if (response.ok) {
       const data = await response.json()
-      listMenuHeader.value = data
+      listMenuHeader.value = data.data
       // console.log(data)
     } else {
       console.error('Failed to fetch Menu Header')
