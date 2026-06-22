@@ -72,7 +72,7 @@ async function fetchUserData() {
       username: data.data.username,
       nama: data.data.nama,
       roleId: String(data.data.idRole),
-      password: data.data.password,
+      // password: data.data.password,
     })
   } catch (error) {
     console.error('Gagal mengambil data user:', error)
@@ -123,12 +123,12 @@ const onSubmit = handleSubmit(async (values: any) => {
     nama: values.nama,
     // password: values.password,
     roleId: values.roleId,
-    createdBy: email.value,
-    createdDate: new Date(),
+    updatedBy: email.value,
+    // createdDate: new Date(),
   }
   // console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/users/${props.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(dataForm),

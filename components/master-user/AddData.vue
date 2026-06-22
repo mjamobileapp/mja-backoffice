@@ -38,7 +38,7 @@ const formSchema = toTypedSchema(
   z.object({
     username: z.string(),
     nama: z.string(),
-    password: z.string(),
+    // password: z.string(),
     roleId: z.string(),
   })
 )
@@ -92,11 +92,11 @@ const onSubmit = handleSubmit(async (values: any) => {
     // password: values.password,
     roleId: values.roleId,
     createdBy: email.value,
-    createdDate: new Date(),
+    // createdDate: new Date(),
   }
   // console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/users`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(dataForm),
@@ -130,7 +130,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       <DialogHeader>
         <DialogTitle>Add Data Master User</DialogTitle>
       </DialogHeader>
-      <form class="space-y-5" @submit="onSubmit">
+      <form class="space-y-8" @submit.prevent="onSubmit">
         <FormField v-slot="{ componentField }" name="nama">
           <FormItem>
             <FormLabel>Nama</FormLabel>
@@ -149,7 +149,6 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormMessage />
           </FormItem>
         </FormField>
-
         <!-- <FormField v-slot="{ componentField }" name="password">
           <FormItem>
             <FormLabel>Password</FormLabel>
@@ -190,7 +189,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               Saving..
             </Button>
           </span>
-          <Button type="submit" v-else>Save </Button>
+          <Button type="submit">Save </Button>
         </DialogFooter>
       </form>
     </DialogContent>
