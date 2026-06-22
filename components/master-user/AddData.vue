@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,22 +24,29 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
+import { Loader2, Eye, EyeOff } from 'lucide-vue-next' // Tambahkan import Eye dan EyeOff
 
 const emit = defineEmits(['dataAdded'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-// get token====================
 const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
+const token = computed(() => accessToken.value?.token || '')
 
+// Fitur Toggle View Password
+const showPassword = ref(false)
+function togglePassword() {
+  showPassword.value = !showPassword.value
+}
+
+// PERBAIKAN: Password dimasukkan kembali ke dalam validasi schema
 const formSchema = toTypedSchema(
   z.object({
-    username: z.string(),
-    nama: z.string(),
-    // password: z.string(),
-    roleId: z.string(),
+    username: z.string().min(1, 'Username wajib diisi'),
+    nama: z.string().min(1, 'Nama wajib diisi'),
+    password: z.string().min(6, 'Password minimal 6 karakter'), // Validasi password ditambahkan
+    roleId: z.string().min(1, 'Role wajib diisi'),
   })
 )
 
@@ -55,7 +62,7 @@ async function fetchRoles() {
     const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token.value}`,
       },
     })
     if (response.ok) {
@@ -77,9 +84,10 @@ function openDialog() {
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
+  showPassword.value = false // Reset ke sembunyi saat dialog ditutup
 }
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie('currentUser')
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
@@ -89,16 +97,19 @@ const onSubmit = handleSubmit(async (values: any) => {
   const dataForm = {
     username: values.username,
     nama: values.nama,
-    // password: values.password,
+    password: values.password, // Password dikirim ke server
     roleId: values.roleId,
     createdBy: email.value,
-    // createdDate: new Date(),
+    createdDate: new Date(),
   }
-  // console.log(JSON.stringify(dataForm))
+
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/users`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token.value}`,
+      },
       body: JSON.stringify(dataForm),
     })
 
@@ -130,7 +141,8 @@ const onSubmit = handleSubmit(async (values: any) => {
       <DialogHeader>
         <DialogTitle>Add Data Master User</DialogTitle>
       </DialogHeader>
-      <form class="space-y-8" @submit.prevent="onSubmit">
+
+      <form class="space-y-6" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="nama">
           <FormItem>
             <FormLabel>Nama</FormLabel>
@@ -140,6 +152,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormMessage />
           </FormItem>
         </FormField>
+
         <FormField v-slot="{ componentField }" name="username">
           <FormItem>
             <FormLabel>Username/Email</FormLabel>
@@ -149,16 +162,31 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <!-- <FormField v-slot="{ componentField }" name="password">
+
+        <FormField name="password">
           <FormItem>
             <FormLabel>Password</FormLabel>
-            <FormControl>
-              <Input type="password" placeholder="Password" v-bind="componentField" />
-            </FormControl>
+            <FormField v-slot="{ field }" name="password">
+              <div class="relative w-full">
+                <Input
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Masukkan Password"
+                  v-bind="field"
+                  class="pr-10 w-full block"
+                />
+                <button
+                  type="button"
+                  @click="togglePassword"
+                  class="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700 focus:outline-none flex items-center justify-center z-20"
+                >
+                  <Eye v-if="showPassword" class="w-4 h-4" />
+                  <EyeOff v-else class="w-4 h-4" />
+                </button>
+              </div>
+            </FormField>
             <FormMessage />
           </FormItem>
-        </FormField> -->
-
+        </FormField>
         <FormField v-slot="{ componentField }" name="roleId">
           <FormItem>
             <FormLabel>Role Akses</FormLabel>
@@ -179,17 +207,19 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <DialogFooter>
+
+        <DialogFooter class="pt-4">
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog">Close</Button>
+            <Button type="button" variant="secondary" @click="closeDialog" :disabled="isSubmitting"
+              >Close</Button
+            >
           </DialogClose>
-          <span v-if="isSubmitting">
-            <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
-              Saving..
-            </Button>
-          </span>
-          <Button type="submit">Save </Button>
+
+          <Button v-if="isSubmitting" disabled>
+            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            Saving..
+          </Button>
+          <Button v-else type="submit">Save</Button>
         </DialogFooter>
       </form>
     </DialogContent>

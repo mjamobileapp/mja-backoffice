@@ -23,7 +23,7 @@ import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { toTypedSchema } from '@vee-validate/zod'
 import { toast } from '@/components/ui/toast'
-import { Loader2, PencilIcon } from 'lucide-vue-next'
+import { Loader2, PencilIcon, Eye, EyeOff } from 'lucide-vue-next'
 
 const props = defineProps<{
   id: {
@@ -56,6 +56,12 @@ const baseUrl = config.public.apiBase
 // get token====================
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
+
+// Fitur Toggle View Password
+const showPassword = ref(false)
+function togglePassword() {
+  showPassword.value = !showPassword.value
+}
 
 async function fetchUserData() {
   try {
@@ -189,12 +195,27 @@ const onSubmit = handleSubmit(async (values: any) => {
           </FormItem>
         </FormField>
 
-        <!-- <FormField v-slot="{ componentField }" name="password">
+        <!-- <FormField name="password">
           <FormItem>
             <FormLabel>Password</FormLabel>
-            <FormControl>
-              <Input type="password" placeholder="Password" v-bind="componentField" />
-            </FormControl>
+            <FormField v-slot="{ field }" name="password">
+              <div class="relative w-full">
+                <Input
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Masukkan Password"
+                  v-bind="field"
+                  class="pr-10 w-full block"
+                />
+                <button
+                  type="button"
+                  @click="togglePassword"
+                  class="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700 focus:outline-none flex items-center justify-center z-20"
+                >
+                  <Eye v-if="showPassword" class="w-4 h-4" />
+                  <EyeOff v-else class="w-4 h-4" />
+                </button>
+              </div>
+            </FormField>
             <FormMessage />
           </FormItem>
         </FormField> -->
