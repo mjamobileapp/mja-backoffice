@@ -37,6 +37,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/components': { redirect: '/components/accordion' },
     '/settings': { redirect: '/settings/profile' },
+    '/master-data': { redirect: '/master-data/master-mitra' },
   },
 
   imports: {
