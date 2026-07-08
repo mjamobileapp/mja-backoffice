@@ -205,12 +205,12 @@ const onSubmit = handleSubmit(async () => {
       </TooltipProvider>
     </DialogTrigger>
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
-      <form class="space-y-8" @submit.prevent="onSubmit">
+      <form class="space-y-6" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Edit Data User Owner</DialogTitle>
         </DialogHeader>
 
-        <div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField v-slot="{ componentField }" name="namaLengkap">
             <FormItem>
               <FormLabel>Nama Lengkap</FormLabel>
