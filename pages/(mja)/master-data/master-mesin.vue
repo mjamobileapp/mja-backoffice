@@ -5,7 +5,7 @@ import ListDataDetail from '~/components/master-mesin/ListDataDetail.vue'
 <template>
   <Card class="w-full">
     <CardHeader>
-      <CardTitle>Data Mesin</CardTitle>
+      <CardTitle>Master Mesin</CardTitle>
     </CardHeader>
 
     <CardContent>

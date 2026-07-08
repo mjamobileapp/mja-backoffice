@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
+import ResetData from './ResetData.vue'
 import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
@@ -105,6 +106,12 @@ function formatRupiah(value: number | Ref<number>) {
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
 }
+
+function handleDataReset() {
+  setTimeout(() => {
+    fetchData()
+  }, 500)
+}
 </script>
 <template>
   <Card class="w-full">
@@ -153,6 +160,7 @@ function handleDataDeleted(deletedItemId) {
                 <div class="flex items-center justify-center gap-2">
                   <EditData :id="item.id" @dataEdited="handleDataEdited" />
                   <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <ResetData :item="item" @dataReset="handleDataReset" />
                 </div>
               </TableCell>
             </TableRow>

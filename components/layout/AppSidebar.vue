@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NavGroup, NavLink, NavSectionTitle } from '~/types/nav'
-import { navMenu, navMenuBottom, navMenuTop } from '~/constants/menus'
 
 function resolveNavItemComponent(item: NavLink | NavGroup | NavSectionTitle): any {
   // console.log(item)
@@ -12,23 +11,14 @@ function resolveNavItemComponent(item: NavLink | NavGroup | NavSectionTitle): an
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 // console.log(baseUrl)
-const user: {
-  name: string
-  email: string
-  avatar: string
-} = {
-  name: 'Rizky Reza',
-  email: 'rizky.reza@plnindonesiapower.co.id',
-  avatar: '/avatars/avatartion.png',
-}
 const dataNavMenu: any = ref([])
 
 // Ambil email dari cookie
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<{ username?: string }>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 // get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
+const accessToken = useCookie<{ token: string }>('accessToken')
+const token = accessToken.value?.token
 
 // Ambil data menu dari endpoint
 onMounted(async () => {
@@ -51,12 +41,17 @@ const { sidebar } = useAppSettings()
 </script>
 
 <template>
-  <Sidebar :collapsible="sidebar.collapsible" :side="sidebar.side" :variant="sidebar.variant">
-    <SidebarHeader>
+  <Sidebar
+    :collapsible="sidebar.collapsible"
+    :side="sidebar.side"
+    :variant="sidebar.variant"
+    class="border-r border-[#dfe4eb] bg-[#f6f7f9] text-[#374151]"
+  >
+    <SidebarHeader class="px-2 py-3">
       <LayoutSidebarNavHeader />
       <!-- <Search /> -->
     </SidebarHeader>
-    <SidebarContent>
+    <SidebarContent class="px-2">
       <!-- <SidebarGroup>
         <component
           :is="resolveNavItemComponent(item)"
@@ -66,8 +61,8 @@ const { sidebar } = useAppSettings()
           size="sm"
         />
       </SidebarGroup> -->
-      <SidebarGroup v-for="(nav, indexGroup) in dataNavMenu" :key="indexGroup">
-        <SidebarGroupLabel v-if="nav.heading">
+      <SidebarGroup v-for="(nav, indexGroup) in dataNavMenu" :key="indexGroup" class="py-2">
+        <SidebarGroupLabel v-if="nav.heading" class="px-3 text-xs font-medium text-[#7b8492]">
           {{ nav.heading }}
         </SidebarGroupLabel>
         <component
@@ -78,9 +73,6 @@ const { sidebar } = useAppSettings()
         />
       </SidebarGroup>
     </SidebarContent>
-    <SidebarFooter>
-      <LayoutSidebarNavFooter :user="user" />
-    </SidebarFooter>
     <SidebarRail />
   </Sidebar>
 </template>

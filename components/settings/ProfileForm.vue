@@ -148,8 +148,8 @@ const onSubmit = handleSubmit(async values => {
 
 <template>
   <div>
-    <h3 class="text-lg font-medium">Profile</h3>
-    <p class="text-sm text-muted-foreground">Kelola informasi profile dan foto akun Anda.</p>
+    <h3 class="text-lg font-medium">Profile Akun</h3>
+    <p class="text-sm text-muted-foreground">Informasi profile dan foto akun Anda.</p>
   </div>
 
   <Separator />
@@ -158,7 +158,7 @@ const onSubmit = handleSubmit(async values => {
     <Card>
       <CardHeader>
         <CardTitle>Foto Profile</CardTitle>
-        <CardDescription> Upload foto profile agar akun lebih mudah dikenali. </CardDescription>
+        <CardDescription> Foto profile akun anda </CardDescription>
       </CardHeader>
 
       <CardContent class="flex flex-col items-center gap-4">

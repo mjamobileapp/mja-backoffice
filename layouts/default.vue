@@ -2,11 +2,11 @@
 </script>
 
 <template>
-  <SidebarProvider>
+  <SidebarProvider class="min-h-screen bg-[#eef1f5] text-[#111827]">
     <LayoutAppSidebar />
-    <SidebarInset>
+    <SidebarInset class="min-w-0 bg-[#eef1f5]">
       <LayoutHeader />
-      <div class="min-w-0 w-full flex-1 overflow-x-auto p-4 lg:p-6">
+      <div class="min-w-0 w-full flex-1 overflow-x-auto px-4 py-5 lg:px-6">
         <slot />
       </div>
     </SidebarInset>
