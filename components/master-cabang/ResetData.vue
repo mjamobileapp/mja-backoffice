@@ -120,7 +120,7 @@ async function resetItem() {
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Apakah anda yakin reset data cabang ini?</AlertDialogTitle>
+        <AlertDialogTitle>Apakah Anda yakin MERESET data cabang ini?</AlertDialogTitle>
         <AlertDialogDescription>
           Data transaksi dan relasi terkait cabang ini akan direset. Pastikan anda yakin sebelum
           melanjutkan.

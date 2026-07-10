@@ -194,7 +194,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             </FormItem>
           </FormField> -->
           <FormField v-slot="{ value }" name="idMitra">
-            <FormItem class="flex flex-col">
+            <FormItem>
               <FormLabel>Pilih Mitra</FormLabel>
               <Popover v-model:open="openMitra">
                 <PopoverTrigger as-child>
@@ -202,7 +202,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      :class="cn('h-10 w-full justify-between', !value && 'text-muted-foreground')"
                     >
                       {{
                         value
@@ -229,7 +229,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                             :class="
                               cn(
                                 'mr-2 h-4 w-4',
-                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0'
+                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0',
                               )
                             "
                           />
@@ -246,7 +246,9 @@ const onSubmit = handleSubmit(async (values: any) => {
           <FormField v-slot="{ componentField }" name="noTelp">
             <FormItem>
               <FormLabel>No Telepon</FormLabel>
-              <FormControl> <Input v-bind="componentField" /> </FormControl>
+              <FormControl>
+                <Input v-bind="componentField" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

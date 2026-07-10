@@ -15,6 +15,8 @@ const baseUrl = config.public.apiBase
 
 const jumlahMitra = ref(0)
 const jumlahMesin = ref(0)
+const jumlahMesinWasher = ref(0)
+const jumlahMesinDryer = ref(0)
 const jumlahCabang = ref(0)
 
 const accessToken = useCookie<{ token: string }>('accessToken')
@@ -92,9 +94,39 @@ async function fetchDataMesin() {
     })
     const fetchedData = await response.json()
     jumlahMesin.value = fetchedData.total || 0
+    const mesinData = fetchedData.data || fetchedData.mesin || []
+    jumlahMesinWasher.value = getMachineCountFromResponse(fetchedData, mesinData, 'washer')
+    jumlahMesinDryer.value = getMachineCountFromResponse(fetchedData, mesinData, 'dryer')
   } catch (error) {
     console.error('Gagal mengambil data Mesin terbaru:', error)
   }
+}
+
+function getMachineCountFromResponse(responseData: any, mesinData: any[], type: 'washer' | 'dryer') {
+  const keys = type === 'washer'
+    ? ['totalWasher', 'jumlahWasher', 'washer']
+    : ['totalDryer', 'jumlahDryer', 'dryer']
+
+  for (const key of keys) {
+    const value = Number(responseData?.[key])
+
+    if (!Number.isNaN(value))
+      return value
+  }
+
+  return countMachineByType(mesinData, type)
+}
+
+function countMachineByType(data: any[], type: 'washer' | 'dryer') {
+  if (!Array.isArray(data))
+    return 0
+
+  return data.filter((item) => {
+    const flagValue = item?.[type]
+    const typeText = `${item?.tipeMesin || item?.jenisMesin || item?.namaMesin || item?.namaGroupMesin || ''}`.toLowerCase()
+
+    return flagValue === true || flagValue === 1 || flagValue === '1' || typeText.includes(type)
+  }).length
 }
 
 function buildSmoothPath(values: number[]) {
@@ -118,85 +150,76 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="dashboard-shell mx-auto max-w-[1440px]">
-    <h1 class="mb-4 text-3xl font-bold tracking-tight text-[#111827]">Dashboard</h1>
+  <div class="dashboard-shell mx-auto max-w-[1440px] xl:flex xl:h-[calc(100svh-104px)] xl:flex-col xl:overflow-hidden">
+    <h1 class="mb-2 text-3xl font-bold tracking-tight text-[#111827]">Dashboard</h1>
 
-    <section class="grid gap-5 xl:grid-cols-3 md:grid-cols-2">
+    <section class="grid shrink-0 gap-3 xl:grid-cols-3 md:grid-cols-2">
       <Card class="dashboard-card metric-card">
-        <CardHeader class="flex flex-row items-start justify-between space-y-0 pb-2">
+        <CardHeader class="flex flex-row items-start justify-between space-y-0 p-4 pb-1">
           <div>
-            <CardTitle class="text-lg font-semibold text-[#1f2937]">Jumlah Mitra</CardTitle>
-            <div class="mt-3 text-3xl font-bold text-[#111827]">
+            <CardTitle class="text-base font-semibold text-[#1f2937]">Jumlah Mitra</CardTitle>
+            <div class="mt-1 text-2xl font-bold text-[#111827]">
               <NumberFlow :value="jumlahMitra" />
             </div>
           </div>
-          <UsersRound class="h-8 w-8 text-[#64748b]" />
+          <UsersRound class="h-7 w-7 text-[#64748b]" />
         </CardHeader>
-        <CardContent class="flex items-end justify-between gap-4">
-          <p class="flex items-center gap-1 text-sm font-medium text-[#10b981]">
-            <TrendingUp class="h-4 w-4" />
-            +5.2% dari bulan lalu
-          </p>
-          <svg class="h-16 w-28" viewBox="0 0 112 64" aria-hidden="true">
-            <path d="M4 54 C18 36 28 58 40 42 S58 12 70 34 86 18 108 10" fill="none" stroke="#4aa3d8" stroke-width="3" />
-          </svg>
-        </CardContent>
+
       </Card>
 
       <Card class="dashboard-card metric-card">
-        <CardHeader class="flex flex-row items-start justify-between space-y-0 pb-2">
+        <CardHeader class="flex flex-row items-start justify-between space-y-0 p-4 pb-1">
           <div>
-            <CardTitle class="text-lg font-semibold text-[#1f2937]">Jumlah Cabang</CardTitle>
-            <div class="mt-3 text-3xl font-bold text-[#111827]">
+            <CardTitle class="text-base font-semibold text-[#1f2937]">Jumlah Cabang</CardTitle>
+            <div class="mt-1 text-2xl font-bold text-[#111827]">
               <NumberFlow :value="jumlahCabang" />
             </div>
           </div>
-          <MapPinned class="h-8 w-8 text-[#64748b]" />
+          <MapPinned class="h-7 w-7 text-[#64748b]" />
         </CardHeader>
-        <CardContent>
-          <p class="text-sm text-[#6b7280]">0.0% bulan ini</p>
-        </CardContent>
+
       </Card>
 
       <Card class="dashboard-card metric-card md:col-span-2 xl:col-span-1">
-        <CardHeader class="flex flex-row items-start justify-between space-y-0 pb-2">
+        <CardHeader class="flex flex-row items-start justify-between space-y-0 p-4 pb-1">
           <div>
-            <CardTitle class="text-lg font-semibold text-[#1f2937]">Jumlah Mesin</CardTitle>
-            <div class="mt-3 text-3xl font-bold text-[#111827]">
+            <CardTitle class="text-base font-semibold text-[#1f2937]">Jumlah Mesin</CardTitle>
+            <div class="mt-1 text-2xl font-bold text-[#111827]">
               <NumberFlow :value="jumlahMesin" />
             </div>
           </div>
-          <WashingMachine class="h-8 w-8 text-[#64748b]" />
+          <WashingMachine class="h-7 w-7 text-[#64748b]" />
         </CardHeader>
-        <CardContent>
-          <div class="mb-2 flex items-center justify-between text-sm">
-            <p class="flex items-center gap-1 font-medium text-[#ef4444]">
-              <TrendingDown class="h-4 w-4" />
-              -1.1% dari bulan lalu
-            </p>
-            <span class="font-semibold text-[#4b5563]">{{ activePercent }}% active</span>
-          </div>
-          <div class="h-2 rounded-full bg-[#dbe1e8]">
-            <div class="h-2 rounded-full bg-[#3498db]" :style="{ width: `${activePercent}%` }" />
+        <CardContent class="px-4 pb-4 pt-0">
+
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div class="rounded-md bg-[#edf7ff] px-2.5 py-1.5">
+              <p class="text-[#64748b]">Washer</p>
+              <p class="font-semibold text-[#1f2937]">{{ jumlahMesinWasher }}</p>
+            </div>
+            <div class="rounded-md bg-[#fff7ed] px-2.5 py-1.5">
+              <p class="text-[#64748b]">Dryer</p>
+              <p class="font-semibold text-[#1f2937]">{{ jumlahMesinDryer }}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
     </section>
 
-    <section class="mt-5 grid gap-5 xl:grid-cols-[1.5fr_0.8fr_1fr]">
-      <Card class="dashboard-card xl:row-span-2">
-        <CardHeader class="pb-3">
+    <section class="mt-3 grid gap-4 xl:min-h-0 xl:flex-1 xl:grid-cols-[1.5fr_0.8fr_1fr]">
+      <Card class="dashboard-card bottom-card">
+        <CardHeader class="shrink-0 p-4 pb-2">
           <CardTitle class="text-lg font-semibold text-[#1f2937]">
             Tren Transaksi Mitra (6 Bulan Terakhir)
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div class="mb-4 flex justify-center gap-5 text-xs text-[#4b5563]">
+        <CardContent class="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-0">
+          <div class="mb-2 flex shrink-0 justify-center gap-5 text-xs text-[#4b5563]">
             <span class="flex items-center gap-2"><CircleDot class="h-3 w-3 fill-[#4aa3d8] text-[#4aa3d8]" />Tren Transaksi Mitra</span>
             <span class="flex items-center gap-2"><CircleDot class="h-3 w-3 fill-[#35c48f] text-[#35c48f]" />Bulan Terakhir</span>
           </div>
-          <div class="h-[250px]">
-            <svg class="h-full w-full" viewBox="0 0 340 190" preserveAspectRatio="none" aria-hidden="true">
+          <div class="flex min-h-0 flex-1 flex-col">
+            <svg class="min-h-0 flex-1 w-full" viewBox="0 0 340 190" preserveAspectRatio="none" aria-hidden="true">
               <defs>
                 <linearGradient id="primaryTrend" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stop-color="#4aa3d8" stop-opacity="0.55" />
@@ -215,19 +238,19 @@ onMounted(async () => {
                 <path :d="primaryTrendPath" fill="none" stroke="#2f95cf" stroke-width="2.5" />
               </g>
             </svg>
-            <div class="grid grid-cols-6 px-4 text-center text-xs text-[#4b5563]">
+            <div class="grid shrink-0 grid-cols-6 px-4 text-center text-xs text-[#4b5563]">
               <span v-for="point in trendPoints" :key="point.month">{{ point.month }}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card class="dashboard-card">
-        <CardHeader class="pb-2">
-          <CardTitle class="text-lg font-semibold text-[#1f2937]">Status Operasional Mesin</CardTitle>
+      <Card class="dashboard-card bottom-card">
+        <CardHeader class="shrink-0 p-4 pb-2">
+          <CardTitle class="text-lg font-semibold text-[#1f2937]">Status Opr Mesin</CardTitle>
         </CardHeader>
-        <CardContent class="flex flex-col items-center">
-          <div class="relative h-44 w-44">
+        <CardContent class="flex min-h-0 flex-1 flex-col items-center justify-center px-4 pb-4 pt-0">
+          <div class="relative h-32 w-32 2xl:h-40 2xl:w-40">
             <svg viewBox="0 0 120 120" class="h-full w-full -rotate-90" aria-hidden="true">
               <circle cx="60" cy="60" r="42" fill="none" stroke="#f59e0b" stroke-width="20" stroke-dasharray="18 246" stroke-dashoffset="-8" />
               <circle cx="60" cy="60" r="42" fill="none" stroke="#ef4444" stroke-width="20" stroke-dasharray="18 246" stroke-dashoffset="-34" />
@@ -245,13 +268,13 @@ onMounted(async () => {
         </CardContent>
       </Card>
 
-      <Card class="dashboard-card min-h-[235px]">
-        <CardHeader class="flex flex-row items-center justify-between pb-2">
+      <Card class="dashboard-card bottom-card">
+        <CardHeader class="flex shrink-0 flex-row items-center justify-between p-4 pb-2">
           <CardTitle class="text-lg font-semibold text-[#1f2937]">Aktivitas Terbaru</CardTitle>
           <span class="text-xl text-[#4b5563] leading-none">-</span>
         </CardHeader>
-        <CardContent class="max-h-[170px] overflow-y-auto pr-2">
-          <div v-for="item in activityItems" :key="item" class="border-b border-[#edf0f4] py-3 last:border-0">
+        <CardContent class="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-0">
+          <div v-for="item in activityItems" :key="item" class="border-b border-[#edf0f4] py-2 last:border-0">
             <p class="text-sm font-medium text-[#374151]">{{ item }}</p>
             <p class="mt-1 text-xs text-[#6b7280]">(1 jam yang lalu)</p>
           </div>
@@ -270,7 +293,19 @@ onMounted(async () => {
 }
 
 .metric-card {
-  min-height: 150px;
+  min-height: 108px;
+}
+
+.bottom-card {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1280px) {
+  .bottom-card {
+    height: 100%;
+  }
 }
 
 .map-grid {
