@@ -17,7 +17,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const activeTeam = ref({
   name: 'MJA Backoffice',
-  logo: 'i-lucide-gallery-vertical-end',
   plan: 'Application',
 })
 
@@ -34,20 +33,20 @@ function goToDashboard() {
           <SidebarMenuButton
             size="lg"
             @click="goToDashboard"
-            class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            class="h-12 rounded-md px-2 data-[state=open]:bg-[#e9edf3]"
           >
             <div
-              class="aspect-square size-8 flex items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+              class="size-9 flex items-center justify-center rounded-md bg-[#111827] text-white"
             >
-              <Icon :name="activeTeam.logo" class="size-4" />
+              <img src="/mja-logo.png" alt="MJA" class="h-6 w-6 object-contain" />
             </div>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-semibold">
+              <span class="truncate font-bold text-[#111827]">
                 {{ activeTeam.name }}
               </span>
-              <span class="truncate text-xs">{{ activeTeam.plan }}</span>
+              <span class="truncate text-xs text-[#6b7280]">{{ activeTeam.plan }}</span>
             </div>
-            <Icon name="i-lucide-chevrons-up-down" class="ml-auto" />
+            <Icon name="i-lucide-chevrons-up-down" class="ml-auto text-[#6b7280]" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
       </DropdownMenu>

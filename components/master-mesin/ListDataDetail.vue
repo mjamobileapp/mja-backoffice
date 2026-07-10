@@ -6,6 +6,7 @@ import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 import { formatDate } from 'date-fns'
 import SetMaintenance from './SetMaintenance.vue'
+import SetReady from './SetReady.vue'
 
 const filter = ref({
   keyword: '',
@@ -163,6 +164,16 @@ function handleDataMaintenance(deletedItemId) {
     fetchData()
   }, 500)
 }
+
+function handleDataReady() {
+  setTimeout(() => {
+    fetchData()
+  }, 500)
+}
+
+function isMachineStatus(item: any, status: string) {
+  return item.status?.trim().toUpperCase() === status
+}
 </script>
 <template>
   <Card class="w-full">
@@ -172,7 +183,7 @@ function handleDataMaintenance(deletedItemId) {
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mt-4">
         <Input
           v-model="filter.keyword"
-          placeholder="Cari mesin, IP, MAC, mitra, cabang..."
+          placeholder="Cari mesin, ESP ID, mitra, cabang..."
           class="md:col-span-2"
         />
 
@@ -283,7 +294,16 @@ function handleDataMaintenance(deletedItemId) {
                 <div class="flex items-center justify-center gap-2">
                   <!-- <EditData :espId="item.espId" @dataEdited="handleDataEdited" />
                   <DeleteData :item="item" @dataDeleted="handleDataDeleted" /> -->
-                  <SetMaintenance :item="item" @dataMaintenance="handleDataMaintenance" />
+                  <SetMaintenance
+                    v-if="isMachineStatus(item, 'READY')"
+                    :item="item"
+                    @dataMaintenance="handleDataMaintenance"
+                  />
+                  <SetReady
+                    v-if="isMachineStatus(item, 'OFFLINE')"
+                    :item="item"
+                    @dataReady="handleDataReady"
+                  />
                 </div>
               </TableCell>
             </TableRow>

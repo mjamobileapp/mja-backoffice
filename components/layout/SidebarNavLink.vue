@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { NavLink } from '~/types/nav'
 import { type SidebarMenuButtonVariants, useSidebar } from '~/components/ui/sidebar'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     item: NavLink
     size?: SidebarMenuButtonVariants['size']
@@ -13,12 +15,20 @@ withDefaults(
 )
 
 const { setOpenMobile } = useSidebar()
+const route = useRoute()
+const isActive = computed(() => route.path === props.item.link)
 </script>
 
 <template>
   <SidebarMenu>
     <SidebarMenuItem>
-      <SidebarMenuButton as-child :tooltip="item.title" :size="size">
+      <SidebarMenuButton
+        as-child
+        :tooltip="item.title"
+        :size="size"
+        :is-active="isActive"
+        class="rounded-md text-[#374151] data-[active=true]:bg-[#dfe5ec] data-[active=true]:font-bold data-[active=true]:text-[#2563eb] hover:bg-[#e8edf3]"
+      >
         <NuxtLink :to="item.link" @click="setOpenMobile(false)">
           <Icon :name="item.icon || ''" mode="svg" />
           <span>{{ item.title }}</span>

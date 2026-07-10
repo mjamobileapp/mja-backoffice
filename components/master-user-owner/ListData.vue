@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { formatDate } from 'date-fns'
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
-import { formatDate } from 'date-fns'
+import ResetDeviceIdData from './ResetDeviceIdData.vue'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
@@ -102,6 +103,12 @@ function formatRupiah(value: number | Ref<number>) {
 function handleDataDeleted(deletedItemId) {
   data.value = data.value.filter(item => item.id !== deletedItemId)
 }
+
+function handleDeviceIdReset() {
+  setTimeout(() => {
+    fetchData()
+  }, 500)
+}
 </script>
 <template>
   <Card class="w-full">
@@ -154,6 +161,7 @@ function handleDataDeleted(deletedItemId) {
                 <div class="flex items-center justify-center gap-2">
                   <EditData :id="item.id" @dataEdited="handleDataEdited" />
                   <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <ResetDeviceIdData :item="item" @deviceIdReset="handleDeviceIdReset" />
                 </div>
               </TableCell>
             </TableRow>

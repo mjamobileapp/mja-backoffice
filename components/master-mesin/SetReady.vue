@@ -4,27 +4,27 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { SettingsIcon, Trash2Icon, TrashIcon } from 'lucide-vue-next'
+import { CircleCheck } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
+
 const props = defineProps(['item'])
-const emit = defineEmits(['dataMaintenance'])
+const emit = defineEmits(['dataReady'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
+const accessToken = useCookie<{ token: string }>('accessToken')
+const token = accessToken.value?.token
 
-async function maintenanceItem() {
+async function readyItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/maintenance/${props.item.id}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/mesin/ready/${props.item.id}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -32,28 +32,26 @@ async function maintenanceItem() {
     })
 
     if (response.ok) {
-      emit('dataMaintenance', props.item.id)
+      emit('dataReady', props.item.id)
       toast({
         title: 'Success',
-        description: 'Data berhasil dimaintenance.',
+        description: 'Status mesin berhasil diubah menjadi READY.',
       })
     } else {
-      // Ambil pesan dari response body
       const errorData = await response.json()
-      const message = errorData?.message || 'Gagal Maintenance Data'
+      const message = errorData?.message || 'Gagal mengubah status mesin menjadi READY'
 
-      // Tampilkan toast error
       toast({
         title: 'Gagal',
         description: message,
         variant: 'destructive',
       })
-      console.error('Gagal menghapus:', message)
+      console.error('Gagal set ready:', message)
     }
   } catch (error) {
     toast({
       title: 'Error',
-      description: 'Terjadi kesalahan saat menghapus data.',
+      description: 'Terjadi kesalahan saat mengubah status mesin menjadi READY.',
       variant: 'destructive',
     })
     console.error('Error:', error)
@@ -68,26 +66,22 @@ async function maintenanceItem() {
         <Tooltip>
           <TooltipTrigger as-child>
             <Button size="sm">
-              <SettingsIcon class="w-4 h-4" />
+              <CircleCheck class="w-4 h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Maintenance Mesin</p>
+            <p>Set Ready Mesin</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Apakah Anda yakin akan melakukan Maintenance mesin ini ? </AlertDialogTitle>
-        <!-- <AlertDialogDescription>
-          data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus
-          data ini.
-        </AlertDialogDescription> -->
+        <AlertDialogTitle>Apakah anda yakin mengubah status mesin ini menjadi READY ?</AlertDialogTitle>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="maintenanceItem">Maintenance</AlertDialogAction>
+        <AlertDialogAction @click="readyItem">Set Ready</AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

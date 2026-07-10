@@ -4,10 +4,11 @@ import { useSidebar } from '~/components/ui/sidebar'
 const { isMobile, setOpenMobile } = useSidebar()
 
 // Ambil dan parsing cookie user secara reaktif
-const dataLogin = useCookie('currentUser')
+const dataLogin = useCookie<{ nama?: string, role?: string }>('currentUser')
 
 // Akses langsung
 const name = computed(() => dataLogin.value?.nama || 'Unknown')
+const role = computed(() => dataLogin.value?.role || 'System Admin')
 // const email = computed(() => dataLogin.value?.email || 'no-email@example.com')
 // const jobTitle = computed(() => dataLogin.value?.jobTitle || 'no-email@example.com')
 // const avatar = computed(() => dataLogin.value?.avatar || '')
@@ -41,22 +42,15 @@ const showModalTheme = ref(false)
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
-            class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            class="h-auto rounded-none border-t border-[#dfe4eb] px-3 py-4 data-[state=open]:bg-[#e9edf3]"
           >
-            <!-- <Avatar class="h-8 w-8 rounded-lg">
-              <AvatarImage :src="user.avatar" :alt="user.name" />
-              <AvatarFallback class="rounded-lg">
-                {{
-                  user.name
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                }}
-              </AvatarFallback>
-            </Avatar> -->
+            <Avatar class="h-12 w-12 overflow-hidden rounded-full">
+              <AvatarImage src="/avatars/avatartion.png" :alt="name" />
+              <AvatarFallback>{{ name.charAt(0) }}</AvatarFallback>
+            </Avatar>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-semibold">{{ name }}</span>
-              <!-- <span class="truncate text-xs">{{ jobTitle }}</span> -->
+              <span class="truncate font-semibold text-[#111827]">{{ name }}</span>
+              <span class="truncate text-xs text-[#6b7280]">{{ role }}</span>
             </div>
             <Icon name="i-lucide-chevrons-up-down" class="ml-auto size-4" />
           </SidebarMenuButton>

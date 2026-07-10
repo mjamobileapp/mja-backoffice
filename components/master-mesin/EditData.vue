@@ -40,6 +40,7 @@ const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
   z.object({
+    masterId: z.coerce.number().optional(),
     cabangId: z.number({
       required_error: 'Pilih Cabang terlebih dahulu',
     }),
@@ -55,6 +56,7 @@ const profileFormSchema = toTypedSchema(
 const { handleSubmit, resetForm, setValues, values } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
+    masterId: undefined,
     cabangId: 0,
     idMitra: 0,
     espId: '',
@@ -122,6 +124,7 @@ async function fetchData() {
       const { data } = await response.json()
 
       setValues({
+        masterId: Number(data.masterId),
         cabangId: data.cabangId,
         idMitra: data.idMitra,
         espId: data.espId,
@@ -153,7 +156,14 @@ function closeDialog() {
 const onSubmit = handleSubmit(async () => {
   isSubmitting.value = true
 
+  if (values.masterId == null) {
+    toast.error('ID mesin tidak ditemukan')
+    isSubmitting.value = false
+    return
+  }
+
   const dataForm = {
+    masterId: values.masterId,
     idMitra: values.idMitra,
     cabangId: values.cabangId,
     espId: values.espId,
@@ -163,7 +173,7 @@ const onSubmit = handleSubmit(async () => {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${props.espId}`, {
+    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${values.masterId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

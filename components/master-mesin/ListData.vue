@@ -200,8 +200,8 @@ function handleDataDeleted(deletedItemId) {
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Nama Mesin</TableHead>
               <TableHead>ESP ID</TableHead>
-              <!-- <TableHead>Nama Mitra</TableHead>
-              <TableHead>Nama Cabang</TableHead> -->
+              <TableHead>Nama Mitra</TableHead>
+              <TableHead>Nama Cabang</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -216,12 +216,12 @@ function handleDataDeleted(deletedItemId) {
               <TableCell class="font-medium">
                 {{ item.espId }}
               </TableCell>
-              <!-- <TableCell class="font-medium">
+              <TableCell class="font-medium">
                 {{ item.namaMitra }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.namaCabang }}
-              </TableCell> -->
+              </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
                   <EditData :espId="item.espId" @dataEdited="handleDataEdited" />

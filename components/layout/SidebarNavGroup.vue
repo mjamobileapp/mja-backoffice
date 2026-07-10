@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { NavGroup } from '~/types/nav'
 import { type SidebarMenuButtonVariants, useSidebar } from '~/components/ui/sidebar'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   item: NavGroup
   size?: SidebarMenuButtonVariants['size']
 }>(), {
@@ -10,8 +12,14 @@ withDefaults(defineProps<{
 })
 
 const { setOpenMobile } = useSidebar()
+const route = useRoute()
 
-const openCollapsible = ref(false)
+const isActive = computed(() => props.item.children.some(subItem => route.path === subItem.link))
+const openCollapsible = ref(isActive.value)
+
+function isSubItemActive(link: string) {
+  return route.path.replace(/\/$/, '') === link.replace(/\/$/, '')
+}
 </script>
 
 <template>
@@ -24,7 +32,12 @@ const openCollapsible = ref(false)
     >
       <SidebarMenuItem>
         <CollapsibleTrigger as-child>
-          <SidebarMenuButton :tooltip="item.title" :size="size">
+          <SidebarMenuButton
+            :tooltip="item.title"
+            :size="size"
+            :is-active="isActive"
+            class="rounded-md text-[#374151] data-[active=true]:bg-[#dfe5ec] data-[active=true]:font-normal data-[active=true]:text-[#2563eb] hover:bg-[#e8edf3]"
+          >
             <Icon :name="item.icon || ''" mode="svg" />
             <span>{{ item.title }}</span>
             <span v-if="item.new" class="rounded-md bg-#adfa1d px-1.5 py-0.5 text-xs text-black leading-none no-underline group-hover:no-underline">
@@ -39,8 +52,18 @@ const openCollapsible = ref(false)
               v-for="subItem in item.children"
               :key="subItem.title"
             >
-              <SidebarMenuSubButton as-child>
-                <NuxtLink :to="subItem.link" @click="setOpenMobile(false)">
+              <SidebarMenuSubButton
+                as-child
+                :is-active="isSubItemActive(subItem.link)"
+                class="data-[active=true]:font-bold"
+              >
+                <NuxtLink
+                  :to="subItem.link"
+                  :class="isSubItemActive(subItem.link) ? 'font-bold' : ''"
+                  active-class="font-bold"
+                  exact-active-class="font-bold"
+                  @click="setOpenMobile(false)"
+                >
                   <span>{{ subItem.title }}</span>
                   <span v-if="subItem.new" class="rounded-md bg-#adfa1d px-1.5 py-0.5 text-xs text-black leading-none no-underline group-hover:no-underline">
                     New
@@ -56,5 +79,8 @@ const openCollapsible = ref(false)
 </template>
 
 <style scoped>
-
+:deep(a.router-link-active),
+:deep(a.router-link-exact-active) {
+  font-weight: 700 !important;
+}
 </style>

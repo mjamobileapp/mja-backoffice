@@ -205,12 +205,12 @@ const onSubmit = handleSubmit(async () => {
       </TooltipProvider>
     </DialogTrigger>
     <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
-      <form class="space-y-8" @submit.prevent="onSubmit">
+      <form class="space-y-6" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Edit Data User Owner</DialogTitle>
         </DialogHeader>
 
-        <div class="max-h-[60vh] overflow-y-auto pr-4 space-y-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField v-slot="{ componentField }" name="namaLengkap">
             <FormItem>
               <FormLabel>Nama Lengkap</FormLabel>
@@ -240,7 +240,7 @@ const onSubmit = handleSubmit(async () => {
             </FormItem>
           </FormField> -->
           <FormField v-slot="{ value }" name="idMitra">
-            <FormItem class="flex flex-col">
+            <FormItem>
               <FormLabel>Pilih Mitra</FormLabel>
               <Popover v-model:open="openMitra">
                 <PopoverTrigger as-child>
@@ -249,7 +249,7 @@ const onSubmit = handleSubmit(async () => {
                       disabled
                       variant="outline"
                       role="combobox"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      :class="cn('h-10 w-full justify-between', !value && 'text-muted-foreground')"
                     >
                       {{
                         value
@@ -276,7 +276,7 @@ const onSubmit = handleSubmit(async () => {
                             :class="
                               cn(
                                 'mr-2 h-4 w-4',
-                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0'
+                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0',
                               )
                             "
                           />
@@ -293,7 +293,9 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ componentField }" name="noTelp">
             <FormItem>
               <FormLabel>No Telepon</FormLabel>
-              <FormControl> <Input v-bind="componentField" /> </FormControl>
+              <FormControl>
+                <Input v-bind="componentField" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

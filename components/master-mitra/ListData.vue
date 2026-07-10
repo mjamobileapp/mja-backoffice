@@ -125,6 +125,7 @@ function handleDataDeleted(deletedItemId) {
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Kode Mitra</TableHead>
               <TableHead>Nama Mitra</TableHead>
+              <TableHead>Alamat Mitra</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
