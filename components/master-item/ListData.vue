@@ -117,7 +117,6 @@ function handleDataDeleted(deletedItemId) {
               <TableHead class="w-[100px]"> No </TableHead>
               <TableHead>Nama Item</TableHead>
               <TableHead>Tipe Item</TableHead>
-              <TableHead>Status Aktif</TableHead>
               <TableHead class="text-center"> Action </TableHead>
             </TableRow>
           </TableHeader>
@@ -131,9 +130,6 @@ function handleDataDeleted(deletedItemId) {
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.tipeItem }}
-              </TableCell>
-              <TableCell class="font-medium">
-                {{ item.statusAktif }}
               </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">

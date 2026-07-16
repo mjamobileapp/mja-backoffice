@@ -22,6 +22,47 @@ const baseUrl = config.public.apiBase
 const accessToken = useCookie('accessToken')
 const token = accessToken.value.token
 
+function formatApiErrorValue(value: unknown): string | null {
+  if (!value) return null
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) {
+    return value
+      .map(item => formatApiErrorValue(item))
+      .filter(Boolean)
+      .join(', ')
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
+  }
+
+  return String(value)
+}
+
+async function getErrorMessage(response: Response) {
+  const fallbackMessage = `Gagal menghapus data. Status: ${response.status}`
+  const contentType = response.headers.get('content-type') || ''
+
+  try {
+    if (contentType.includes('application/json')) {
+      const errorData = await response.json()
+      return (
+        formatApiErrorValue(errorData?.message) ||
+        formatApiErrorValue(errorData?.error) ||
+        formatApiErrorValue(errorData?.errors) ||
+        formatApiErrorValue(errorData?.detail) ||
+        formatApiErrorValue(errorData?.data) ||
+        fallbackMessage
+      )
+    }
+
+    const errorText = await response.text()
+    return errorText || fallbackMessage
+  } catch (error) {
+    console.error('Gagal membaca response error:', error)
+    return fallbackMessage
+  }
+}
+
 async function deleteItem() {
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/mesin/${props.item.id}`, {
@@ -38,13 +79,10 @@ async function deleteItem() {
         description: 'Data berhasil dihapus.',
       })
     } else {
-      // Ambil pesan dari response body
-      const errorData = await response.json()
-      const message = errorData?.message || 'Gagal Menghapus Data'
+      const message = await getErrorMessage(response)
 
-      // Tampilkan toast error
       toast({
-        title: 'Gagal',
+        title: `Gagal (${response.status})`,
         description: message,
         variant: 'destructive',
       })
