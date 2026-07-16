@@ -19,7 +19,8 @@ const filteredData = computed(() => {
   return data.value.filter(
     item =>
       item.namaMitra.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.kodeMitra.toLowerCase().includes(searchQuery.value.toLowerCase())
+      item.kodeMitra.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      item.alamatMitra.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 

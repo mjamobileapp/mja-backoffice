@@ -52,7 +52,9 @@ onMounted(() => {
 
 const filteredData = computed(() => {
   return data.value.filter((item: any) =>
-    item.username.toLowerCase().includes(searchQuery.value.toLowerCase())
+    item.nama.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.namaRole.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 

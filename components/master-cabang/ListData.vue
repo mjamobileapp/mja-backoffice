@@ -21,7 +21,8 @@ const filteredData = computed(() => {
     item =>
       item.namaCabang.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       item.kodeCabang.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.namaMitra.toLowerCase().includes(searchQuery.value.toLowerCase())
+      item.namaMitra.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      item.alamatCabang.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
