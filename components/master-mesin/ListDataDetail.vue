@@ -47,9 +47,9 @@ const filteredData = computed(() => {
     const matchKeyword =
       item.namaMesin?.toLowerCase().includes(keyword) ||
       item.tipeMesin?.toLowerCase().includes(keyword) ||
-      item.kapasitas?.toLowerCase().includes(keyword) ||
-      item.ipAddressEsp?.toLowerCase().includes(keyword) ||
-      item.macAddress?.toLowerCase().includes(keyword) ||
+      // item.kapasitas?.toLowerCase().includes(keyword) ||
+      item.espId?.toLowerCase().includes(keyword) ||
+      // item.macAddress?.toLowerCase().includes(keyword) ||
       item.status?.toLowerCase().includes(keyword) ||
       item.namaMitra?.toLowerCase().includes(keyword) ||
       item.namaCabang?.toLowerCase().includes(keyword)

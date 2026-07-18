@@ -18,7 +18,10 @@ const data = ref<any>([]) // Define the type for fetched data
 
 const filteredData = computed(() => {
   return data.value.filter(item =>
-    item.namaLengkap.toLowerCase().includes(searchQuery.value.toLowerCase())
+    item.namaLengkap.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.noTelp.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    item.email.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 

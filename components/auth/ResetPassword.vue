@@ -12,9 +12,21 @@ const router = useRouter()
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
+// Decode JWT payload tanpa library
+function decodeJwtPayload(jwtToken: string) {
+  try {
+    const base64Payload = jwtToken.split('.')[1]
+    const payload = atob(base64Payload)
+    return JSON.parse(payload)
+  } catch {
+    return null
+  }
+}
+
 // State Form
 const token = ref('')
 const type = ref('')
+const role = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
@@ -24,6 +36,15 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const isTokenExpired = ref(false)
+
+// Cek apakah token sudah expired berdasarkan field `exp` di JWT payload
+function checkTokenExpired(jwtToken: string): boolean {
+  const payload = decodeJwtPayload(jwtToken)
+  if (!payload || !payload.exp) return false // Jika tidak ada exp, anggap belum expired
+  const now = Math.floor(Date.now() / 1000) // Current time dalam detik (Unix timestamp)
+  return now >= payload.exp
+}
 
 // Ambil email dari URL query ketika halaman dimuat (?email=user@example.com)
 onMounted(() => {
@@ -32,6 +53,17 @@ onMounted(() => {
 
   if (!token.value || !type.value) {
     errorMessage.value = 'Link aktivasi tidak valid atau sudah kadaluarsa.'
+    return
+  }
+
+  // Decode role dari JWT token
+  const payload = decodeJwtPayload(token.value)
+  role.value = payload?.role || ''
+
+  // Validasi masa expired token
+  if (checkTokenExpired(token.value)) {
+    isTokenExpired.value = true
+    errorMessage.value = 'Link aktivasi sudah kadaluarsa.<br>Silakan minta link baru.'
   }
 })
 
@@ -40,6 +72,13 @@ async function handleSubmit(event: Event) {
 
   if (!token.value) {
     errorMessage.value = 'Token tidak valid.'
+    return
+  }
+
+  // Cek ulang expired sebelum submit
+  if (checkTokenExpired(token.value)) {
+    isTokenExpired.value = true
+    errorMessage.value = 'Link aktivasi sudah kadaluarsa.<br>Silakan minta link baru.'
     return
   }
 
@@ -67,12 +106,17 @@ async function handleSubmit(event: Event) {
       body: formSubmit,
     })
 
-    successMessage.value = 'Password Anda berhasil diperbarui! Mengalihkan ke halaman login...'
+    // Cek role dari JWT token
+    if (role.value.toLowerCase() === 'backoffice') {
+      successMessage.value = 'Password Anda berhasil diperbarui! Mengalihkan ke halaman login...'
 
-    // Alihkan ke halaman login setelah 3 detik
-    setTimeout(() => {
-      router.push('/login')
-    }, 3000)
+      // Alihkan ke halaman login setelah 3 detik
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+    } else {
+      successMessage.value = 'Password Anda berhasil diperbarui!'
+    }
   } catch (error: any) {
     console.error('Reset password error:', error)
     errorMessage.value = error.data?.message || 'Gagal memperbarui password. Silakan coba lagi.'
@@ -98,7 +142,7 @@ async function handleSubmit(event: Event) {
         <CardContent>
           <div class="grid mx-auto max-w-sm gap-6">
             <!-- Form Input Password Baru -->
-            <form v-if="!successMessage" @submit="handleSubmit" class="grid gap-4">
+            <form v-if="!successMessage && !isTokenExpired" @submit="handleSubmit" class="grid gap-4">
               <!-- Input Password Baru -->
               <div class="grid gap-2">
                 <Label for="password">New Password</Label>
@@ -108,7 +152,7 @@ async function handleSubmit(event: Event) {
                     v-model="password"
                     placeholder="••••••••"
                     :type="showPassword ? 'text' : 'password'"
-                    :disabled="isLoading || !token"
+                    :disabled="isLoading || !token || isTokenExpired"
                     required
                     class="pr-10"
                   />
@@ -132,7 +176,7 @@ async function handleSubmit(event: Event) {
                     v-model="confirmPassword"
                     placeholder="••••••••"
                     :type="showConfirmPassword ? 'text' : 'password'"
-                    :disabled="isLoading || !token"
+                    :disabled="isLoading || !token || isTokenExpired"
                     required
                     class="pr-10"
                   />
@@ -148,7 +192,7 @@ async function handleSubmit(event: Event) {
               </div>
 
               <!-- Tombol Submit -->
-              <Button type="submit" :disabled="isLoading || !token" class="w-full">
+              <Button type="submit" :disabled="isLoading || !token || isTokenExpired" class="w-full">
                 <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
 
                 {{ type === 'forgotPassword' ? 'Reset Password' : 'Aktivasi User' }}
@@ -158,9 +202,9 @@ async function handleSubmit(event: Event) {
             <!-- Alert State (Error / Success) -->
             <p
               v-if="errorMessage"
+              v-html="errorMessage"
               class="text-center text-sm text-destructive font-medium bg-destructive/10 p-3 rounded"
             >
-              {{ errorMessage }}
             </p>
             <p
               v-if="successMessage"
@@ -168,8 +212,7 @@ async function handleSubmit(event: Event) {
             >
               {{ successMessage }}
             </p>
-
-            <p v-if="type === 'forgotPassword'" class="text-center text-sm text-muted-foreground">
+            <p v-if="type === 'forgotPassword' && role.toLowerCase() === 'backoffice'" class="text-center text-sm text-muted-foreground">
               Back to
               <NuxtLink to="/login" class="underline underline-offset-4 hover:text-primary">
                 Login
