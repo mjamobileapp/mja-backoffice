@@ -276,7 +276,7 @@ onMounted(async () => {
         <CardContent class="min-h-0 flex-1 overflow-hidden px-4 pb-4 pt-0">
           <div v-for="item in activityItems" :key="item" class="border-b border-[#edf0f4] py-2 last:border-0">
             <p class="text-sm font-medium text-[#374151]">{{ item }}</p>
-            <p class="mt-1 text-xs text-[#6b7280]">(1 jam yang lalu)</p>
+            <p class="mt-1 text-xs text-[#6b7280]">(1 hari yang lalu)</p>
           </div>
         </CardContent>
       </Card>
