@@ -1,0 +1,49 @@
+name: Deploy MJA Backoffice-frontend to Dev Environment
+
+on:
+  push:
+    branches:
+      - dev # Otomatis deploy jika ada push/merge ke branch dev
+  workflow_dispatch: # Memunculkan tombol manual "Run workflow" seperti di backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Sesuaikan dengan versi Node.js yang Anda gunakan
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🛠️ Build Application (seperti npm run build lokal)
+        run: npm run build
+
+      - name: 🔑 Setup SSH Key untuk rsync
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Sync ke VPS (pengganti perintah rsync manual)
+        run: |
+          rsync -avz --delete -e "ssh -p ${{ secrets.VPS_PORT }}" .output/ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/mjaproject/frontend/mja-backoffice/.output/
+
+      - name: 🔄 Install Prod & Restart PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd /var/www/mjaproject/frontend/mja-backoffice/.output/server
+            npm install --omit=dev
+            pm2 restart frontend-dev
