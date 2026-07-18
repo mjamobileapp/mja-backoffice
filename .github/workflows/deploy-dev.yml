@@ -23,6 +23,8 @@ jobs:
         run: npm install
 
       - name: 🛠️ Build Application (seperti npm run build lokal)
+        env:
+          NUXT_PUBLIC_API_BASE: http://148.230.102.45/dev
         run: npm run build
 
       - name: 🔑 Setup SSH Key untuk rsync
@@ -45,5 +47,11 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             cd /var/www/mjaproject/frontend/mja-backoffice/.output/server
+
+            # Membuat file .env di dalam server untuk dibaca oleh Nuxt saat runtime
+            echo "NUXT_PUBLIC_API_BASE=http://148.230.102.45/dev" > .env
+
             npm install --omit=dev
-            pm2 restart frontend-dev
+            
+            # Tambahkan --update-env agar PM2 memuat ulang file .env yang baru
+            pm2 restart frontend-dev --update-env
