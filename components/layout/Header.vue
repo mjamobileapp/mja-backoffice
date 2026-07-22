@@ -96,13 +96,22 @@ const name = computed(() => dataLogin.value?.nama || 'Hamdan')
 const role = computed(() => dataLogin.value?.role || 'System Admin')
 const { setOpenMobile } = useSidebar()
 
-function handleLogout() {
+async function handleLogout() {
+  try {
+    await apiFetch('/api/backoffice/logout', {
+      method: 'POST',
+    })
+  }
+  catch {
+    // Tetap hapus sesi lokal apabila server logout tidak dapat dihubungi.
+  }
+
   const userCookie = useCookie<any>('currentUser')
   userCookie.value = null
 
   const tokenCookie = useCookie<any>('accessToken')
   tokenCookie.value = null
-  navigateTo('/login')
+  await navigateTo('/login')
 }
 
 function goToProfile() {
