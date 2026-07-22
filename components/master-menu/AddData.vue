@@ -1,28 +1,28 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { useForm } from 'vee-validate'
 import { onMounted, ref } from 'vue'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogClose,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
   Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectContent,
-  SelectItem,
-  SelectGroup,
 } from '@/components/ui/select'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
@@ -30,11 +30,11 @@ const emit = defineEmits(['dataAdded'])
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 const formSchema = toTypedSchema(
@@ -48,7 +48,7 @@ const formSchema = toTypedSchema(
     levelMenu: z.number(),
     tipeMenu: z.string(),
     iconMenu: z.string().optional(),
-  })
+  }),
 )
 
 const listTipeMenu = [
@@ -92,7 +92,7 @@ const listIconMenu = [
     icon: 'i-lucide-circle',
   },
 ]
-const listMenuHeader = ref([])
+const listMenuHeader = ref<any[]>([])
 
 const { handleSubmit, resetForm } = useForm({
   validationSchema: formSchema,
@@ -112,10 +112,12 @@ async function fetchMenuHeader() {
       const data = await response.json()
       listMenuHeader.value = data.data
       // console.log(data)
-    } else {
+    }
+    else {
       console.error('Failed to fetch Menu Header')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Fetch roles error:', error)
   }
 }
@@ -150,7 +152,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/menus`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(dataForm),
     })
 
@@ -162,24 +164,29 @@ const onSubmit = handleSubmit(async (values: any) => {
         isDialogOpen.value = false
         resetForm()
       }, 300)
-    } else {
+    }
+    else {
       toast({ title: 'Error', description: 'Gagal menyimpan data.' })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="openDialog">
+        Add Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[1000px] max-h-[100vh] overflow-y-auto [&>button]:hidden">
+    <DialogContent class="max-h-[100vh] overflow-y-auto [&>button]:hidden sm:max-w-[1000px]">
       <DialogHeader>
         <DialogTitle>Add Data Master Menu</DialogTitle>
       </DialogHeader>
@@ -253,7 +260,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <SelectItem
                       v-for="(item, index) in listLevelmenu"
                       :key="index"
-                      :value="item.nilai"
+                      :value="String(item.nilai)"
                     >
                       {{ item.nilai }}
                     </SelectItem>
@@ -313,15 +320,19 @@ const onSubmit = handleSubmit(async (values: any) => {
           </FormField>
           <DialogFooter>
             <DialogClose as-child>
-              <Button type="button" variant="secondary" @click="closeDialog">Close</Button>
+              <Button type="button" variant="secondary" @click="closeDialog">
+                Close
+              </Button>
             </DialogClose>
             <span v-if="isSubmitting">
               <Button disabled>
-                <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 Saving..
               </Button>
             </span>
-            <Button type="submit" v-else>Save </Button>
+            <Button v-else type="submit">
+              Save
+            </Button>
           </DialogFooter>
         </form>
       </div>

@@ -32,16 +32,16 @@ function goToDashboard() {
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
-            @click="goToDashboard"
             class="h-12 rounded-md px-2 data-[state=open]:bg-[#e9edf3]"
+            @click="goToDashboard"
           >
             <div
               class="size-9 flex items-center justify-center rounded-md bg-[#111827] text-white"
             >
-              <img src="/mja-logo.png" alt="MJA" class="h-6 w-6 object-contain" />
+              <img src="/mja-logo.png" alt="MJA" class="h-6 w-6 object-contain">
             </div>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-bold text-[#111827]">
+              <span class="truncate text-[#111827] font-bold">
                 {{ activeTeam.name }}
               </span>
               <span class="truncate text-xs text-[#6b7280]">{{ activeTeam.plan }}</span>

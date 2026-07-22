@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
+
 const props = defineProps(['item'])
 const emit = defineEmits(['dataDeleted'])
 
@@ -19,12 +20,14 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 function formatApiErrorValue(value: unknown): string | null {
-  if (!value) return null
-  if (typeof value === 'string') return value
+  if (!value)
+    return null
+  if (typeof value === 'string')
+    return value
   if (Array.isArray(value)) {
     return value
       .map(item => formatApiErrorValue(item))
@@ -46,18 +49,19 @@ async function getErrorMessage(response: Response) {
     if (contentType.includes('application/json')) {
       const errorData = await response.json()
       return (
-        formatApiErrorValue(errorData?.message) ||
-        formatApiErrorValue(errorData?.error) ||
-        formatApiErrorValue(errorData?.errors) ||
-        formatApiErrorValue(errorData?.detail) ||
-        formatApiErrorValue(errorData?.data) ||
-        fallbackMessage
+        formatApiErrorValue(errorData?.message)
+        || formatApiErrorValue(errorData?.error)
+        || formatApiErrorValue(errorData?.errors)
+        || formatApiErrorValue(errorData?.detail)
+        || formatApiErrorValue(errorData?.data)
+        || fallbackMessage
       )
     }
 
     const errorText = await response.text()
     return errorText || fallbackMessage
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal membaca response error:', error)
     return fallbackMessage
   }
@@ -78,7 +82,8 @@ async function deleteItem() {
         title: 'Success',
         description: 'Data berhasil dihapus.',
       })
-    } else {
+    }
+    else {
       const message = await getErrorMessage(response)
 
       toast({
@@ -88,7 +93,8 @@ async function deleteItem() {
       })
       console.error('Gagal menghapus:', message)
     }
-  } catch (error) {
+  }
+  catch (error) {
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat menghapus data.',
@@ -106,7 +112,7 @@ async function deleteItem() {
         <Tooltip>
           <TooltipTrigger as-child>
             <Button size="sm">
-              <TrashIcon class="w-4 h-4" />
+              <TrashIcon class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -125,7 +131,9 @@ async function deleteItem() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="deleteItem">Delete</AlertDialogAction>
+        <AlertDialogAction @click="deleteItem">
+          Delete
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

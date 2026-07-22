@@ -1,6 +1,20 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
+import {
+  CalendarDate,
+  DateFormatter,
+  type DateValue,
+  getLocalTimeZone,
+  today,
+} from '@internationalized/date'
 
+import { toTypedSchema } from '@vee-validate/zod'
+import Datepicker from '@vuepic/vue-datepicker'
+import { toDate } from 'date-fns'
+import { Loader2, Notebook } from 'lucide-vue-next'
+import { FieldArray, useForm } from 'vee-validate'
+import { h, ref } from 'vue'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -13,21 +27,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2, Notebook } from 'lucide-vue-next'
-import { FieldArray, useForm } from 'vee-validate'
-import { h, ref } from 'vue'
-import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'date-fns'
-import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const emit = defineEmits(['dataAdded'])
@@ -35,7 +35,7 @@ const emit = defineEmits(['dataAdded'])
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
 const df = new DateFormatter('en-US', {
@@ -56,7 +56,7 @@ const profileFormSchema = toTypedSchema(
       required_error: 'Please select a valid date.',
       invalid_type_error: 'Please select a valid date.',
     }),
-  })
+  }),
 )
 
 const dateMulai = ref(null)
@@ -80,7 +80,7 @@ function closeDialog() {
 }
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 const onSubmit = handleSubmit(async (values: any) => {
@@ -102,7 +102,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -119,30 +119,35 @@ const onSubmit = handleSubmit(async (values: any) => {
       emit('dataAdded') // kirim emit dulu
       resetForm() // reset form
       isDialogOpen.value = false // baru tutup dialog
-    } else {
+    }
+    else {
       toast({
         title: 'Error',
         description: 'Gagal menyimpan data. Silakan coba lagi.',
       })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengirim data.',
     })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="openDialog">
+        Add Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Add Data Proyek</DialogTitle>
@@ -183,7 +188,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                   <p class="text-sm text-muted-foreground">
                     {{
                       field.value
-                        ? 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(field.value))
+                        ? `Rp ${new Intl.NumberFormat('id-ID').format(Number(field.value))}`
                         : 'Rp 0'
                     }}
                   </p>
@@ -198,7 +203,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormItem>
               <FormLabel>Lokasi</FormLabel>
               <FormControl>
-                <Textarea v-bind="componentField"></Textarea>
+                <Textarea v-bind="componentField" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -211,7 +216,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               <Datepicker
                 v-model="dateMulai"
                 :enable-time-picker="false"
-                :format="'dd-MM-yyyy'"
+                format="dd-MM-yyyy"
                 @update:model-value="
                   val => {
                     dateMulai = val
@@ -221,7 +226,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               />
               <FormMessage />
             </FormItem>
-            <input type="hidden" v-bind="field" />
+            <input type="hidden" v-bind="field">
           </FormField>
 
           <!-- 🗓️ Field: Tanggal Selesai -->
@@ -231,7 +236,7 @@ const onSubmit = handleSubmit(async (values: any) => {
               <Datepicker
                 v-model="dateSelesai"
                 :enable-time-picker="false"
-                :format="'dd-MM-yyyy'"
+                format="dd-MM-yyyy"
                 @update:model-value="
                   val => {
                     dateSelesai = val
@@ -241,21 +246,25 @@ const onSubmit = handleSubmit(async (values: any) => {
               />
               <FormMessage />
             </FormItem>
-            <input type="hidden" v-bind="field" />
+            <input type="hidden" v-bind="field">
           </FormField>
         </div>
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
           <span v-if="isSubmitting">
             <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Saving..
             </Button>
           </span>
-          <Button type="submit" v-else>Save </Button>
+          <Button v-else type="submit">
+            Save
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

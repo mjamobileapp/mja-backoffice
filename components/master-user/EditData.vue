@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { Eye, EyeOff, Loader2, PencilIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
 import { onMounted, ref, watch } from 'vue'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,15 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useForm } from 'vee-validate'
-import * as z from 'zod'
-import { toTypedSchema } from '@vee-validate/zod'
 import { toast } from '@/components/ui/toast'
-import { Loader2, PencilIcon, Eye, EyeOff } from 'lucide-vue-next'
 
 const props = defineProps<{
   id: {
-    type: Number
+    type: number
     required: true
   }
 }>()
@@ -43,7 +43,7 @@ const formSchema = toTypedSchema(
     nama: z.string(),
     // password: z.string().optional(),
     roleId: z.string(),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -54,7 +54,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 // Fitur Toggle View Password
@@ -80,11 +80,12 @@ async function fetchUserData() {
       roleId: String(data.data.idRole),
       // password: data.data.password,
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data user:', error)
   }
 }
-const dataRole = ref([])
+const dataRole = ref<any[]>([])
 
 async function fetchRoles() {
   try {
@@ -97,19 +98,22 @@ async function fetchRoles() {
     if (response.ok) {
       const data = await response.json()
       dataRole.value = data.data
-    } else {
+    }
+    else {
       console.error('Failed to fetch roles')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Fetch roles error:', error)
   }
 }
 
-watch(isDialogOpen, async open => {
+watch(isDialogOpen, async (open) => {
   if (open) {
     await fetchRoles()
     await fetchUserData()
-  } else {
+  }
+  else {
     resetForm()
   }
 })
@@ -118,7 +122,7 @@ function openDialog() {
   isDialogOpen.value = true
 }
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.email || 'no-email@example.com')
 
 const isSubmitting = ref(false)
@@ -136,7 +140,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/users/${props.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(dataForm),
     })
     if (response.ok) {
@@ -146,24 +150,29 @@ const onSubmit = handleSubmit(async (values: any) => {
         emit('dataUpdated')
         isDialogOpen.value = false
       }, 300)
-    } else {
+    }
+    else {
       toast({ title: 'Error', description: 'Gagal mengupdate data.' })
     }
-  } catch (error) {
+  }
+  catch (error) {
     toast({ title: 'Error', description: 'Terjadi kesalahan saat update.' })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button size="sm" @click="openDialog">
+              <PencilIcon class="h-4 w-4" />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Edit Data</p>
@@ -171,7 +180,7 @@ const onSubmit = handleSubmit(async (values: any) => {
         </Tooltip>
       </TooltipProvider>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[600px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[600px]">
       <DialogHeader>
         <DialogTitle>Edit Data User</DialogTitle>
       </DialogHeader>
@@ -223,7 +232,7 @@ const onSubmit = handleSubmit(async (values: any) => {
         <FormField v-slot="{ field }" name="roleId">
           <FormItem>
             <FormLabel>Role Akses</FormLabel>
-            <Select :modelValue="field.value" @update:modelValue="field.onChange">
+            <Select :model-value="field.value" @update:model-value="field.onChange">
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih Role/Peran" />
@@ -243,15 +252,19 @@ const onSubmit = handleSubmit(async (values: any) => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="isDialogOpen = false">Close</Button>
+            <Button type="button" variant="secondary" @click="isDialogOpen = false">
+              Close
+            </Button>
           </DialogClose>
           <span v-if="isSubmitting">
             <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Updating...
             </Button>
           </span>
-          <Button type="submit" v-else>Update </Button>
+          <Button v-else type="submit">
+            Update
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

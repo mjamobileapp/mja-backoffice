@@ -1,22 +1,20 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { PencilIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
 import { toast } from '~/components/ui/toast'
-import * as z from 'zod'
-import { PencilIcon } from 'lucide-vue-next'
-
-const emit = defineEmits(['dataUpdated'])
 
 const props = defineProps({
   id: {
@@ -24,6 +22,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits(['dataUpdated'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
@@ -36,7 +36,7 @@ const formSchema = toTypedSchema(
     levelMenu: z.number(),
     tipeMenu: z.string(),
     iconMenu: z.string().optional(),
-  })
+  }),
 )
 
 const listTipeMenu = [
@@ -80,7 +80,7 @@ const listIconMenu = [
     icon: 'i-lucide-circle',
   },
 ]
-const listMenuHeader = ref([])
+const listMenuHeader = ref<any[]>([])
 
 const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: formSchema,
@@ -101,10 +101,12 @@ async function fetchMenuHeader() {
       const data = await response.json()
       listMenuHeader.value = data.data
       // console.log(data)
-    } else {
+    }
+    else {
       console.error('Failed to fetch Menu Header')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Fetch roles error:', error)
   }
 }
@@ -122,7 +124,7 @@ function closeDialog() {
 }
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function fetchData() {
@@ -150,19 +152,21 @@ async function fetchData() {
       tipeMenu: res.data.tipeMenu,
       iconMenu: res.data.iconMenu,
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error fetching data:', error)
     toast({
       title: 'Error',
       description: 'Gagal mengambil data.',
     })
     closeDialog()
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
@@ -187,7 +191,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'PUT', // atau PATCH
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -200,26 +204,29 @@ const onSubmit = handleSubmit(async (values: any) => {
         isDialogOpen.value = false
         resetForm()
       }, 300)
-    } else {
+    }
+    else {
       toast({ title: 'Error', description: 'Gagal Update data.' })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button class="mr-2" @click="openDialog"
-        ><PencilIcon class="w-4 h-4 mr-2" /> Edit Data</Button
-      >
+      <Button class="mr-2" @click="openDialog">
+        <PencilIcon class="mr-2 h-4 w-4" /> Edit Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Edit Data Master Menu</DialogTitle>
       </DialogHeader>
@@ -293,7 +300,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <SelectItem
                       v-for="(item, index) in listLevelmenu"
                       :key="index"
-                      :value="item.nilai"
+                      :value="String(item.nilai)"
                     >
                       {{ item.nilai }}
                     </SelectItem>
@@ -354,15 +361,19 @@ const onSubmit = handleSubmit(async (values: any) => {
 
           <DialogFooter>
             <DialogClose as-child>
-              <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+              <Button type="button" variant="secondary" @click="closeDialog">
+                Close
+              </Button>
             </DialogClose>
             <span v-if="isSubmitting">
               <Button disabled>
-                <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 Updating..
               </Button>
             </span>
-            <Button type="submit" v-else>Update </Button>
+            <Button v-else type="submit">
+              Update
+            </Button>
           </DialogFooter>
         </form>
       </div>

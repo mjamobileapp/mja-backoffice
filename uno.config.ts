@@ -4,7 +4,6 @@ import {
   presetIcons,
   presetTypography,
   presetUno,
-  presetWebFonts,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
@@ -59,12 +58,6 @@ export default defineConfig({
       scale: 1.2,
     }),
     presetTypography(),
-    presetWebFonts({
-      fonts: {
-        sans: 'Chivo',
-        mono: 'Chivo Mono',
-      },
-    }),
     presetAnimations(),
     presetShadcn(builtinColors.map(c => ({ color: c }))),
   ],

@@ -1,22 +1,20 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { ScanEyeIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
 import { toast } from '~/components/ui/toast'
-import * as z from 'zod'
-import { ScanEyeIcon } from 'lucide-vue-next'
-
-const emit = defineEmits(['dataAkses'])
 
 const props = defineProps({
   id: {
@@ -24,6 +22,9 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits(['dataAkses'])
+
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 const isDialogOpen = ref(false)
@@ -31,7 +32,7 @@ const isLoading = ref(true)
 const menus: any = ref([])
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function fetchGetAkses() {
@@ -56,7 +57,8 @@ async function fetchGetAkses() {
       children: menu.children?.map(child => ({ ...child })) || [],
     }))
     isLoading.value = false
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data:', error)
   }
 }
@@ -80,7 +82,8 @@ function toggleParent(menu: any) {
 function toggleChild(menu: any, child: any) {
   if (!child.checked) {
     menu.checked = false
-  } else if (menu.children.every(c => c.checked)) {
+  }
+  else if (menu.children.every(c => c.checked)) {
     menu.checked = true
   }
 }
@@ -108,7 +111,7 @@ async function onSubmit() {
   try {
     const response = await fetch(`${baseUrl}/api/backoffice/akses/role/${props.id}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(selectedMenus),
     })
 
@@ -121,7 +124,8 @@ async function onSubmit() {
       emit('dataAkses')
       closeDialog()
     }, 300)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error saat simpan:', error)
     toast({ title: 'Error', description: 'Gagal menyimpan data', variant: 'destructive' })
   }
@@ -129,14 +133,14 @@ async function onSubmit() {
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
       <Button class="mr-2" @click="openDialog">
-        <ScanEyeIcon class="w-4 h-4 mr-2" /> Role Access
+        <ScanEyeIcon class="mr-2 h-4 w-4" /> Role Access
       </Button>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Akses Role</DialogTitle>
       </DialogHeader>
@@ -152,7 +156,7 @@ async function onSubmit() {
             </FormItem>
           </FormField>
 
-          <div v-if="menu.children" class="pl-6 space-y-1 mt-2">
+          <div v-if="menu.children" class="mt-2 pl-6 space-y-1">
             <div v-for="child in menu.children" :key="child.id">
               <FormField name="childMenu">
                 <FormItem class="flex items-center space-x-2">
@@ -168,13 +172,19 @@ async function onSubmit() {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
-          <Button type="submit">Update</Button>
+          <Button type="submit">
+            Update
+          </Button>
         </DialogFooter>
       </form>
 
-      <div v-else class="text-center p-6">Loading data...</div>
+      <div v-else class="p-6 text-center">
+        Loading data...
+      </div>
     </DialogContent>
   </Dialog>
 </template>

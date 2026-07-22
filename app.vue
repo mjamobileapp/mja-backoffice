@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Sonner } from '@/components/ui/sonner'
 import { ConfigProvider } from 'radix-vue'
+import { Sonner } from '@/components/ui/sonner'
 
 const colorMode = useColorMode()
 
@@ -25,8 +25,8 @@ useHead({
 })
 
 const title = 'MJA Backoffice'
-const description =
-  'This dashboard, built with Nuxt, Shadcn UI, and UnoCSS. It includes a dark mode toggle and is optimized for performance and data efficiency.'
+const description
+  = 'This dashboard, built with Nuxt, Shadcn UI, and UnoCSS. It includes a dark mode toggle and is optimized for performance and data efficiency.'
 
 useSeoMeta({
   title,

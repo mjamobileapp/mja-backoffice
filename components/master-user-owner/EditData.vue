@@ -1,5 +1,21 @@
 <script setup lang="ts">
+import {
+  CalendarDate,
+  DateFormatter,
+  type DateValue,
+  getLocalTimeZone,
+  today,
+} from '@internationalized/date'
+import { toTypedSchema } from '@vee-validate/zod'
+import Datepicker from '@vuepic/vue-datepicker'
+import { toDate } from 'date-fns'
+import { PencilIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
+
 import {
   Dialog,
   DialogClose,
@@ -9,40 +25,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { PencilIcon } from 'lucide-vue-next'
-import { useForm } from 'vee-validate'
-import { ref, onMounted } from 'vue'
-import { toast } from 'vue-sonner'
-import * as z from 'zod'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
-import Datepicker from '@vuepic/vue-datepicker'
+import { Input } from '@/components/ui/input'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'date-fns'
+const props = defineProps<{
+  id: {
+    type: number
+    required: true
+  }
+}>()
+
+const emit = defineEmits<{
+  (e: 'dataEdited'): void
+}>()
 
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
 
-const props = defineProps<{
-  id: {
-    type: Number
-    required: true
-  }
-}>()
-const emit = defineEmits<{
-  (e: 'dataEdited'): void
-}>()
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
@@ -52,7 +54,7 @@ const baseUrl = config.public.apiBase
 //   fetchData()
 //   // console.log(props.item.code)
 // })
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const profileFormSchema = toTypedSchema(
@@ -63,7 +65,7 @@ const profileFormSchema = toTypedSchema(
     idMitra: z.number({ required_error: 'Pilih Mitra terlebih dahulu' }),
     noTelp: z.string(),
     email: z.string(),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
@@ -101,10 +103,12 @@ async function fetchData() {
         idMitra: data.idMitra,
         // role: data.role,
       })
-    } else {
+    }
+    else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Fetch error:', error.message)
     // Tampilkan notifikasi error ke user jika perlu
   }
@@ -121,12 +125,12 @@ function closeDialog() {
   resetForm()
 }
 
-const mitraList = ref([])
+const mitraList = ref<any[]>([])
 const openMitra = ref(false)
 
 const isSubmitting = ref(false)
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function fetchDataMitra() {
@@ -141,7 +145,8 @@ async function fetchDataMitra() {
       kodeMitra: item.kodeMitra, // Normalisasi agar template tidak bingung
       namaMitra: item.namaMitra,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data Mitra:', error)
   }
 }
@@ -169,7 +174,7 @@ const onSubmit = handleSubmit(async () => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -179,24 +184,29 @@ const onSubmit = handleSubmit(async () => {
       toast.success('Data Berhasil Di Update')
       closeDialog()
       resetForm()
-    } else {
+    }
+    else {
       console.error('Gagal mengedit data')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error:', error)
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm"><PencilIcon class="w-4 h-4" /></Button>
+            <Button size="sm" @click="openDialog">
+              <PencilIcon class="h-4 w-4" />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Edit Data</p>
@@ -204,7 +214,7 @@ const onSubmit = handleSubmit(async () => {
         </Tooltip>
       </TooltipProvider>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <form class="space-y-6" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Edit Data User Owner</DialogTitle>
@@ -310,15 +320,19 @@ const onSubmit = handleSubmit(async () => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
           <span v-if="isSubmitting">
             <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Updating..
             </Button>
           </span>
-          <Button type="submit" v-else>Update </Button>
+          <Button v-else type="submit">
+            Update
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

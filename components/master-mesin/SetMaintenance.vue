@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { SettingsIcon, Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { SettingsIcon, Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
+
 const props = defineProps(['item'])
 const emit = defineEmits(['dataMaintenance'])
 
@@ -19,7 +20,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function maintenanceItem() {
@@ -37,7 +38,8 @@ async function maintenanceItem() {
         title: 'Success',
         description: 'Data berhasil dimaintenance.',
       })
-    } else {
+    }
+    else {
       // Ambil pesan dari response body
       const errorData = await response.json()
       const message = errorData?.message || 'Gagal Maintenance Data'
@@ -50,7 +52,8 @@ async function maintenanceItem() {
       })
       console.error('Gagal menghapus:', message)
     }
-  } catch (error) {
+  }
+  catch (error) {
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat menghapus data.',
@@ -68,7 +71,7 @@ async function maintenanceItem() {
         <Tooltip>
           <TooltipTrigger as-child>
             <Button size="sm">
-              <SettingsIcon class="w-4 h-4" />
+              <SettingsIcon class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -87,7 +90,9 @@ async function maintenanceItem() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="maintenanceItem">Maintenance</AlertDialogAction>
+        <AlertDialogAction @click="maintenanceItem">
+          Maintenance
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

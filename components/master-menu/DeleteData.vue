@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +11,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
 
 const props = defineProps(['item'])
@@ -20,7 +20,7 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function deleteItem() {
@@ -38,10 +38,12 @@ async function deleteItem() {
         title: 'Success',
         description: 'Data berhasil dihapus.',
       })
-    } else {
+    }
+    else {
       console.error('Gagal menghapus data')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error:', error)
   }
 }
@@ -51,14 +53,14 @@ async function deleteItem() {
   <AlertDialog>
     <AlertDialogTrigger>
       <Button>
-        <TrashIcon class="w-4 h-4 mr-2" />
+        <TrashIcon class="mr-2 h-4 w-4" />
         Delete Data
       </Button>
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle
-          >Apakah anda yakin menghapus data {{ props.item.namaMenu }}?
+        <AlertDialogTitle>
+          Apakah anda yakin menghapus data {{ props.item.namaMenu }}?
         </AlertDialogTitle>
         <AlertDialogDescription>
           data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus
@@ -67,7 +69,9 @@ async function deleteItem() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="deleteItem">Delete</AlertDialogAction>
+        <AlertDialogAction @click="deleteItem">
+          Delete
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

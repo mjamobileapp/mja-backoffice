@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { XCircle } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { XCircle } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
 
 const props = defineProps(['item'])
@@ -64,7 +64,7 @@ async function resetItem() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         konfirmasi: confirmationText.value,
@@ -78,7 +78,8 @@ async function resetItem() {
         title: 'Success',
         description: 'Data cabang berhasil direset.',
       })
-    } else {
+    }
+    else {
       const errorData = await response.json()
       const message = errorData?.message || 'Gagal reset data cabang'
 
@@ -89,14 +90,16 @@ async function resetItem() {
       })
       console.error('Gagal reset data cabang:', message)
     }
-  } catch (error) {
+  }
+  catch (error) {
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat reset data cabang.',
       variant: 'destructive',
     })
     console.error('Error:', error)
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 }
@@ -109,7 +112,7 @@ async function resetItem() {
         <Tooltip>
           <TooltipTrigger as-child>
             <Button size="sm" variant="outline" class="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
-              <XCircle class="w-4 h-4 text-red-600" />
+              <XCircle class="h-4 w-4 text-red-600" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -128,7 +131,9 @@ async function resetItem() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="openInputDialog">Reset</AlertDialogAction>
+        <AlertDialogAction @click="openInputDialog">
+          Reset
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
@@ -147,7 +152,9 @@ async function resetItem() {
         />
 
         <DialogFooter>
-          <Button type="button" variant="outline" @click="closeInputDialog">Cancel</Button>
+          <Button type="button" variant="outline" @click="closeInputDialog">
+            Cancel
+          </Button>
           <Button type="submit" :disabled="isSubmitting">
             {{ isSubmitting ? 'Resetting...' : 'Submit' }}
           </Button>

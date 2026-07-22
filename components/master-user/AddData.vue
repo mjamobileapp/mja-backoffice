@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { toTypedSchema } from '@vee-validate/zod'
+import { Eye, EyeOff, Loader2 } from 'lucide-vue-next' // Tambahkan import Eye dan EyeOff
+import { useForm } from 'vee-validate'
+import { computed, onMounted, ref } from 'vue'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
   Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectContent,
-  SelectItem,
-  SelectGroup,
 } from '@/components/ui/select'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
-import { Loader2, Eye, EyeOff } from 'lucide-vue-next' // Tambahkan import Eye dan EyeOff
 
 const emit = defineEmits(['dataAdded'])
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = computed(() => accessToken.value?.token || '')
 
 // Fitur Toggle View Password
@@ -47,7 +47,7 @@ const formSchema = toTypedSchema(
     nama: z.string().min(1, 'Nama wajib diisi'),
     password: z.string().min(6, 'Password minimal 6 karakter'), // Validasi password ditambahkan
     roleId: z.string().min(1, 'Role wajib diisi'),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm } = useForm({
@@ -55,7 +55,7 @@ const { handleSubmit, resetForm } = useForm({
 })
 
 const isDialogOpen = ref(false)
-const dataRole = ref([])
+const dataRole = ref<any[]>([])
 
 async function fetchRoles() {
   try {
@@ -68,10 +68,12 @@ async function fetchRoles() {
     if (response.ok) {
       const data = await response.json()
       dataRole.value = data.data
-    } else {
+    }
+    else {
       console.error('Failed to fetch roles')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Fetch roles error:', error)
   }
 }
@@ -87,7 +89,7 @@ function closeDialog() {
   showPassword.value = false // Reset ke sembunyi saat dialog ditutup
 }
 
-const currentUser = useCookie('currentUser')
+const currentUser = useCookie<any>('currentUser')
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
@@ -108,7 +110,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token.value}`,
+        'Authorization': `Bearer ${token.value}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -120,24 +122,29 @@ const onSubmit = handleSubmit(async (values: any) => {
         isDialogOpen.value = false
         resetForm()
       }, 300)
-    } else {
+    }
+    else {
       toast({ title: 'Error', description: 'Gagal menyimpan data.' })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="openDialog">
+        Add Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Add Data Master User</DialogTitle>
       </DialogHeader>
@@ -172,15 +179,15 @@ const onSubmit = handleSubmit(async (values: any) => {
                   :type="showPassword ? 'text' : 'password'"
                   placeholder="Masukkan Password"
                   v-bind="field"
-                  class="pr-10 w-full block"
+                  class="block w-full pr-10"
                 />
                 <button
                   type="button"
+                  class="absolute right-0 top-0 z-20 h-full flex items-center justify-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
                   @click="togglePassword"
-                  class="absolute right-0 top-0 h-full px-3 text-gray-500 hover:text-gray-700 focus:outline-none flex items-center justify-center z-20"
                 >
-                  <Eye v-if="showPassword" class="w-4 h-4" />
-                  <EyeOff v-else class="w-4 h-4" />
+                  <Eye v-if="showPassword" class="h-4 w-4" />
+                  <EyeOff v-else class="h-4 w-4" />
                 </button>
               </div>
             </FormField>
@@ -210,16 +217,18 @@ const onSubmit = handleSubmit(async (values: any) => {
 
         <DialogFooter class="pt-4">
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog" :disabled="isSubmitting"
-              >Close</Button
-            >
+            <Button type="button" variant="secondary" :disabled="isSubmitting" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
 
           <Button v-if="isSubmitting" disabled>
-            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             Saving..
           </Button>
-          <Button v-else type="submit">Save</Button>
+          <Button v-else type="submit">
+            Save
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>
