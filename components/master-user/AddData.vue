@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-vue-next' // Tambahkan import Eye dan EyeOff
+import { Eye, EyeOff, Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,11 +28,8 @@ import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-const accessToken = useCookie<any>('accessToken')
-const token = computed(() => accessToken.value?.token || '')
+const currentUser = useCookie<any>('currentUser')
+const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 // Fitur Toggle View Password
 const showPassword = ref(false)
@@ -40,12 +37,11 @@ function togglePassword() {
   showPassword.value = !showPassword.value
 }
 
-// PERBAIKAN: Password dimasukkan kembali ke dalam validasi schema
 const formSchema = toTypedSchema(
   z.object({
-    username: z.string().min(1, 'Username wajib diisi'),
+    username: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
     nama: z.string().min(1, 'Nama wajib diisi'),
-    password: z.string().min(6, 'Password minimal 6 karakter'), // Validasi password ditambahkan
+    password: z.string().min(6, 'Password minimal 6 karakter'),
     roleId: z.string().min(1, 'Role wajib diisi'),
   }),
 )
@@ -59,19 +55,8 @@ const dataRole = ref<any[]>([])
 
 async function fetchRoles() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    })
-    if (response.ok) {
-      const data = await response.json()
-      dataRole.value = data.data
-    }
-    else {
-      console.error('Failed to fetch roles')
-    }
+    const data = await apiFetch('/api/backoffice/roles')
+    dataRole.value = data.data || []
   }
   catch (error) {
     console.error('Fetch roles error:', error)
@@ -86,11 +71,8 @@ function openDialog() {
 function closeDialog() {
   isDialogOpen.value = false
   resetForm()
-  showPassword.value = false // Reset ke sembunyi saat dialog ditutup
+  showPassword.value = false
 }
-
-const currentUser = useCookie<any>('currentUser')
-const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 
 const isSubmitting = ref(false)
 
@@ -99,37 +81,27 @@ const onSubmit = handleSubmit(async (values: any) => {
   const dataForm = {
     username: values.username,
     nama: values.nama,
-    password: values.password, // Password dikirim ke server
+    password: values.password,
     roleId: values.roleId,
     createdBy: email.value,
     createdDate: new Date(),
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/users`, {
+    await apiFetch('/api/backoffice/users', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
-
-    if (response.ok) {
-      toast({ title: 'Success', description: 'Data berhasil disimpan.' })
-      setTimeout(() => {
-        emit('dataAdded')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
-    }
-    else {
-      toast({ title: 'Error', description: 'Gagal menyimpan data.' })
-    }
+    toast({ title: 'Success', description: 'Data berhasil disimpan.' })
+    setTimeout(() => {
+      emit('dataAdded')
+      isDialogOpen.value = false
+      resetForm()
+    }, 300)
   }
   catch (error) {
     console.error('Error submitting data:', error)
-    toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
+    toast({ title: 'Error', description: 'Gagal menyimpan data.' })
   }
   finally {
     isSubmitting.value = false
@@ -164,7 +136,7 @@ const onSubmit = handleSubmit(async (values: any) => {
           <FormItem>
             <FormLabel>Username/Email</FormLabel>
             <FormControl>
-              <Input type="text" placeholder="Username" v-bind="componentField" />
+              <Input type="email" placeholder="nama@domain.com" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -194,6 +166,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             <FormMessage />
           </FormItem>
         </FormField>
+
         <FormField v-slot="{ componentField }" name="roleId">
           <FormItem>
             <FormLabel>Role Akses</FormLabel>

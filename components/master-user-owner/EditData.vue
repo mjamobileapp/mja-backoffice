@@ -64,7 +64,7 @@ const profileFormSchema = toTypedSchema(
     // role: z.string(),
     idMitra: z.number({ required_error: 'Pilih Mitra terlebih dahulu' }),
     noTelp: z.string(),
-    email: z.string(),
+    email: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
   }),
 )
 
@@ -304,7 +304,7 @@ const onSubmit = handleSubmit(async () => {
             <FormItem>
               <FormLabel>No Telepon</FormLabel>
               <FormControl>
-                <Input v-bind="componentField" />
+                <Input type="tel" v-bind="componentField" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -312,7 +312,7 @@ const onSubmit = handleSubmit(async () => {
           <FormField v-slot="{ componentField }" name="email">
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <FormControl> <Input v-bind="componentField" /> </FormControl>
+              <FormControl> <Input type="email" placeholder="nama@domain.com" v-bind="componentField" /> </FormControl>
               <FormMessage />
             </FormItem>
           </FormField>

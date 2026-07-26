@@ -45,7 +45,7 @@ const formSchema = toTypedSchema(
     // menuParent: z.string(),
     // menuSubParent: z.string(),
     noUrut: z.number(),
-    levelMenu: z.number(),
+    levelMenu: z.coerce.number(),
     tipeMenu: z.string(),
     iconMenu: z.string().optional(),
   }),
@@ -186,156 +186,154 @@ const onSubmit = handleSubmit(async (values: any) => {
         Add Data
       </Button>
     </DialogTrigger>
-    <DialogContent class="max-h-[100vh] overflow-y-auto [&>button]:hidden sm:max-w-[1000px]">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Add Data Master Menu</DialogTitle>
       </DialogHeader>
-      <div class="max-h-[60vh] overflow-y-auto pr-2">
-        <form class="space-y-5" @submit="onSubmit">
-          <FormField v-slot="{ componentField }" name="namaMenu">
-            <FormItem>
-              <FormLabel>Nama Menu</FormLabel>
-              <FormControl>
-                <Input type="text" v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
+      <form class="grid grid-cols-1 gap-4 sm:grid-cols-2" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="namaMenu">
+          <FormItem>
+            <FormLabel>Nama Menu</FormLabel>
+            <FormControl>
+              <Input type="text" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-          <FormField v-slot="{ componentField }" name="url">
-            <FormItem>
-              <FormLabel>Url</FormLabel>
-              <FormControl>
-                <Input type="text" placeholder="/nama-menu" v-bind="componentField" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
+        <FormField v-slot="{ componentField }" name="url">
+          <FormItem>
+            <FormLabel>Url</FormLabel>
+            <FormControl>
+              <Input type="text" placeholder="/nama-menu" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-          <FormField v-slot="{ componentField }" name="parentId">
-            <FormItem>
-              <FormLabel>Menu Header</FormLabel>
-              <Select v-bind="componentField">
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Menu Header" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem
-                      v-for="(item, index) in listMenuHeader"
-                      :key="index"
-                      :value="item.id"
-                    >
-                      {{ item.namaMenu }}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="noUrut">
-            <FormItem>
-              <FormLabel>No Urut</FormLabel>
+        <FormField v-slot="{ componentField }" name="parentId">
+          <FormItem>
+            <FormLabel>Menu Header</FormLabel>
+            <Select v-bind="componentField">
               <FormControl>
-                <Input type="number" v-bind="componentField" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Menu Header" />
+                </SelectTrigger>
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="levelMenu">
-            <FormItem>
-              <FormLabel>Level Menu</FormLabel>
-              <Select v-bind="componentField">
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Level Menu" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem
-                      v-for="(item, index) in listLevelmenu"
-                      :key="index"
-                      :value="String(item.nilai)"
-                    >
-                      {{ item.nilai }}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="tipeMenu">
-            <FormItem>
-              <FormLabel>Tipe Menu</FormLabel>
-              <Select v-bind="componentField">
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Tipe Menu" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem
-                      v-for="(item, index) in listTipeMenu"
-                      :key="index"
-                      :value="item.nama"
-                    >
-                      {{ item.nama }}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <FormField v-slot="{ componentField }" name="iconMenu">
-            <FormItem>
-              <FormLabel>Icon Menu</FormLabel>
-              <Select v-bind="componentField">
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Icon Menu" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem
-                      v-for="(item, index) in listIconMenu"
-                      :key="index"
-                      :value="item.icon"
-                    >
-                      {{ item.nama }} - {{ item.icon }}
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-          <DialogFooter>
-            <DialogClose as-child>
-              <Button type="button" variant="secondary" @click="closeDialog">
-                Close
-              </Button>
-            </DialogClose>
-            <span v-if="isSubmitting">
-              <Button disabled>
-                <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-                Saving..
-              </Button>
-            </span>
-            <Button v-else type="submit">
-              Save
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    v-for="(item, index) in listMenuHeader"
+                    :key="index"
+                    :value="item.id"
+                  >
+                    {{ item.namaMenu }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="noUrut">
+          <FormItem>
+            <FormLabel>No Urut</FormLabel>
+            <FormControl>
+              <Input type="number" v-bind="componentField" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="levelMenu">
+          <FormItem>
+            <FormLabel>Level Menu</FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Level Menu" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    v-for="(item, index) in listLevelmenu"
+                    :key="index"
+                    :value="String(item.nilai)"
+                  >
+                    {{ item.nilai }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="tipeMenu">
+          <FormItem>
+            <FormLabel>Tipe Menu</FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Tipe Menu" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    v-for="(item, index) in listTipeMenu"
+                    :key="index"
+                    :value="item.nama"
+                  >
+                    {{ item.nama }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <FormField v-slot="{ componentField }" name="iconMenu">
+          <FormItem>
+            <FormLabel>Icon Menu</FormLabel>
+            <Select v-bind="componentField">
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Icon Menu" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem
+                    v-for="(item, index) in listIconMenu"
+                    :key="index"
+                    :value="item.icon"
+                  >
+                    {{ item.nama }} - {{ item.icon }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+        <DialogFooter>
+          <DialogClose as-child>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
             </Button>
-          </DialogFooter>
-        </form>
-      </div>
+          </DialogClose>
+          <span v-if="isSubmitting">
+            <Button disabled>
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+              Saving..
+            </Button>
+          </span>
+          <Button v-else type="submit">
+            Save
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
   </Dialog>
 </template>

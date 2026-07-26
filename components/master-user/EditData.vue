@@ -39,7 +39,7 @@ const userData = ref<any>(null)
 
 const formSchema = toTypedSchema(
   z.object({
-    username: z.string(),
+    username: z.string().min(1, 'Email wajib diisi').email('Format email tidak valid'),
     nama: z.string(),
     // password: z.string().optional(),
     roleId: z.string(),
@@ -50,12 +50,6 @@ const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: formSchema,
 })
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 // Fitur Toggle View Password
 const showPassword = ref(false)
@@ -65,20 +59,12 @@ function togglePassword() {
 
 async function fetchUserData() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    const data = await response.json()
-    // console.log(data.data)
+    const data = await apiFetch(`/api/backoffice/users/${props.id}`)
     userData.value = data.data
     setValues({
       username: data.data.username,
       nama: data.data.nama,
       roleId: String(data.data.idRole),
-      // password: data.data.password,
     })
   }
   catch (error) {
@@ -89,19 +75,8 @@ const dataRole = ref<any[]>([])
 
 async function fetchRoles() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (response.ok) {
-      const data = await response.json()
-      dataRole.value = data.data
-    }
-    else {
-      console.error('Failed to fetch roles')
-    }
+    const data = await apiFetch('/api/backoffice/roles')
+    dataRole.value = data.data || []
   }
   catch (error) {
     console.error('Fetch roles error:', error)
@@ -138,25 +113,19 @@ const onSubmit = handleSubmit(async (values: any) => {
   }
   // console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.id}`, {
+    await apiFetch(`/api/backoffice/users/${props.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
-    if (response.ok) {
-      toast({ title: 'Success', description: 'Data berhasil diupdate.' })
-
-      setTimeout(() => {
-        emit('dataUpdated')
-        isDialogOpen.value = false
-      }, 300)
-    }
-    else {
-      toast({ title: 'Error', description: 'Gagal mengupdate data.' })
-    }
+    toast({ title: 'Success', description: 'Data berhasil diupdate.' })
+    setTimeout(() => {
+      emit('dataUpdated')
+      isDialogOpen.value = false
+    }, 300)
   }
   catch (error) {
-    toast({ title: 'Error', description: 'Terjadi kesalahan saat update.' })
+    console.error('Error update:', error)
+    toast({ title: 'Error', description: 'Gagal mengupdate data.' })
   }
   finally {
     isSubmitting.value = false
@@ -198,7 +167,7 @@ const onSubmit = handleSubmit(async (values: any) => {
           <FormItem>
             <FormLabel>Username/Email</FormLabel>
             <FormControl>
-              <Input type="text" placeholder="Username" v-bind="componentField" />
+              <Input type="email" placeholder="nama@domain.com" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>
