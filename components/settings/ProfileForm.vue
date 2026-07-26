@@ -166,15 +166,15 @@ const onSubmit = handleSubmit(async (values) => {
 
   <Separator />
 
-  <div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+  <div class="grid gap-4 lg:grid-cols-[240px_1fr]">
     <Card>
-      <CardHeader>
+      <CardHeader class="p-4">
         <CardTitle>Foto Profile</CardTitle>
         <CardDescription> Foto profile akun anda </CardDescription>
       </CardHeader>
 
-      <CardContent class="flex flex-col items-center gap-4">
-        <Avatar class="h-32 w-32">
+      <CardContent class="flex flex-col items-center gap-3 p-4">
+        <Avatar class="h-24 w-24">
           <AvatarImage :src="avatarPreview" />
           <AvatarFallback class="text-2xl">
             {{ initials }}
@@ -219,7 +219,7 @@ const onSubmit = handleSubmit(async (values) => {
       </CardContent>
     </Card>
 
-    <form class="space-y-8" @submit="onSubmit">
+    <form class="space-y-4" @submit="onSubmit">
       <FormField v-slot="{ componentField }" name="username">
         <FormItem>
           <FormLabel>Username</FormLabel>

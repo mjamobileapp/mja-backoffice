@@ -123,6 +123,12 @@ function goToChangePassword() {
   setOpenMobile(false)
   navigateTo('/settings/change-password')
 }
+
+function goToAppVersion() {
+  setOpenMobile(false)
+  navigateTo('/settings/app-version')
+}
+
 </script>
 
 <template>
@@ -166,7 +172,14 @@ function goToChangePassword() {
             @click="goToChangePassword"
           >
             <Icon name="i-lucide-lock-keyhole" class="size-4 text-[#111827]" />
-            Change Password
+            Ubah Password
+          </DropdownMenuItem> 
+          <DropdownMenuItem
+            class="my-1 h-10 gap-2 rounded-md px-2.5 text-sm text-[#111827] focus:bg-[#f3f4f6]"
+            @click="goToAppVersion"
+          >
+            <Icon name="i-lucide-smartphone" class="size-4 text-[#111827]" />
+            App Version
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

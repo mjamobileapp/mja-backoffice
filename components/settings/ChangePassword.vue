@@ -52,7 +52,7 @@ const changePasswordSchema = toTypedSchema(
   z
     .object({
       oldPassword: z.string().min(1, {
-        message: 'Password lama wajib diisi.',
+        message: 'Password saat ini wajib diisi.',
       }),
       newPassword: z.string().min(8, {
         message: 'Password baru minimal 8 karakter.',
@@ -137,19 +137,19 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div>
     <h3 class="text-lg font-medium">
-      Change Password
+      Ubah Password
     </h3>
     <p class="text-sm text-muted-foreground">
-      Update your account password. Use a strong password to keep your account secure.
+      Perbarui kata sandi akun Anda. Gunakan kata sandi yang kuat untuk menjaga keamanan akun Anda.
     </p>
   </div>
 
   <Separator class="my-4" />
 
-  <form class="space-y-8" @submit="onSubmit">
+  <form class="space-y-4" @submit="onSubmit">
     <FormField v-slot="{ componentField }" name="oldPassword">
       <FormItem>
-        <FormLabel>Password Lama</FormLabel>
+        <FormLabel>Password Saat Ini</FormLabel>
 
         <div class="relative w-full flex items-center">
           <FormControl>
@@ -157,7 +157,7 @@ const onSubmit = handleSubmit(async (values) => {
               v-bind="componentField"
               ref="oldPasswordInput"
               type="password"
-              placeholder="Masukkan password lama"
+              placeholder="Masukkan password saat ini"
               class="w-full pr-10"
               :disabled="isLoading"
             />
