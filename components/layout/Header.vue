@@ -185,7 +185,9 @@ function goToChangePassword() {
 <style scoped>
 .profile-trigger {
   display: flex !important;
-  width: 190px;
+  width: fit-content;
+  min-width: 190px;
+  max-width: min(360px, 42vw);
   height: 48px;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -215,6 +217,7 @@ function goToChangePassword() {
   display: flex !important;
   min-width: 0;
   flex: 1 1 auto;
+  max-width: 260px;
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: center !important;
@@ -222,7 +225,7 @@ function goToChangePassword() {
 }
 
 .profile-name {
-  max-width: 120px;
+  width: 100%;
   overflow: hidden;
   color: #111827;
   font-size: 14px;
@@ -233,7 +236,7 @@ function goToChangePassword() {
 }
 
 .profile-role {
-  max-width: 120px;
+  width: 100%;
   margin-top: 2px;
   overflow: hidden;
   color: #6b7280;
@@ -253,5 +256,16 @@ function goToChangePassword() {
 
 .profile-trigger[data-state='open'] .profile-chevron {
   transform: rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .profile-trigger {
+    min-width: 0;
+    max-width: min(260px, 48vw);
+  }
+
+  .profile-copy {
+    max-width: 170px;
+  }
 }
 </style>
