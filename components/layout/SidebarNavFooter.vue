@@ -89,7 +89,7 @@ const showModalTheme = ref(false)
 
           <DropdownMenuItem @click="goToChangePassword">
             <Icon name="i-lucide-lock-keyhole" />
-            Change Password
+            Ubah Password
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
