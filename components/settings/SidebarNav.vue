@@ -14,7 +14,7 @@ const sidebarNavItems: Item[] = [
     href: '/settings/profile',
   },
   {
-    title: 'Change Password',
+    title: 'Ubah Password',
     href: '/settings/change-password',
   },
   // ,
