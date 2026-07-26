@@ -10,7 +10,7 @@ import {
 import { toTypedSchema } from '@vee-validate/zod'
 import Datepicker from '@vuepic/vue-datepicker'
 import { toDate } from 'date-fns'
-import { Loader2, Notebook } from 'lucide-vue-next'
+import { ChevronsUpDown, Loader2, Notebook } from 'lucide-vue-next'
 import { FieldArray, useForm } from 'vee-validate'
 import { h, ref } from 'vue'
 import * as z from 'zod'
@@ -208,7 +208,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      :class="cn('h-10 w-full justify-between', !value && 'text-muted-foreground')"
+                      :class="cn('h-9 w-full justify-between whitespace-nowrap px-3 py-2 text-sm font-normal', !value && 'text-muted-foreground')"
                     >
                       {{
                         value

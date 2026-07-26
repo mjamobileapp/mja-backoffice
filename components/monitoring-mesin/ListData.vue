@@ -16,6 +16,14 @@ const selectedCabangId = ref<number | null>(null)
 
 // State data mesin hasil fetch
 const dataMesin = ref<any[]>([])
+const isConfirmOpen = ref(false)
+const pendingToggle = ref<{
+  espId: string
+  jenis: 'dryer' | 'washer'
+  mesinTarget: any
+  unitMesin: any
+  isTurningOn: boolean
+} | null>(null)
 
 // Mengambil Token dari Cookie
 const accessToken = useCookie<any>('accessToken')
@@ -119,8 +127,8 @@ watch(selectedCabangId, (newCabangId) => {
   }
 })
 
-// FUNGSI UTAMA START/STOP MESIN DENGAN POP-UP KONFIRMASI BROWSER
-async function toggleStatus(espId: string, jenis: 'dryer' | 'washer') {
+// Membuka konfirmasi sebelum mengirim perintah start/stop ke mesin.
+function toggleStatus(espId: string, jenis: 'dryer' | 'washer') {
   const mesinTarget = dataMesin.value.find(item => item.espId === espId)
   if (!mesinTarget)
     return
@@ -129,15 +137,26 @@ async function toggleStatus(espId: string, jenis: 'dryer' | 'washer') {
   if (!unitMesin)
     return
 
-  const isTurningOn = unitMesin.status === 'READY'
-  const tindakanTeks = isTurningOn ? 'MENYALAKAN' : 'MENGHENTIKAN'
+  pendingToggle.value = {
+    espId,
+    jenis,
+    mesinTarget,
+    unitMesin,
+    isTurningOn: unitMesin.status === 'READY',
+  }
+  isConfirmOpen.value = true
+}
 
-  const yakin = window.confirm(
-    `Konfirmasi Tindakan:\nApakah Anda yakin ingin ${tindakanTeks.toLowerCase()} unit ${jenis} di ${mesinTarget.namaGroupMesin}?`,
-  )
-
-  if (!yakin)
+// Menjalankan perintah setelah user mengonfirmasi melalui AlertDialog.
+async function executeToggleStatus() {
+  const pending = pendingToggle.value
+  if (!pending)
     return
+
+  isConfirmOpen.value = false
+
+  const { unitMesin, isTurningOn, mesinTarget } = pending
+  const tindakanTeks = isTurningOn ? 'MENYALAKAN' : 'MENGHENTIKAN'
 
   try {
     const targetUrl = isTurningOn
@@ -172,12 +191,52 @@ async function toggleStatus(espId: string, jenis: 'dryer' | 'washer') {
   }
 }
 
+const pendingMachineLabel = computed(() => {
+  if (!pendingToggle.value)
+    return 'mesin'
+
+  return pendingToggle.value.jenis === 'dryer' ? 'Dryer' : 'Washer'
+})
+
+const pendingActionLabel = computed(() => pendingToggle.value?.isTurningOn ? 'menyalakan' : 'menghentikan')
+
+function getPowerTooltip(unit: any, jenis: 'dryer' | 'washer') {
+  const label = jenis === 'dryer' ? 'Dryer' : 'Washer'
+
+  if (!unit)
+    return `${label} tidak tersedia`
+
+  return unit.status === 'READY' ? `Nyalakan ${label}` : `Matikan ${label}`
+}
+
 onMounted(() => {
   fetchAllMitra()
 })
 </script>
 
 <template>
+  <AlertDialog v-model:open="isConfirmOpen">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>
+          Konfirmasi {{ pendingToggle?.isTurningOn ? 'Nyalakan' : 'Matikan' }} Mesin
+        </AlertDialogTitle>
+        <AlertDialogDescription>
+          Apakah Anda yakin ingin {{ pendingActionLabel }} unit {{ pendingMachineLabel }}
+          di {{ pendingToggle?.mesinTarget?.namaGroupMesin || 'lokasi ini' }}?
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel @click="pendingToggle = null">
+          Cancel
+        </AlertDialogCancel>
+        <AlertDialogAction @click="executeToggleStatus">
+          {{ pendingToggle?.isTurningOn ? 'Nyalakan' : 'Matikan' }}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+
   <Card class="w-full">
     <CardHeader class="flex flex-col gap-4 border-b pb-6 lg:flex-row lg:items-center lg:justify-between space-y-0">
       <div>
@@ -185,7 +244,7 @@ onMounted(() => {
           Quick Switch
         </CardTitle>
         <p class="text-sm text-muted-foreground">
-          Status Mesin Realtime (Mode Owner)
+          Status Mesin Realtime
         </p>
       </div>
 
@@ -232,7 +291,7 @@ onMounted(() => {
           </div>
           <div class="flex items-center gap-1.5">
             <span class="h-2.5 w-2.5 rounded-full bg-[#4caf50]" />
-            <span>ON / READY</span>
+            <span>ON</span>
           </div>
         </div>
       </div>
@@ -273,43 +332,67 @@ onMounted(() => {
           </div>
 
           <!-- Sisi Kanan: Kontrol Saklar (Dryer & Washer) -->
-          <div class="h-full w-[90px] flex flex-col overflow-hidden border border-white/40 rounded-xl bg-white/10">
+          <div class="h-full w-[136px] flex flex-col overflow-hidden border border-white/40 rounded-xl bg-white/10">
             <!-- SEKSI DRYER -->
-            <div class="flex flex-1 items-center justify-between border-b border-white/30 px-2.5">
-              <div class="flex items-center gap-1">
+            <div class="flex flex-1 items-center justify-between border-b border-white/30 px-3">
+              <div class="flex min-w-0 items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
                   :class="!mesin.dryer ? 'bg-[#9aa0a6]' : (mesin.dryer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
                 />
-                <span class="text-[11px] font-bold">Dryer</span>
+                <span class="truncate text-xs font-bold">Dryer</span>
               </div>
-              <button
-                :disabled="!mesin.dryer"
-                class="h-7 w-7 flex items-center justify-center rounded-lg transition-all active:scale-95 disabled:opacity-40"
-                :class="!mesin.dryer ? 'bg-[#9aa0a6]' : (mesin.dryer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
-                @click="toggleStatus(mesin.espId, 'dryer')"
-              >
-                <Power class="h-3.5 w-3.5 text-white" />
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span class="inline-flex">
+                      <button
+                        :disabled="!mesin.dryer"
+                        :aria-label="getPowerTooltip(mesin.dryer, 'dryer')"
+                        class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
+                        :class="!mesin.dryer ? 'bg-[#9aa0a6]' : (mesin.dryer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                        @click="toggleStatus(mesin.espId, 'dryer')"
+                      >
+                        <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{{ getPowerTooltip(mesin.dryer, 'dryer') }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <!-- SEKSI WASHER -->
-            <div class="flex flex-1 items-center justify-between px-2.5">
-              <div class="flex items-center gap-1">
+            <div class="flex flex-1 items-center justify-between px-3">
+              <div class="flex min-w-0 items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
                   :class="!mesin.washer ? 'bg-[#9aa0a6]' : (mesin.washer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
                 />
-                <span class="text-[11px] font-bold">Washer</span>
+                <span class="truncate text-xs font-bold">Washer</span>
               </div>
-              <button
-                :disabled="!mesin.washer"
-                class="h-7 w-7 flex items-center justify-center rounded-lg transition-all active:scale-95 disabled:opacity-40"
-                :class="!mesin.washer ? 'bg-[#9aa0a6]' : (mesin.washer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
-                @click="toggleStatus(mesin.espId, 'washer')"
-              >
-                <Power class="h-3.5 w-3.5 text-white" />
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <span class="inline-flex">
+                      <button
+                        :disabled="!mesin.washer"
+                        :aria-label="getPowerTooltip(mesin.washer, 'washer')"
+                        class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
+                        :class="!mesin.washer ? 'bg-[#9aa0a6]' : (mesin.washer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                        @click="toggleStatus(mesin.espId, 'washer')"
+                      >
+                        <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{{ getPowerTooltip(mesin.washer, 'washer') }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>

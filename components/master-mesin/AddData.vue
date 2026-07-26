@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2 } from 'lucide-vue-next'
+import { ChevronsUpDown, Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref } from 'vue'
 import * as z from 'zod'
@@ -209,7 +209,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      :class="cn('h-9 w-full justify-between whitespace-nowrap px-3 py-2 text-sm font-normal', !value && 'text-muted-foreground')"
                     >
                       {{
                         value
@@ -263,7 +263,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      :class="cn('justify-between', !value && 'text-muted-foreground')"
+                      :class="cn('h-9 w-full justify-between whitespace-nowrap px-3 py-2 text-sm font-normal', !value && 'text-muted-foreground')"
                     >
                       {{
                         value
