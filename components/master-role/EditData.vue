@@ -1,22 +1,20 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { Loader2, PencilIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
 import { toast } from '~/components/ui/toast'
-import * as z from 'zod'
-import { PencilIcon } from 'lucide-vue-next'
-
-const emit = defineEmits(['dataUpdated'])
 
 const props = defineProps({
   id: {
@@ -25,21 +23,23 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['dataUpdated'])
+
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
 const formSchema = toTypedSchema(
   z.object({
     namaRole: z.string().min(2).max(50),
     description: z.string().min(2).max(200),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -79,14 +79,16 @@ async function fetchData() {
       namaRole: res.data.namaRole,
       description: res.data.description,
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error fetching data:', error)
     toast({
       title: 'Error',
       description: 'Gagal mengambil data.',
     })
     closeDialog()
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -104,7 +106,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'PUT', // atau PATCH
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -120,32 +122,35 @@ const onSubmit = handleSubmit(async (values: any) => {
         isDialogOpen.value = false
         resetForm()
       }, 300)
-    } else {
+    }
+    else {
       toast({
         title: 'Error',
         description: 'Gagal memperbarui data. Silakan coba lagi.',
       })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error updating data:', error)
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengirim data.',
     })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button class="mr-2" @click="openDialog"
-        ><PencilIcon class="w-4 h-4 mr-2" /> Edit Data</Button
-      >
+      <Button class="mr-2" @click="openDialog">
+        <PencilIcon class="mr-2 h-4 w-4" /> Edit Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Edit Data Master Role</DialogTitle>
       </DialogHeader>
@@ -173,15 +178,19 @@ const onSubmit = handleSubmit(async (values: any) => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
           <span v-if="isSubmitting">
             <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Updating..
             </Button>
           </span>
-          <Button type="submit" v-else>Update </Button>
+          <Button v-else type="submit">
+            Update
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

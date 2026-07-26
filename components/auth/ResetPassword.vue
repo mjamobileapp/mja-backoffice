@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { Eye, EyeOff, Loader2 } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, Eye, EyeOff } from 'lucide-vue-next'
 
 definePageMeta({
   layout: 'blank',
@@ -18,7 +18,8 @@ function decodeJwtPayload(jwtToken: string) {
     const base64Payload = jwtToken.split('.')[1]
     const payload = atob(base64Payload)
     return JSON.parse(payload)
-  } catch {
+  }
+  catch {
     return null
   }
 }
@@ -41,7 +42,8 @@ const isTokenExpired = ref(false)
 // Cek apakah token sudah expired berdasarkan field `exp` di JWT payload
 function checkTokenExpired(jwtToken: string): boolean {
   const payload = decodeJwtPayload(jwtToken)
-  if (!payload || !payload.exp) return false // Jika tidak ada exp, anggap belum expired
+  if (!payload || !payload.exp)
+    return false // Jika tidak ada exp, anggap belum expired
   const now = Math.floor(Date.now() / 1000) // Current time dalam detik (Unix timestamp)
   return now >= payload.exp
 }
@@ -114,13 +116,16 @@ async function handleSubmit(event: Event) {
       setTimeout(() => {
         router.push('/login')
       }, 3000)
-    } else {
+    }
+    else {
       successMessage.value = 'Password Anda berhasil diperbarui!'
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Reset password error:', error)
     errorMessage.value = error.data?.message || 'Gagal memperbarui password. Silakan coba lagi.'
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -130,19 +135,21 @@ async function handleSubmit(event: Event) {
   <div class="flex flex-col items-center justify-center gap-6 bg-muted p-6 min-h-svh md:p-10">
     <div class="max-w-sm w-full flex flex-col gap-6">
       <NuxtLink to="#" class="flex items-center self-center gap-3 font-medium">
-        <img src="/mja-logo.png" alt="MJA Logo" class="h-20 w-20 object-contain" />
+        <img src="/mja-logo.png" alt="MJA Logo" class="h-20 w-20 object-contain">
         <span>MJA Back Office</span>
       </NuxtLink>
 
       <Card>
         <CardHeader class="text-center">
-          <CardTitle class="text-xl"> Create New Password </CardTitle>
+          <CardTitle class="text-xl">
+            Create New Password
+          </CardTitle>
           <CardDescription> Create a new password for your account. </CardDescription>
         </CardHeader>
         <CardContent>
           <div class="grid mx-auto max-w-sm gap-6">
             <!-- Form Input Password Baru -->
-            <form v-if="!successMessage && !isTokenExpired" @submit="handleSubmit" class="grid gap-4">
+            <form v-if="!successMessage && !isTokenExpired" class="grid gap-4" @submit="handleSubmit">
               <!-- Input Password Baru -->
               <div class="grid gap-2">
                 <Label for="password">New Password</Label>
@@ -202,13 +209,12 @@ async function handleSubmit(event: Event) {
             <!-- Alert State (Error / Success) -->
             <p
               v-if="errorMessage"
+              class="rounded bg-destructive/10 p-3 text-center text-sm text-destructive font-medium"
               v-html="errorMessage"
-              class="text-center text-sm text-destructive font-medium bg-destructive/10 p-3 rounded"
-            >
-            </p>
+            />
             <p
               v-if="successMessage"
-              class="text-center text-sm text-green-600 font-medium bg-green-50 p-3 rounded border border-green-200"
+              class="border border-green-200 rounded bg-green-50 p-3 text-center text-sm text-green-600 font-medium"
             >
               {{ successMessage }}
             </p>

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { Loader2 } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,10 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { toTypedSchema } from '@vee-validate/zod'
-import { useForm } from 'vee-validate'
 import { toast } from '~/components/ui/toast'
-import * as z from 'zod'
 
 const emit = defineEmits(['dataAdded'])
 
@@ -21,13 +22,13 @@ const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 const formSchema = toTypedSchema(
   z.object({
     namaRole: z.string().min(2).max(50),
     description: z.string().min(2).max(200),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm } = useForm({
@@ -45,7 +46,7 @@ function closeDialog() {
   resetForm()
 }
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.email || 'no-email@example.com')
 const isSubmitting = ref(false)
 const onSubmit = handleSubmit(async (values: any) => {
@@ -64,7 +65,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -80,30 +81,35 @@ const onSubmit = handleSubmit(async (values: any) => {
         isDialogOpen.value = false
         resetForm()
       }, 300)
-    } else {
+    }
+    else {
       toast({
         title: 'Error',
         description: 'Gagal menyimpan data. Silakan coba lagi.',
       })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengirim data.',
     })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="openDialog">
+        Add Data
+      </Button>
     </DialogTrigger>
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Add Data Master Role</DialogTitle>
       </DialogHeader>
@@ -121,7 +127,7 @@ const onSubmit = handleSubmit(async (values: any) => {
           <FormItem>
             <FormLabel>Deskripsi</FormLabel>
             <FormControl>
-              <Textarea placeholder="deskripsi" v-bind="componentField" cols="5"></Textarea>
+              <Textarea placeholder="deskripsi" v-bind="componentField" cols="5" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -129,15 +135,19 @@ const onSubmit = handleSubmit(async (values: any) => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
           <span v-if="isSubmitting">
             <Button disabled>
-              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Saving..
             </Button>
           </span>
-          <Button type="submit" v-else>Save </Button>
+          <Button v-else type="submit">
+            Save
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

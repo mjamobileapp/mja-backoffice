@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
 import { useRuntimeConfig } from '#app' // jika kamu pakai Nuxt 3
+import { onMounted, ref, watch } from 'vue'
 import CustomChartTooltip from './CustomChartTooltip.vue'
 
 // Props untuk idProyek (supaya bisa dipakai dinamis)
@@ -14,11 +14,11 @@ const props = defineProps({
 // console.log(props.idProyek)
 
 // get token====================
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 // Reaktif data chart
-const dataBarchart = ref<{ name: string; total: number }[]>([])
+const dataBarchart = ref<{ name: string, total: number }[]>([])
 
 // Ambil base URL dari runtime config (Nuxt) atau bisa juga langsung string
 const config = useRuntimeConfig()
@@ -35,14 +35,16 @@ async function fetchDataBarchart() {
     })
     const result = await response.json()
 
-    if (!result.success) throw new Error(result.message || 'Gagal mengambil data')
+    if (!result.success)
+      throw new Error(result.message || 'Gagal mengambil data')
 
     // isi data ke chart
     dataBarchart.value = result.data.map((item: any) => ({
       name: item.name,
       total: Number(item.total) || 0,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error fetching barchart:', error)
     dataBarchart.value = []
   }
@@ -70,6 +72,8 @@ watch(() => props.idProyek, fetchDataBarchart)
       "
       :custom-tooltip="CustomChartTooltip"
     />
-    <div v-else class="text-center py-10 text-muted-foreground">Memuat data chart...</div>
+    <div v-else class="py-10 text-center text-muted-foreground">
+      Memuat data chart...
+    </div>
   </div>
 </template>

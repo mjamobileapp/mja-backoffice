@@ -11,11 +11,10 @@ defineShortcuts({
   Meta_K: () => openCommand.value = true,
 })
 
-const componentsNav = computed<NavGroup | undefined>(() => {
+const componentsNav = computed(() => {
   return navMenu
     .flatMap((nav: NavMenu) => nav.items)
-    // @ts-expect-error - We know that the title is unique
-    .find((item: NavGroup) => item.title === 'Components')
+    .find((item): item is NavGroup => 'children' in item && item.title === 'Components')
 })
 
 function handleSelectLink(link: string) {

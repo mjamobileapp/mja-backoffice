@@ -1,47 +1,24 @@
 <script setup lang="ts">
+import { TrashIcon } from 'lucide-vue-next'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
 
-const props = defineProps(['item'])
-const emit = defineEmits(['dataDeleted'])
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
+const props = defineProps<{ item: { id: number | string; username?: string } }>()
+const emit = defineEmits<{ dataDeleted: [id: number | string] }>()
 
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/users/${props.item.id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (response.ok) {
-      emit('dataDeleted', props.item.id)
-      toast({
-        title: 'Success',
-        description: 'Data berhasil dihapus.',
-      })
-    } else {
-      console.error('Gagal menghapus data')
-    }
-  } catch (error) {
-    console.error('Error:', error)
+    await apiFetch(`/api/backoffice/users/${props.item.id}`, { method: 'DELETE' })
+    emit('dataDeleted', props.item.id)
+    toast({ title: 'Success', description: 'Data berhasil dihapus.' })
+  }
+  catch (error) {
+    console.error('Error menghapus data:', error)
+    toast({ title: 'Error', description: 'Gagal menghapus data.', variant: 'destructive' })
   }
 }
 </script>
@@ -51,26 +28,15 @@ async function deleteItem() {
     <AlertDialogTrigger>
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger as-child>
-            <Button size="sm">
-              <TrashIcon class="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Delete Data</p>
-          </TooltipContent>
+          <TooltipTrigger as-child><Button size="sm"><TrashIcon class="h-4 w-4" /></Button></TooltipTrigger>
+          <TooltipContent><p>Delete Data</p></TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle
-          >Apakah anda yakin menghapus data {{ props.item.username }}?
-        </AlertDialogTitle>
-        <AlertDialogDescription>
-          data yg dihapus tidak bisa dikembalikan kembali, jadi pastikan anda yakin untuk menghapus
-          data ini.
-        </AlertDialogDescription>
+        <AlertDialogTitle>Apakah anda yakin menghapus data {{ props.item.username }}?</AlertDialogTitle>
+        <AlertDialogDescription>Data yang dihapus tidak bisa dikembalikan kembali.</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { Loader2 } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -13,11 +18,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2 } from 'lucide-vue-next'
-import { useForm } from 'vee-validate'
-import { ref, computed } from 'vue'
-import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
@@ -25,10 +25,10 @@ const emit = defineEmits(['dataAdded'])
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser')
+const currentUser = useCookie<any>('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
@@ -42,7 +42,7 @@ const profileFormSchema = toTypedSchema(
     espId: z.string().min(1, 'ESP ID wajib diisi'),
     washer: z.boolean().default(false),
     dryer: z.boolean().default(false),
-  })
+  }),
 )
 
 const isSubmitting = ref(false)
@@ -86,7 +86,8 @@ async function fetchDataMitra() {
       kodeMitra: item.kodeMitra,
       namaMitra: item.namaMitra,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data Mitra:', error)
     mitraList.value = []
   }
@@ -106,7 +107,8 @@ async function fetchDataCabangByMitra(idMitra: number) {
       kodeCabang: item.kodeCabang,
       namaCabang: item.namaCabang,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data Cabang by Mitra:', error)
     cabangList.value = []
   }
@@ -147,7 +149,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -161,31 +163,36 @@ const onSubmit = handleSubmit(async (values: any) => {
       emit('dataAdded')
       resetForm()
       isDialogOpen.value = false
-    } else {
+    }
+    else {
       toast({
         title: 'Error',
         description: 'Gagal menyimpan data. Silakan coba lagi.',
       })
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error submitting data:', error)
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengirim data.',
     })
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
-      <Button @click="openDialog">Add Data</Button>
+      <Button @click="openDialog">
+        Add Data
+      </Button>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Add Data Mesin</DialogTitle>
@@ -230,7 +237,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                             :class="
                               cn(
                                 'mr-2 h-4 w-4',
-                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0'
+                                value === (item.idMitra || item.id) ? 'opacity-100' : 'opacity-0',
                               )
                             "
                           />
@@ -261,7 +268,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                       {{
                         value
                           ? cabangList.find(item => (item.cabangId || item.id) === value)
-                              ?.namaCabang
+                            ?.namaCabang
                           : 'Pilih Cabang...'
                       }}
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -285,7 +292,7 @@ const onSubmit = handleSubmit(async (values: any) => {
                             :class="
                               cn(
                                 'mr-2 h-4 w-4',
-                                value === (item.cabangId || item.id) ? 'opacity-100' : 'opacity-0'
+                                value === (item.cabangId || item.id) ? 'opacity-100' : 'opacity-0',
                               )
                             "
                           />
@@ -319,7 +326,9 @@ const onSubmit = handleSubmit(async (values: any) => {
                 <FormControl>
                   <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
-                <FormLabel class="font-normal"> Washer </FormLabel>
+                <FormLabel class="font-normal">
+                  Washer
+                </FormLabel>
               </FormItem>
             </FormField>
 
@@ -328,7 +337,9 @@ const onSubmit = handleSubmit(async (values: any) => {
                 <FormControl>
                   <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
-                <FormLabel class="font-normal"> Dryer </FormLabel>
+                <FormLabel class="font-normal">
+                  Dryer
+                </FormLabel>
               </FormItem>
             </FormField>
           </div>
@@ -336,15 +347,19 @@ const onSubmit = handleSubmit(async (values: any) => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
 
           <Button v-if="isSubmitting" disabled>
-            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             Saving..
           </Button>
 
-          <Button v-else type="submit"> Save </Button>
+          <Button v-else type="submit">
+            Save
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

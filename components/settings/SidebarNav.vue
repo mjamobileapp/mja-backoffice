@@ -42,7 +42,7 @@ const sidebarNavItems: Item[] = [
       :class="
         cn(
           'w-full text-left justify-start items-start',
-          route.path === item.href && 'bg-muted hover:bg-muted'
+          route.path === item.href && 'bg-muted hover:bg-muted',
         )
       "
       as-child

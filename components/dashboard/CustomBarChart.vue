@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js'
 import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
-
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 const props = defineProps<{
-  data: { name: string; total: number; color?: string }[]
+  data: { name: string, total: number, color?: string }[]
 }>()
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
 // 🟢 Buat data chart dengan warna dinamis dari API
 const chartData = computed(() => ({
@@ -15,7 +15,7 @@ const chartData = computed(() => ({
     {
       label: 'Nilai Proyek (Rp)',
       data: props.data.map(d => Number(d.total) || 0),
-      backgroundColor: props.data.map(d => {
+      backgroundColor: props.data.map((d) => {
         // console.log(d.color)
         // mapping warna dasar dari API
         switch ((d.color || '').toLowerCase()) {
@@ -41,7 +41,7 @@ const chartData = computed(() => ({
 }))
 
 // ⚙️ Opsi Chart
-const chartOptions = {
+const chartOptions: any = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -50,7 +50,7 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: context => {
+        label: (context) => {
           const val = context.parsed.y || 0
           return `Rp ${new Intl.NumberFormat('id-ID').format(val)}`
         },
@@ -78,7 +78,7 @@ const chartOptions = {
 </script>
 
 <template>
-  <div class="w-full h-[350px]">
+  <div class="h-[350px] w-full">
     <Bar :data="chartData" :options="chartOptions" />
   </div>
 </template>

@@ -2,6 +2,7 @@
 import ListData from '~/components/master-mesin/ListData.vue'
 import ListDataDetail from '~/components/master-mesin/ListDataDetail.vue'
 </script>
+
 <template>
   <Card class="w-full">
     <CardHeader>
@@ -11,9 +12,13 @@ import ListDataDetail from '~/components/master-mesin/ListDataDetail.vue'
     <CardContent>
       <Tabs default-value="mesin" class="w-full">
         <TabsList>
-          <TabsTrigger value="mesin"> Data Mesin </TabsTrigger>
+          <TabsTrigger value="mesin">
+            Data Mesin
+          </TabsTrigger>
 
-          <TabsTrigger value="detail"> Detail Mesin </TabsTrigger>
+          <TabsTrigger value="detail">
+            Detail Mesin
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="mesin">

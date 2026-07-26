@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/dianprata/monitoring-project-apps.git"
   },
+  "bugs": {
+    "url": "https://github.com/dianprata/monitoring-project-apps/issues"
+  },
   "keywords": [
     "dashboard",
     "admin-dashboard",
@@ -68,6 +71,7 @@
     "@vueuse/core": "^12.2.0",
     "@vueuse/math": "^12.2.0",
     "@vueuse/nuxt": "^12.2.0",
+    "baseline-browser-mapping": "^2.11.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -89,9 +93,6 @@
     "vue-sonner": "^1.3.0",
     "vue-tsc": "^2.1.10",
     "zod": "^3.24.1"
-  },
-  "bugs": {
-    "url": "https://github.com/dianprata/monitoring-project-apps/issues"
   },
   "directories": {
     "lib": "lib"

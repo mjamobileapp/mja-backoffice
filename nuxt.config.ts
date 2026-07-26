@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: process.env.NODE_ENV !== 'production' },
+  devtools: { enabled: false },
 
   runtimeConfig: {
     public: {
@@ -35,7 +35,6 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/components': { redirect: '/components/accordion' },
     '/settings': { redirect: '/settings/profile' },
     '/master-data': { redirect: '/master-data/master-mitra' },
   },

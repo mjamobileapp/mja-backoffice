@@ -52,6 +52,6 @@ jobs:
             echo "NUXT_PUBLIC_API_BASE=https://apidev.mjasmartlaundry.cloud" > .env
 
             npm install --omit=dev
-            
+
             # Tambahkan --update-env agar PM2 memuat ulang file .env yang baru
             pm2 restart frontend-dev --update-env

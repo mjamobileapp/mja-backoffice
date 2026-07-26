@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { Loader2, PencilIcon } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { computed, ref } from 'vue'
+import { toast } from 'vue-sonner'
+import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -10,16 +16,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { toTypedSchema } from '@vee-validate/zod'
-import { Loader2, PencilIcon } from 'lucide-vue-next'
-import { useForm } from 'vee-validate'
-import { ref, computed } from 'vue'
-import { toast } from 'vue-sonner'
-import * as z from 'zod'
 
 const props = defineProps<{
   espId: string
@@ -32,10 +32,10 @@ const emit = defineEmits<{
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const currentUser = useCookie('currentUser')
+const currentUser = useCookie<any>('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
@@ -50,7 +50,7 @@ const profileFormSchema = toTypedSchema(
     espId: z.string().min(1, 'ESP ID wajib diisi'),
     washer: z.boolean().default(false),
     dryer: z.boolean().default(false),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm, setValues, values } = useForm({
@@ -85,7 +85,8 @@ async function fetchDataMitra() {
       kodeMitra: item.kodeMitra,
       namaMitra: item.namaMitra,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data Mitra:', error)
     mitraList.value = []
   }
@@ -105,7 +106,8 @@ async function fetchDataCabangByMitra(idMitra: number) {
       kodeCabang: item.kodeCabang,
       namaCabang: item.namaCabang,
     }))
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data Cabang by Mitra:', error)
     cabangList.value = []
   }
@@ -134,10 +136,12 @@ async function fetchData() {
 
       console.log(JSON.stringify(data))
       await fetchDataCabangByMitra(Number(data.idMitra))
-    } else {
+    }
+    else {
       console.error('Gagal mengambil data. Status:', response.status)
     }
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Fetch error:', error.message)
   }
 }
@@ -177,7 +181,7 @@ const onSubmit = handleSubmit(async () => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(dataForm),
     })
@@ -187,26 +191,29 @@ const onSubmit = handleSubmit(async () => {
       toast.success('Data Berhasil Di Update')
       closeDialog()
       resetForm()
-    } else {
+    }
+    else {
       toast.error('Gagal mengedit data')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error:', error)
     toast.error('Terjadi kesalahan saat mengedit data')
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 })
 </script>
 
 <template>
-  <Dialog :open="isDialogOpen" @openChange="isDialogOpen = $event">
+  <Dialog :open="isDialogOpen" @open-change="isDialogOpen = $event">
     <DialogTrigger as-child>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button @click="openDialog" size="sm">
-              <PencilIcon class="w-4 h-4" />
+            <Button size="sm" @click="openDialog">
+              <PencilIcon class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -216,7 +223,7 @@ const onSubmit = handleSubmit(async () => {
       </TooltipProvider>
     </DialogTrigger>
 
-    <DialogContent class="sm:max-w-[800px] [&>button]:hidden">
+    <DialogContent class="[&>button]:hidden sm:max-w-[800px]">
       <form class="space-y-8" @submit.prevent="onSubmit">
         <DialogHeader>
           <DialogTitle>Edit Data Mesin</DialogTitle>
@@ -267,7 +274,7 @@ const onSubmit = handleSubmit(async () => {
                       {{
                         value
                           ? cabangList.find(item => (item.cabangId || item.id) === value)
-                              ?.namaCabang
+                            ?.namaCabang
                           : 'Pilih Cabang...'
                       }}
                       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -298,7 +305,9 @@ const onSubmit = handleSubmit(async () => {
                 <FormControl>
                   <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
-                <FormLabel class="font-normal"> Washer </FormLabel>
+                <FormLabel class="font-normal">
+                  Washer
+                </FormLabel>
               </FormItem>
             </FormField>
 
@@ -307,7 +316,9 @@ const onSubmit = handleSubmit(async () => {
                 <FormControl>
                   <Checkbox :checked="value" @update:checked="handleChange" />
                 </FormControl>
-                <FormLabel class="font-normal"> Dryer </FormLabel>
+                <FormLabel class="font-normal">
+                  Dryer
+                </FormLabel>
               </FormItem>
             </FormField>
           </div>
@@ -315,15 +326,19 @@ const onSubmit = handleSubmit(async () => {
 
         <DialogFooter>
           <DialogClose as-child>
-            <Button type="button" variant="secondary" @click="closeDialog"> Close </Button>
+            <Button type="button" variant="secondary" @click="closeDialog">
+              Close
+            </Button>
           </DialogClose>
 
           <Button v-if="isSubmitting" disabled>
-            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             Updating..
           </Button>
 
-          <Button v-else type="submit"> Update </Button>
+          <Button v-else type="submit">
+            Update
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>
