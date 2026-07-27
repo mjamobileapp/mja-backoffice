@@ -75,9 +75,21 @@ const actionClass = (action: string) => ({
   READ: 'bg-slate-100 text-slate-700',
 }[action] || 'bg-amber-100 text-amber-700')
 
-const formatDate = (value: string) => new Intl.DateTimeFormat('id-ID', {
-  day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-}).format(new Date(value))
+const formatDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  const formatted = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  }).format(date)
+
+  return formatted.replace(/(\d{2}):(\d{2})$/, '$1.$2')
+}
 
 const jsonText = (value: Record<string, unknown> | null) => value ? JSON.stringify(value, null, 2) : 'null / kosong (Tidak ada data)'
 
