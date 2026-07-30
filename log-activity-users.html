@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Log Aktivitas (Audit Trail) - Backoffice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        
+        /* Custom Scrollbar for JSON Viewer */
+        .json-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .json-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .json-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .json-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Modal Transition */
+        #diff-modal-backdrop { transition: opacity 0.3s ease; }
+        #diff-modal-panel { transition: transform 0.3s ease, opacity 0.3s ease; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto w-full">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Audit Trail Sistem</h1>
+                <p class="text-slate-500 text-sm mt-1">Laporan jejak aktivitas pengguna dan perubahan master data (Backoffice).</p>
+            </div>
+            <button class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-colors">
+                <i class="fa-solid fa-file-excel text-emerald-400"></i> Export ke Excel
+            </button>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col lg:flex-row gap-4 items-end">
+            <div class="w-full lg:w-1/4">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Cari Aktor / Modul</label>
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                    <input type="text" placeholder="Ketik nama admin..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+            <div class="w-full lg:w-1/5">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Kategori Aksi</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="">Semua Aksi</option>
+                    <option value="UPDATE">Update Data</option>
+                    <option value="DELETE">Hard Delete</option>
+                    <option value="CREATE">Create Baru</option>
+                    <option value="RESET_DATA">Wipe / Reset Data</option>
+                </select>
+            </div>
+            <div class="w-full lg:w-1/5">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Modul / Entitas</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="">Semua Modul</option>
+                    <option value="tbl_harga_cabang">Harga Cabang</option>
+                    <option value="tbl_mitra">Data Mitra</option>
+                    <option value="tbl_users">Manajemen User</option>
+                </select>
+            </div>
+            <div class="w-full lg:w-1/4">
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal Mulai - Akhir</label>
+                <input type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600">
+            </div>
+            <div class="w-full lg:w-auto">
+                <button class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                    Filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                            <th class="p-4 font-semibold whitespace-nowrap">Waktu & IP</th>
+                            <th class="p-4 font-semibold">Aktor (Siapa)</th>
+                            <th class="p-4 font-semibold">Aksi & Modul (Apa)</th>
+                            <th class="p-4 font-semibold text-center whitespace-nowrap">Perubahan Data</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        
+                        <!-- Row 1: UPDATE Harga -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="font-semibold text-slate-700">19 Jul 2026, 14:30</div>
+                                <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-globe text-slate-300 mr-1"></i> 103.111.22.45</div>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-bold text-slate-800">Budi Santoso</div>
+                                <div class="text-xs text-slate-500 mt-0.5">Role: <span class="font-medium text-slate-700">admin</span></div>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 tracking-wide">UPDATE</span>
+                                    <span class="font-mono text-xs text-slate-500">tbl_harga_cabang</span>
+                                </div>
+                                <div class="text-xs text-slate-600">Mengubah tarif "Cuci Kiloan" Cabang Sudirman</div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="openModal('log-1')" class="text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors text-xs flex items-center justify-center gap-1.5 mx-auto">
+                                    <i class="fa-solid fa-code-compare"></i> Lihat Detail
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: DELETE Cabang -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="font-semibold text-slate-700">18 Jul 2026, 09:15</div>
+                                <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-globe text-slate-300 mr-1"></i> 114.122.5.99</div>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-bold text-slate-800">Andi Wirawan</div>
+                                <div class="text-xs text-slate-500 mt-0.5">Role: <span class="font-medium text-rose-600">superadmin</span></div>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 tracking-wide">DELETE</span>
+                                    <span class="font-mono text-xs text-slate-500">tbl_cabang</span>
+                                </div>
+                                <div class="text-xs text-slate-600">Hard delete cabang ID: 4 (Telah ditutup permanen)</div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="openModal('log-2')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors text-xs flex items-center justify-center gap-1.5 mx-auto">
+                                    <i class="fa-solid fa-trash-can"></i> Data Dihapus
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: RESET DATA TRANSAKSI -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="font-semibold text-slate-700">17 Jul 2026, 21:00</div>
+                                <div class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-globe text-slate-300 mr-1"></i> 201.55.12.3</div>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-bold text-slate-800">Andi Wirawan</div>
+                                <div class="text-xs text-slate-500 mt-0.5">Role: <span class="font-medium text-rose-600">superadmin</span></div>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 tracking-wide">RESET_DATA</span>
+                                    <span class="font-mono text-xs text-slate-500">MULTIPLE_TABLES</span>
+                                </div>
+                                <div class="text-xs text-slate-600">Wipe out transaksi (Ujicoba) Cabang Tebet</div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="openModal('log-3')" class="text-amber-600 hover:text-amber-800 font-semibold bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors text-xs flex items-center justify-center gap-1.5 mx-auto">
+                                    <i class="fa-solid fa-eye"></i> Parameter
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination Mock -->
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-sm text-slate-600">
+                <div>Menampilkan 1 - 3 dari 1,240 log</div>
+                <div class="flex gap-1">
+                    <button class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100">&lt;</button>
+                    <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+                    <button class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100">2</button>
+                    <button class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100">&gt;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div id="diff-modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden opacity-0 flex justify-center items-center p-4">
+        
+        <!-- Modal Panel -->
+        <div id="diff-modal-panel" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform scale-95 opacity-0">
+            
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Detail Perubahan Data (Payload)</h2>
+                    <p id="modal-subtitle" class="text-xs text-slate-500 mt-1 font-mono">Modul: -</p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (JSON Diff Viewer) -->
+            <div class="p-6 overflow-y-auto flex-grow flex flex-col md:flex-row gap-4 bg-slate-100">
+                
+                <!-- Old Values Container -->
+                <div class="w-full md:w-1/2 flex flex-col bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-700">
+                    <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                        <span class="text-xs font-bold text-rose-400 uppercase tracking-wider"><i class="fa-solid fa-minus-circle mr-1"></i> Sebelum (oldValues)</span>
+                    </div>
+                    <div class="p-4 overflow-auto json-scroll flex-grow">
+                        <pre id="json-old" class="text-[13px] text-slate-300 font-mono leading-relaxed"></pre>
+                    </div>
+                </div>
+
+                <!-- New Values Container -->
+                <div class="w-full md:w-1/2 flex flex-col bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-700">
+                    <div class="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-plus-circle mr-1"></i> Sesudah (newValues)</span>
+                    </div>
+                    <div class="p-4 overflow-auto json-scroll flex-grow">
+                        <pre id="json-new" class="text-[13px] text-slate-300 font-mono leading-relaxed"></pre>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-200 bg-white rounded-b-2xl flex justify-between items-center">
+                <div class="text-xs text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-laptop-code"></i> Data mentah disimpan dalam format JSON.
+                </div>
+                <button onclick="closeModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data Database tbl_audit_backoffice (Simulasi respon backend)
+        const auditLogData = {
+            'log-1': {
+                module: 'tbl_harga_cabang',
+                old: {
+                    id: 102,
+                    cabangId: 5,
+                    jenisLayanan: "WASHER",
+                    harga: 15000,
+                    statusAktif: 1
+                },
+                new: {
+                    id: 102,
+                    cabangId: 5,
+                    jenisLayanan: "WASHER",
+                    harga: 20000, // <--- Perubahan Harga
+                    statusAktif: 1
+                }
+            },
+            'log-2': {
+                module: 'tbl_cabang',
+                old: {
+                    id: 4,
+                    kodeCabang: "CAB-004",
+                    namaCabang: "Cabang Lama",
+                    alamatCabang: "Jl. Sudirman Lama",
+                    statusAktif: 0
+                },
+                new: null // Karena ini DELETE, tidak ada newValues
+            },
+            'log-3': {
+                module: 'MULTIPLE_TABLES (Reset Data)',
+                old: null, // Wipe operation biasanya tidak mencatat oldValues JSON satu per satu
+                new: {
+                    cabangIdTarget: 3,
+                    namaCabangKonfirmasi: "CABANG TEBET",
+                    affectedRows: {
+                        tbl_order_laundry: 145,
+                        tbl_pengeluaran: 22,
+                        tbl_absensi: 14
+                    },
+                    wipeStatus: "SUCCESS"
+                }
+            }
+        };
+
+        const modalBackdrop = document.getElementById('diff-modal-backdrop');
+        const modalPanel = document.getElementById('diff-modal-panel');
+        const jsonOldContainer = document.getElementById('json-old');
+        const jsonNewContainer = document.getElementById('json-new');
+        const modalSubtitle = document.getElementById('modal-subtitle');
+
+        // Fungsi khusus untuk syntax highlight JSON sederhana
+        function syntaxHighlightJSON(jsonObj) {
+            if (!jsonObj) return '<span class="text-slate-500 italic">null / kosong (Tidak ada data)</span>';
+            
+            // Konversi ke string dengan indentasi
+            let json = JSON.stringify(jsonObj, null, 4);
+            
+            // Warna-warni regex ringan
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'text-blue-300'; // angka
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'text-slate-100 font-semibold'; // key
+                    } else {
+                        cls = 'text-emerald-300'; // string value
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'text-amber-300'; // boolean
+                } else if (/null/.test(match)) {
+                    cls = 'text-rose-300'; // null
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function openModal(logId) {
+            const logData = auditLogData[logId];
+            
+            if(logData) {
+                // Set Header
+                modalSubtitle.innerHTML = `Modul Target: <span class="text-blue-600 font-bold">${logData.module}</span>`;
+                
+                // Set JSON Content dengan Syntax Highlighting
+                jsonOldContainer.innerHTML = syntaxHighlightJSON(logData.old);
+                jsonNewContainer.innerHTML = syntaxHighlightJSON(logData.new);
+
+                // Tampilkan Modal dengan efek animasi (Fade In)
+                modalBackdrop.classList.remove('hidden');
+                // Timeout kecil agar display:block teregistrasi sebelum transisi opacity jalan
+                setTimeout(() => {
+                    modalBackdrop.classList.remove('opacity-0');
+                    modalPanel.classList.remove('opacity-0', 'scale-95');
+                }, 10);
+            }
+        }
+
+        function closeModal() {
+            // Animasi Fade Out
+            modalBackdrop.classList.add('opacity-0');
+            modalPanel.classList.add('opacity-0', 'scale-95');
+            
+            // Sembunyikan elemen setelah animasi selesai (300ms)
+            setTimeout(() => {
+                modalBackdrop.classList.add('hidden');
+            }, 300);
+        }
+
+        // Tutup modal jika user klik di luar kotak putih (area backdrop hitam)
+        modalBackdrop.addEventListener('click', function(e) {
+            if (e.target === modalBackdrop) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
