@@ -18,11 +18,6 @@ const topMitra = ref<any[]>([])
 const machineOnline = computed(() => Math.max(jumlahMesin.value - 2, 0))
 const machineOffline = computed(() => (jumlahMesin.value > 0 ? 1 : 0))
 const machineRepair = computed(() => (jumlahMesin.value > 1 ? 1 : 0))
-const activePercent = computed(() => {
-  if (!jumlahMesin.value)
-    return 0
-  return Math.round((machineOnline.value / jumlahMesin.value) * 100)
-})
 
 const machineStatusSegments = computed(() => {
   const total = Math.max(jumlahMesin.value, 1)
@@ -309,7 +304,12 @@ onMounted(async () => {
           </CardTitle>
         </CardHeader>
         <CardContent class="flex flex-1 flex-col items-center justify-center px-4 pb-3 pt-1">
-          <div class="relative h-36 w-36 drop-shadow-md">
+          <div v-if="!jumlahMesin" class="flex flex-1 items-center justify-center">
+            <p class="border border-slate-200 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 font-medium">
+              Data mesin belum tersedia.
+            </p>
+          </div>
+          <div v-else class="relative h-36 w-36 drop-shadow-md">
             <svg viewBox="0 0 100 100" class="h-full w-full" aria-hidden="true">
               <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" stroke-width="12" />
               <circle
@@ -336,7 +336,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-3 mt-1.5 w-full gap-1 border border-slate-100 rounded-xl bg-slate-50 py-1 text-center text-[11px] text-[#4b5563]">
+          <div v-if="jumlahMesin" class="grid grid-cols-3 mt-1.5 w-full gap-1 border border-slate-100 rounded-xl bg-slate-50 py-1 text-center text-[11px] text-[#4b5563]">
             <div v-for="(segment, index) in machineStatusSegments" :key="segment.label" class="grid justify-items-center gap-0" :class="{ 'border-r border-slate-200': index < 2 }">
               <span class="h-2 w-2 rounded-full shadow-sm" :style="{ backgroundColor: segment.color }" />
               <strong class="text-sm text-slate-800">{{ segment.value }}</strong>
