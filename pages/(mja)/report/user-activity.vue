@@ -138,7 +138,7 @@ function exportCsv() {
   const csv = [header, ...rows].map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(',')).join('\n')
   const link = document.createElement('a')
   link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
-  link.download = `audit-trail-${startDate.value}-${endDate.value}.csv`
+  link.download = `log-aktivitas-user-${startDate.value}-${endDate.value}.csv`
   link.click()
   URL.revokeObjectURL(link.href)
 }
