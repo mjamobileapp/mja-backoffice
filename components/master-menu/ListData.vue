@@ -100,7 +100,7 @@ function prevPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]">
+              <TableHead class="w-[50px]">
                 No
               </TableHead>
               <TableHead>Nama Menu</TableHead>

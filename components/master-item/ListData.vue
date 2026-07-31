@@ -118,7 +118,7 @@ function handleDataDeleted(deletedItemId: any) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]">
+              <TableHead class="w-[50px]">
                 No
               </TableHead>
               <TableHead>Nama Item</TableHead>

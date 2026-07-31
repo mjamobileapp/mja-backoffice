@@ -88,7 +88,7 @@ function handleDeviceIdReset() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]">
+              <TableHead class="w-[50px]">
                 No
               </TableHead>
               <TableHead>Username</TableHead>
@@ -96,7 +96,6 @@ function handleDeviceIdReset() {
               <TableHead>Nama Lengkap</TableHead>
               <TableHead>No Telpon</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Device ID</TableHead>
               <TableHead class="text-center">
                 Action
               </TableHead>
@@ -120,12 +119,15 @@ function handleDeviceIdReset() {
                 {{ item.noTelp }}
               </TableCell>
               <TableCell>{{ item.email }}</TableCell>
-              <TableCell>{{ item.deviceId }}</TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
                   <EditData :id="item.id" @data-edited="handleDataEdited" />
                   <DeleteData :item="item" @data-deleted="handleDataDeleted" />
-                  <ResetDeviceIdData :item="item" @device-id-reset="handleDeviceIdReset" />
+                  <ResetDeviceIdData
+                    v-if="item.deviceId"
+                    :item="item"
+                    @device-id-reset="handleDeviceIdReset"
+                  />
                 </div>
               </TableCell>
             </TableRow>
