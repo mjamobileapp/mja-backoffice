@@ -24,7 +24,7 @@ jobs:
 
       - name: 🛠️ Build Application (seperti npm run build lokal)
         env:
-          NUXT_PUBLIC_API_BASE: https://apidev.mjasmartlaundry.cloud
+          NUXT_PUBLIC_API_BASE: https://api.mjasmartlaundry.cloud
         run: npm run build
 
       - name: 🔑 Setup SSH Key untuk rsync
@@ -49,7 +49,7 @@ jobs:
             cd /var/www/mjaproject/frontend/mja-backoffice/.output/server
 
             # Membuat file .env di dalam server untuk dibaca oleh Nuxt saat runtime
-            echo "NUXT_PUBLIC_API_BASE=https://apidev.mjasmartlaundry.cloud" > .env
+            echo "NUXT_PUBLIC_API_BASE=https://api.mjasmartlaundry.cloud" > .env
 
             npm install --omit=dev
 
