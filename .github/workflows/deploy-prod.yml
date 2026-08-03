@@ -1,0 +1,64 @@
+name: Deploy to Prod Environment
+
+on:
+  push:
+    branches:
+      - main # Trigger otomatis ke branch main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🛠️ Build Application
+        env:
+          # ⚠️ Pastikan ini mengarah ke API Production Anda
+          NUXT_PUBLIC_API_BASE: https://api.mjasmartlaundry.cloud
+        run: npm run build
+
+      - name: 🔑 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Sync ke VPS
+        run: |
+          # Target mengarah ke folder utama (Production)
+          rsync -avz --delete -e "ssh -p ${{ secrets.VPS_PORT }}" .output/ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/mjaproject/frontend/mja-backoffice/.output/
+
+      - name: 🔄 Install Prod & Restart PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd /var/www/mjaproject/frontend/mja-backoffice/.output/server
+
+            # Menulis env untuk Production
+            echo "NUXT_PUBLIC_API_BASE=https://api.mjasmartlaundry.cloud" > .env
+
+            npm install --omit=dev
+
+            # Injeksi Port 3100 dan HOST untuk frontend-prod
+            if pm2 show frontend-prod > /dev/null; then
+              PORT=3100 HOST=0.0.0.0 pm2 restart frontend-prod --update-env
+            else
+              PORT=3100 HOST=0.0.0.0 pm2 start index.mjs --name frontend-prod
+              pm2 save
+            fi
