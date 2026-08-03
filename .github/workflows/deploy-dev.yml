@@ -1,4 +1,4 @@
-name: Deploy MJA Backoffice-frontend to Dev Environment
+name: Deploy to Development Server
 
 on:
   push:
@@ -47,22 +47,17 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            # ⚠️ UBAH INI: Masuk ke direktori yang baru
             cd /var/www/mjaproject/frontend/mja-backoffice-dev/.output/server
 
-            # Membuat file .env di dalam server untuk dibaca oleh Nuxt saat runtime
+            # File .env tetap dibuat untuk NUXT_PUBLIC_API_BASE
             echo "NUXT_PUBLIC_API_BASE=https://apidev.mjasmartlaundry.cloud" > .env
-            
-            # ⚠️ TAMBAH INI: Paksa Nuxt berjalan di port 3101
-            echo "PORT=3101" >> .env
 
             npm install --omit=dev
 
-            # ⚠️ TAMBAH INI: Logika pengecekan PM2
-            # Jika frontend-dev sudah ada, maka restart. Jika belum, maka start.
+            # Suntikkan PORT dan HOST secara eksplisit tepat sebelum pemanggilan perintah pm2
             if pm2 show frontend-dev > /dev/null; then
-              pm2 restart frontend-dev --update-env
+              PORT=3101 HOST=0.0.0.0 pm2 restart frontend-dev --update-env
             else
-              pm2 start index.mjs --name frontend-dev
+              PORT=3101 HOST=0.0.0.0 pm2 start index.mjs --name frontend-dev
               pm2 save
             fi
