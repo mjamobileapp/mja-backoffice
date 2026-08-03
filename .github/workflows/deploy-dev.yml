@@ -1,4 +1,4 @@
-name: Deploy MJA Backoffice-frontend to Dev Environment
+name: Deploy to Development Server
 
 on:
   push:
@@ -17,12 +17,14 @@ jobs:
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Sesuaikan dengan versi Node.js yang Anda gunakan
+          node-version: '22' # Sesuaikan dengan versi Node.js yang digunakan
 
       - name: 📦 Install Dependencies
         run: npm install
 
       - name: 🛠️ Build Application (seperti npm run build lokal)
+        env:
+          NUXT_PUBLIC_API_BASE: https://apidev.mjasmartlaundry.cloud
         run: npm run build
 
       - name: 🔑 Setup SSH Key untuk rsync
@@ -34,7 +36,8 @@ jobs:
 
       - name: 🚀 Sync ke VPS (pengganti perintah rsync manual)
         run: |
-          rsync -avz --delete -e "ssh -p ${{ secrets.VPS_PORT }}" .output/ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/mjaproject/frontend/mja-backoffice/.output/
+          # ⚠️ UBAH INI: Path target diubah menjadi mja-backoffice-dev
+          rsync -avz --delete -e "ssh -p ${{ secrets.VPS_PORT }}" .output/ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/mjaproject/frontend/mja-backoffice-dev/.output/
 
       - name: 🔄 Install Prod & Restart PM2
         uses: appleboy/ssh-action@v1.0.3
@@ -44,6 +47,17 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cd /var/www/mjaproject/frontend/mja-backoffice/.output/server
+            cd /var/www/mjaproject/frontend/mja-backoffice-dev/.output/server
+
+            # File .env tetap dibuat untuk NUXT_PUBLIC_API_BASE
+            echo "NUXT_PUBLIC_API_BASE=https://apidev.mjasmartlaundry.cloud" > .env
+
             npm install --omit=dev
-            pm2 restart frontend-dev
+
+            # Suntikkan PORT dan HOST secara eksplisit tepat sebelum pemanggilan perintah pm2
+            if pm2 show frontend-dev > /dev/null; then
+              PORT=3101 HOST=0.0.0.0 pm2 restart frontend-dev --update-env
+            else
+              PORT=3101 HOST=0.0.0.0 pm2 start index.mjs --name frontend-dev
+              pm2 save
+            fi

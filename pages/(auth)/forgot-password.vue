@@ -32,20 +32,22 @@ async function handleResetPassword(emailData: { email: string }) {
       {
         method: 'POST',
         // Jika API membutuhkan payload tambahan di body, bisa ditambahkan di sini
-      }
+      },
     )
     // console.log('email: ', emailData.email)
     // console.log(response)
     successMessage.value = 'Instruksi reset password telah dikirim ke email Anda.'
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Reset password error:', error)
 
-    errorMessage.value =
-      error?.data?.error ||
-      error?.data?.message ||
-      error?.message ||
-      'Terjadi kesalahan, silakan coba lagi nanti.'
-  } finally {
+    errorMessage.value
+      = error?.data?.error
+        || error?.data?.message
+        || error?.message
+        || 'Terjadi kesalahan, silakan coba lagi nanti.'
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -55,19 +57,21 @@ async function handleResetPassword(emailData: { email: string }) {
   <div class="flex flex-col items-center justify-center gap-6 bg-muted p-6 min-h-svh md:p-10">
     <div class="max-w-sm w-full flex flex-col gap-6">
       <NuxtLink to="#" class="flex items-center self-center gap-3 font-medium">
-        <img src="/mja-logo.png" alt="MJA Logo" class="h-20 w-20 object-contain" />
+        <img src="/mja-logo.png" alt="MJA Logo" class="h-20 w-20 object-contain">
         <span>MJA Back Office</span>
       </NuxtLink>
       <Card>
         <CardHeader class="text-center">
-          <CardTitle class="text-xl"> Forgot Password </CardTitle>
+          <CardTitle class="text-xl">
+            Forgot Password
+          </CardTitle>
           <CardDescription>
             Enter your username/email below to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div class="grid mx-auto max-w-sm gap-6">
-            <AuthForgotPassword :loading="isLoading" @submit="handleResetPassword" />
+            <AuthForgotPassword :is-loading="isLoading" @submit="handleResetPassword" />
 
             <p v-if="errorMessage" class="text-center text-sm text-destructive font-medium">
               {{ errorMessage }}

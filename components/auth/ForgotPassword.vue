@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 // 1. Definisikan props untuk menerima status loading dari parent
 defineProps<{

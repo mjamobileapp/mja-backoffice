@@ -1,47 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 
 const searchQuery = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-const data = ref([]) // Define the type for fetched data
-
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isLoading = ref(false)
+const data = ref<any[]>([])
 
-// get token====================
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
+const {
+  paginatedData,
+  totalPages,
+  currentPage,
+  nextPage,
+  prevPage,
+} = usePagination({
+  data,
+  searchQuery,
+  searchFields: ['nama', 'username', 'namaRole'],
+})
 
 async function fetchData() {
   isLoading.value = true
   try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/api/backoffice/users?t=${timestamp}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    // console.log('Data yang diterima dari server:', fetchedData)
-    // console.log(fetchedData.data)
-    if (Array.isArray(fetchedData.data)) {
-      data.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      data.value = []
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data:', error)
-  } finally {
+    const fetchedData = await apiFetch('/api/backoffice/users')
+    data.value = Array.isArray(fetchedData?.data) ? fetchedData.data : []
+  }
+  catch (error) {
+    console.error('Gagal mengambil data user:', error)
+    data.value = []
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -49,59 +38,35 @@ async function fetchData() {
 onMounted(() => {
   fetchData()
 })
-
-const filteredData = computed(() => {
-  return data.value.filter((item: any) =>
-    item.nama.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.namaRole.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredData.value.length / itemsPerPage.value)
-})
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return filteredData.value.slice(start, start + itemsPerPage.value)
-})
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
 </script>
+
 <template>
   <Card class="w-full">
     <CardHeader>
       <CardTitle>
-        <Input type="text" v-model="searchQuery" placeholder="Search..." />
+        <Input v-model="searchQuery" type="text" placeholder="Search..." />
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <AddData @dataAdded="fetchData" />
-      <div v-if="isLoading" class="flex justify-center items-center p-8">
+      <AddData @data-added="fetchData" />
+      <div v-if="isLoading" class="flex items-center justify-center p-8">
         <div
-          class="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"
-        ></div>
+          class="h-8 w-8 animate-spin border-2 border-primary border-t-transparent rounded-full"
+        />
       </div>
       <div class="min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]"> No </TableHead>
+              <TableHead class="w-[50px]">
+                No
+              </TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role Akses</TableHead>
-              <TableHead class="text-center w-[300px]"> Action </TableHead>
+              <TableHead class="w-[300px] text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -119,8 +84,8 @@ function prevPage() {
 
               <TableCell class="text-center">
                 <div class="flex items-center justify-center gap-2">
-                  <EditData :id="item.id" @dataUpdated="fetchData" />
-                  <DeleteData :item="item" @dataDeleted="fetchData" />
+                  <EditData :id="item.id" @data-updated="fetchData" />
+                  <DeleteData :item="item" @data-deleted="fetchData" />
                 </div>
               </TableCell>
             </TableRow>
@@ -130,11 +95,16 @@ function prevPage() {
     </CardContent>
   </Card>
   <div>
-    <div class="mt-4 flex float-right">
-      <Button class="mr-2" @click="prevPage" :disabled="currentPage === 1">Previous </Button>
+    <div class="float-right mt-4 flex">
+      <Button class="mr-2" :disabled="currentPage === 1" @click="prevPage">
+        Previous
+      </Button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <Button class="ml-2" @click="nextPage" :disabled="currentPage === totalPages">Next </Button>
+      <Button class="ml-2" :disabled="currentPage === totalPages" @click="nextPage">
+        Next
+      </Button>
     </div>
   </div>
 </template>
+
 <style scoped></style>

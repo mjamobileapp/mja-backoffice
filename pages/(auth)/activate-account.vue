@@ -33,15 +33,17 @@ async function handleResetPassword(emailData: { email: string }) {
       {
         method: 'POST',
         // Jika API membutuhkan payload tambahan di body, bisa ditambahkan di sini
-      }
+      },
     )
     console.log('email: ', emailData.email)
     console.log(response)
     successMessage.value = 'Instruksi reset password telah dikirim ke email Anda.'
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Reset password error:', error)
     errorMessage.value = error.data?.message || 'Terjadi kesalahan, silakan coba lagi nanti.'
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }

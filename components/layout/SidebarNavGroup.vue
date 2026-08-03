@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { NavGroup } from '~/types/nav'
-import { type SidebarMenuButtonVariants, useSidebar } from '~/components/ui/sidebar'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { type SidebarMenuButtonVariants, useSidebar } from '~/components/ui/sidebar'
 
 const props = withDefaults(defineProps<{
   item: NavGroup
@@ -36,7 +36,7 @@ function isSubItemActive(link: string) {
             :tooltip="item.title"
             :size="size"
             :is-active="isActive"
-            class="rounded-md text-[#374151] data-[active=true]:bg-[#dfe5ec] data-[active=true]:font-normal data-[active=true]:text-[#2563eb] hover:bg-[#e8edf3]"
+            class="rounded-md text-[#374151] data-[active=true]:bg-[#dfe5ec] hover:bg-[#e8edf3] data-[active=true]:text-[#2563eb] data-[active=true]:font-normal"
           >
             <Icon :name="item.icon || ''" mode="svg" />
             <span>{{ item.title }}</span>

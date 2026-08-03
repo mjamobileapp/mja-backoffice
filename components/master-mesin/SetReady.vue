@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CircleCheck } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,7 +10,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { CircleCheck } from 'lucide-vue-next'
 import { toast } from '~/components/ui/toast'
 
 const props = defineProps(['item'])
@@ -37,7 +37,8 @@ async function readyItem() {
         title: 'Success',
         description: 'Status mesin berhasil diubah menjadi READY.',
       })
-    } else {
+    }
+    else {
       const errorData = await response.json()
       const message = errorData?.message || 'Gagal mengubah status mesin menjadi READY'
 
@@ -48,7 +49,8 @@ async function readyItem() {
       })
       console.error('Gagal set ready:', message)
     }
-  } catch (error) {
+  }
+  catch (error) {
     toast({
       title: 'Error',
       description: 'Terjadi kesalahan saat mengubah status mesin menjadi READY.',
@@ -66,7 +68,7 @@ async function readyItem() {
         <Tooltip>
           <TooltipTrigger as-child>
             <Button size="sm">
-              <CircleCheck class="w-4 h-4" />
+              <CircleCheck class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -81,7 +83,9 @@ async function readyItem() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="readyItem">Set Ready</AlertDialogAction>
+        <AlertDialogAction @click="readyItem">
+          Set Ready
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>

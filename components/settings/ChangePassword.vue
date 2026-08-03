@@ -9,11 +9,11 @@ import { toast } from '~/components/ui/toast'
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value?.token
 console.log(token)
 
-const currentUser = useCookie('currentUser') // diasumsikan cookie bernilai object stringified
+const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 const idUser = computed(() => currentUser.value?.id || 0)
 
@@ -28,7 +28,7 @@ const newPasswordInput = ref<any>(null)
 const confirmPasswordInput = ref<any>(null)
 
 // Fungsi untuk toggle type input langsung ke DOM asli (Sudah Diperbaiki)
-const toggleVisibility = (targetRefName: string) => {
+function toggleVisibility(targetRefName: string) {
   const refsMap: Record<string, any> = {
     oldPasswordInput: oldPasswordInput.value,
     newPasswordInput: newPasswordInput.value,
@@ -36,11 +36,12 @@ const toggleVisibility = (targetRefName: string) => {
   }
 
   const targetComponent = refsMap[targetRefName]
-  if (!targetComponent) return
+  if (!targetComponent)
+    return
 
   // Mengambil element input asli di dalam komponen Shadcn
-  const inputEl =
-    targetComponent.$el?.querySelector('input') || targetComponent.$el || targetComponent
+  const inputEl
+    = targetComponent.$el?.querySelector('input') || targetComponent.$el || targetComponent
 
   if (inputEl) {
     inputEl.type = inputEl.type === 'password' ? 'text' : 'password'
@@ -51,7 +52,7 @@ const changePasswordSchema = toTypedSchema(
   z
     .object({
       oldPassword: z.string().min(1, {
-        message: 'Password lama wajib diisi.',
+        message: 'Password saat ini wajib diisi.',
       }),
       newPassword: z.string().min(8, {
         message: 'Password baru minimal 8 karakter.',
@@ -63,7 +64,7 @@ const changePasswordSchema = toTypedSchema(
     .refine(data => data.newPassword === data.confirmPassword, {
       message: 'Password baru dan konfirmasi password tidak cocok.',
       path: ['confirmPassword'],
-    })
+    }),
 )
 
 const { handleSubmit, resetForm } = useForm({
@@ -80,15 +81,15 @@ function getErrorMessage(error: any) {
 
   const message = data?.message || error?.message || 'Gagal mengubah password.'
 
-  const missingFields =
-    Array.isArray(data?.missingFields) && data.missingFields.length
+  const missingFields
+    = Array.isArray(data?.missingFields) && data.missingFields.length
       ? ` (${data.missingFields.join(', ')})`
       : ''
 
   return `${message}${missingFields}`
 }
 
-const onSubmit = handleSubmit(async values => {
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
   try {
@@ -110,13 +111,14 @@ const onSubmit = handleSubmit(async values => {
     })
 
     resetForm()
-  } catch (error: any) {
+  }
+  catch (error: any) {
     const data = error?.data || error?.response?._data
 
     const message = data?.error || data?.message || error?.message || 'Gagal mengubah password.'
 
-    const missingFields =
-      Array.isArray(data?.missingFields) && data.missingFields.length
+    const missingFields
+      = Array.isArray(data?.missingFields) && data.missingFields.length
         ? ` (${data.missingFields.join(', ')})`
         : ''
 
@@ -125,7 +127,8 @@ const onSubmit = handleSubmit(async values => {
       description: `${message}${missingFields}`,
       variant: 'destructive',
     })
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 })
@@ -133,26 +136,28 @@ const onSubmit = handleSubmit(async values => {
 
 <template>
   <div>
-    <h3 class="text-lg font-medium">Change Password</h3>
+    <h3 class="text-lg font-medium">
+      Ubah Password
+    </h3>
     <p class="text-sm text-muted-foreground">
-      Update your account password. Use a strong password to keep your account secure.
+      Perbarui kata sandi akun Anda. Gunakan kata sandi yang kuat untuk menjaga keamanan akun Anda.
     </p>
   </div>
 
   <Separator class="my-4" />
 
-  <form class="space-y-8" @submit="onSubmit">
+  <form class="space-y-4" @submit="onSubmit">
     <FormField v-slot="{ componentField }" name="oldPassword">
       <FormItem>
-        <FormLabel>Password Lama</FormLabel>
+        <FormLabel>Password Saat Ini</FormLabel>
 
-        <div class="relative flex items-center w-full">
+        <div class="relative w-full flex items-center">
           <FormControl>
             <Input
               v-bind="componentField"
-              type="password"
               ref="oldPasswordInput"
-              placeholder="Masukkan password lama"
+              type="password"
+              placeholder="Masukkan password saat ini"
               class="w-full pr-10"
               :disabled="isLoading"
             />
@@ -160,7 +165,7 @@ const onSubmit = handleSubmit(async values => {
 
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground hover:text-foreground z-20 h-4 w-4"
+            class="absolute right-3 top-1/2 z-20 h-4 w-4 flex items-center justify-center text-muted-foreground -translate-y-1/2 hover:text-foreground"
             @click="toggleVisibility('oldPasswordInput')"
           >
             <Eye class="h-4 w-4" />
@@ -175,12 +180,12 @@ const onSubmit = handleSubmit(async values => {
       <FormItem>
         <FormLabel>Password Baru</FormLabel>
 
-        <div class="relative flex items-center w-full">
+        <div class="relative w-full flex items-center">
           <FormControl>
             <Input
               v-bind="componentField"
-              type="password"
               ref="newPasswordInput"
+              type="password"
               placeholder="Masukkan password baru"
               class="w-full pr-10"
               :disabled="isLoading"
@@ -189,7 +194,7 @@ const onSubmit = handleSubmit(async values => {
 
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground hover:text-foreground z-20 h-4 w-4"
+            class="absolute right-3 top-1/2 z-20 h-4 w-4 flex items-center justify-center text-muted-foreground -translate-y-1/2 hover:text-foreground"
             @click="toggleVisibility('newPasswordInput')"
           >
             <Eye class="h-4 w-4" />
@@ -204,12 +209,12 @@ const onSubmit = handleSubmit(async values => {
       <FormItem>
         <FormLabel>Konfirmasi Password Baru</FormLabel>
 
-        <div class="relative flex items-center w-full">
+        <div class="relative w-full flex items-center">
           <FormControl>
             <Input
               v-bind="componentField"
-              type="password"
               ref="confirmPasswordInput"
+              type="password"
               placeholder="Ulangi password baru"
               class="w-full pr-10"
               :disabled="isLoading"
@@ -218,7 +223,7 @@ const onSubmit = handleSubmit(async values => {
 
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground hover:text-foreground z-20 h-4 w-4"
+            class="absolute right-3 top-1/2 z-20 h-4 w-4 flex items-center justify-center text-muted-foreground -translate-y-1/2 hover:text-foreground"
             @click="toggleVisibility('confirmPasswordInput')"
           >
             <Eye class="h-4 w-4" />

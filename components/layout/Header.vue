@@ -84,11 +84,11 @@ const links = ref<
 
 watch(
   () => route.fullPath,
-  val => {
+  (val) => {
     if (val) {
       links.value = setLinks()
     }
-  }
+  },
 )
 
 const dataLogin = useCookie<{ nama?: string, role?: string }>('currentUser')
@@ -96,13 +96,22 @@ const name = computed(() => dataLogin.value?.nama || 'Hamdan')
 const role = computed(() => dataLogin.value?.role || 'System Admin')
 const { setOpenMobile } = useSidebar()
 
-function handleLogout() {
-  const userCookie = useCookie('currentUser')
+async function handleLogout() {
+  try {
+    await apiFetch('/api/backoffice/logout', {
+      method: 'POST',
+    })
+  }
+  catch {
+    // Tetap hapus sesi lokal apabila server logout tidak dapat dihubungi.
+  }
+
+  const userCookie = useCookie<any>('currentUser')
   userCookie.value = null
 
-  const tokenCookie = useCookie('accessToken')
+  const tokenCookie = useCookie<any>('accessToken')
   tokenCookie.value = null
-  navigateTo('/login')
+  await navigateTo('/login')
 }
 
 function goToProfile() {
@@ -114,7 +123,14 @@ function goToChangePassword() {
   setOpenMobile(false)
   navigateTo('/settings/change-password')
 }
+
+function goToAppVersion() {
+  setOpenMobile(false)
+  navigateTo('/settings/app-version')
+}
+
 </script>
+
 <template>
   <header
     class="sticky top-0 z-20 h-16 flex items-center gap-4 border-b border-[#dfe4eb] bg-white px-4 shadow-sm md:px-5"
@@ -140,7 +156,7 @@ function goToChangePassword() {
           <ChevronDown class="profile-chevron" />
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[190px] rounded-lg border-[#dfe4eb] bg-white p-1.5 shadow-lg"
+          class="w-[190px] border-[#dfe4eb] rounded-lg bg-white p-1.5 shadow-lg"
           align="end"
           :side-offset="10"
         >
@@ -156,7 +172,7 @@ function goToChangePassword() {
             @click="goToChangePassword"
           >
             <Icon name="i-lucide-lock-keyhole" class="size-4 text-[#111827]" />
-            Change Password
+            Ubah Password
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -175,7 +191,9 @@ function goToChangePassword() {
 <style scoped>
 .profile-trigger {
   display: flex !important;
-  width: 190px;
+  width: fit-content;
+  min-width: 190px;
+  max-width: min(360px, 42vw);
   height: 48px;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -205,6 +223,7 @@ function goToChangePassword() {
   display: flex !important;
   min-width: 0;
   flex: 1 1 auto;
+  max-width: 260px;
   flex-direction: column !important;
   align-items: flex-start !important;
   justify-content: center !important;
@@ -212,7 +231,7 @@ function goToChangePassword() {
 }
 
 .profile-name {
-  max-width: 120px;
+  width: 100%;
   overflow: hidden;
   color: #111827;
   font-size: 14px;
@@ -223,7 +242,7 @@ function goToChangePassword() {
 }
 
 .profile-role {
-  max-width: 120px;
+  width: 100%;
   margin-top: 2px;
   overflow: hidden;
   color: #6b7280;
@@ -243,5 +262,16 @@ function goToChangePassword() {
 
 .profile-trigger[data-state='open'] .profile-chevron {
   transform: rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .profile-trigger {
+    min-width: 0;
+    max-width: min(260px, 48vw);
+  }
+
+  .profile-copy {
+    max-width: 170px;
+  }
 }
 </style>

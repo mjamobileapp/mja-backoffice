@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { formatDate } from 'date-fns'
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
-import { formatDate } from 'date-fns'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
@@ -13,11 +13,11 @@ const isLoading = ref(false)
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-const data = ref<any>([]) // Define the type for fetched data
+const data = ref<any[]>([]) // Define the type for fetched data
 
 const filteredData = computed(() => {
-  return data.value.filter(item =>
-    item.namaItem.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return data.value.filter((item: any) =>
+    item.namaItem.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
 })
 
@@ -30,13 +30,13 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, start + itemsPerPage.value)
 })
 
-const nextPage = () => {
+function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
   }
 }
 
-const prevPage = () => {
+function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--
   }
@@ -48,7 +48,7 @@ function formatRupiah(value: number | Ref<number>) {
 }
 
 // get token=====
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value.token
 
 async function fetchData() {
@@ -69,14 +69,17 @@ async function fetchData() {
 
     if (Array.isArray(fetchedData.data)) {
       data.value = fetchedData.data
-    } else {
+    }
+    else {
       console.error('Data yang diterima bukan array:', fetchedData)
       data.value = []
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Gagal mengambil data:', error)
     data.value = []
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -92,32 +95,37 @@ function handleDataEdited() {
   }, 500)
 }
 
-function handleDataDeleted(deletedItemId) {
-  data.value = data.value.filter(item => item.id !== deletedItemId)
+function handleDataDeleted(deletedItemId: any) {
+  data.value = data.value.filter((item: any) => item.id !== deletedItemId)
 }
 </script>
+
 <template>
   <Card class="w-full">
     <CardHeader>
       <CardTitle>
-        <Input type="text" v-model="searchQuery" placeholder="Search..." />
+        <Input v-model="searchQuery" type="text" placeholder="Search..." />
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <AddData @dataAdded="fetchData" />
-      <div v-if="isLoading" class="flex justify-center items-center p-8">
+      <AddData @data-added="fetchData" />
+      <div v-if="isLoading" class="flex items-center justify-center p-8">
         <div
-          class="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"
-        ></div>
+          class="h-8 w-8 animate-spin border-2 border-primary border-t-transparent rounded-full"
+        />
       </div>
       <div class="min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]"> No </TableHead>
+              <TableHead class="w-[50px]">
+                No
+              </TableHead>
               <TableHead>Nama Item</TableHead>
               <TableHead>Tipe Item</TableHead>
-              <TableHead class="text-center"> Action </TableHead>
+              <TableHead class="text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -133,8 +141,8 @@ function handleDataDeleted(deletedItemId) {
               </TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
+                  <EditData :id="item.id" @data-edited="handleDataEdited" />
+                  <DeleteData :item="item" @data-deleted="handleDataDeleted" />
                 </div>
               </TableCell>
             </TableRow>
@@ -144,11 +152,16 @@ function handleDataDeleted(deletedItemId) {
     </CardContent>
   </Card>
   <div>
-    <div class="mt-4 flex float-right">
-      <Button class="mr-2" @click="prevPage" :disabled="currentPage === 1">Previous </Button>
+    <div class="float-right mt-4 flex">
+      <Button class="mr-2" :disabled="currentPage === 1" @click="prevPage">
+        Previous
+      </Button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <Button class="ml-2" @click="nextPage" :disabled="currentPage === totalPages">Next </Button>
+      <Button class="ml-2" :disabled="currentPage === totalPages" @click="nextPage">
+        Next
+      </Button>
     </div>
   </div>
 </template>
+
 <style scoped></style>

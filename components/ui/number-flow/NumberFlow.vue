@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -16,7 +16,7 @@ const props = withDefaults(
     locale: 'id-ID',
     showDecimal: false,
     duration: 500,
-  }
+  },
 )
 
 const displayValue = ref(0)
@@ -35,9 +35,12 @@ onMounted(() => {
 watch(
   () => props.value,
   (newVal, oldVal) => {
-    if (!isMounted.value) return
-    if (newVal == null || isNaN(Number(newVal))) return
-    if (Number(newVal) === Number(oldVal)) return
+    if (!isMounted.value)
+      return
+    if (newVal == null || isNaN(Number(newVal)))
+      return
+    if (Number(newVal) === Number(oldVal))
+      return
 
     isChanging.value = true
     const start = Number(oldVal ?? 0)
@@ -57,11 +60,12 @@ watch(
       }
     }, interval)
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const formattedValue = computed(() => {
-  if (!isMounted.value || isNaN(displayValue.value)) return '-'
+  if (!isMounted.value || isNaN(displayValue.value))
+    return '-'
   const formatted = new Intl.NumberFormat(props.locale, {
     minimumFractionDigits: props.showDecimal ? 2 : 0,
     maximumFractionDigits: props.showDecimal ? 2 : 0,
@@ -74,7 +78,7 @@ const formattedValue = computed(() => {
   <transition name="fade-slide" mode="out-in">
     <span
       :key="formattedValue"
-      class="inline-block font-semibold tabular-nums tracking-tight transition-all"
+      class="inline-block font-semibold tracking-tight tabular-nums transition-all"
     >
       {{ formattedValue }}
     </span>

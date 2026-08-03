@@ -1,85 +1,44 @@
 <script setup lang="ts">
-import { formatDate } from 'date-fns'
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { formatDate } from '~/lib/utils'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 import ResetDeviceIdData from './ResetDeviceIdData.vue'
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isLoading = ref(false)
-// console.log(baseUrl)
 const searchQuery = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-const data = ref<any>([]) // Define the type for fetched data
+const data = ref<any[]>([])
 
-const filteredData = computed(() => {
-  return data.value.filter(item =>
-    item.namaLengkap.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.noTelp.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    item.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+const {
+  paginatedData,
+  totalPages,
+  currentPage,
+  itemsPerPage,
+  nextPage,
+  prevPage,
+} = usePagination({
+  data,
+  searchQuery,
+  searchFields: ['namaLengkap', 'username', 'noTelp', 'email'],
 })
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredData.value.length / itemsPerPage.value)
-})
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return filteredData.value.slice(start, start + itemsPerPage.value)
-})
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
 
 function formatTanggal(tanggal: any) {
-  return formatDate(tanggal, 'dd/M/yyyy')
+  return formatDate(tanggal)
 }
-
-// get token=====
-const accessToken = useCookie('accessToken')
-const token = accessToken.value.token
 
 async function fetchData() {
   isLoading.value = true
   try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/api/backoffice/userowner`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    console.log('Data yang diterima dari server:', fetchedData)
-
-    if (Array.isArray(fetchedData.data)) {
-      data.value = fetchedData.data
-    } else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      data.value = []
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data:', error)
+    const fetchedData = await apiFetch('/api/backoffice/userowner')
+    data.value = Array.isArray(fetchedData?.data) ? fetchedData.data : []
+  }
+  catch (error) {
+    console.error('Gagal mengambil data user owner:', error)
     data.value = []
-  } finally {
+  }
+  finally {
     isLoading.value = false
   }
 }
@@ -89,11 +48,8 @@ onMounted(() => {
 })
 
 const editItem = ref(null)
-function handleDataEdited(editedItem) {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
+function handleDataEdited() {
   setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
     fetchData()
   }, 500)
 }
@@ -103,8 +59,8 @@ function formatRupiah(value: number | Ref<number>) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
-function handleDataDeleted(deletedItemId) {
-  data.value = data.value.filter(item => item.id !== deletedItemId)
+function handleDataDeleted(deletedItemId: any) {
+  data.value = data.value.filter((item: any) => item.id !== deletedItemId)
 }
 
 function handleDeviceIdReset() {
@@ -113,32 +69,36 @@ function handleDeviceIdReset() {
   }, 500)
 }
 </script>
+
 <template>
   <Card class="w-full">
     <CardHeader>
       <CardTitle>
-        <Input type="text" v-model="searchQuery" placeholder="Search..." />
+        <Input v-model="searchQuery" type="text" placeholder="Search..." />
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <AddData @dataAdded="fetchData" />
-      <div v-if="isLoading" class="flex justify-center items-center p-8">
+      <AddData @data-added="fetchData" />
+      <div v-if="isLoading" class="flex items-center justify-center p-8">
         <div
-          class="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"
-        ></div>
+          class="h-8 w-8 animate-spin border-2 border-primary border-t-transparent rounded-full"
+        />
       </div>
       <div class="min-h-100px w-full flex items-center justify-center gap-4 md:min-h-200px">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead class="w-[100px]"> No </TableHead>
+              <TableHead class="w-[50px]">
+                No
+              </TableHead>
               <TableHead>Username</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Nama Lengkap</TableHead>
               <TableHead>No Telpon</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Device ID</TableHead>
-              <TableHead class="text-center"> Action </TableHead>
+              <TableHead class="text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -159,12 +119,15 @@ function handleDeviceIdReset() {
                 {{ item.noTelp }}
               </TableCell>
               <TableCell>{{ item.email }}</TableCell>
-              <TableCell>{{ item.deviceId }}</TableCell>
               <TableCell class="text-right">
                 <div class="flex items-center justify-center gap-2">
-                  <EditData :id="item.id" @dataEdited="handleDataEdited" />
-                  <DeleteData :item="item" @dataDeleted="handleDataDeleted" />
-                  <ResetDeviceIdData :item="item" @deviceIdReset="handleDeviceIdReset" />
+                  <EditData :id="item.id" @data-edited="handleDataEdited" />
+                  <DeleteData :item="item" @data-deleted="handleDataDeleted" />
+                  <ResetDeviceIdData
+                    v-if="item.deviceId"
+                    :item="item"
+                    @device-id-reset="handleDeviceIdReset"
+                  />
                 </div>
               </TableCell>
             </TableRow>
@@ -174,11 +137,16 @@ function handleDeviceIdReset() {
     </CardContent>
   </Card>
   <div>
-    <div class="mt-4 flex float-right">
-      <Button class="mr-2" @click="prevPage" :disabled="currentPage === 1">Previous </Button>
+    <div class="float-right mt-4 flex">
+      <Button class="mr-2" :disabled="currentPage === 1" @click="prevPage">
+        Previous
+      </Button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <Button class="ml-2" @click="nextPage" :disabled="currentPage === totalPages">Next </Button>
+      <Button class="ml-2" :disabled="currentPage === totalPages" @click="nextPage">
+        Next
+      </Button>
     </div>
   </div>
 </template>
+
 <style scoped></style>

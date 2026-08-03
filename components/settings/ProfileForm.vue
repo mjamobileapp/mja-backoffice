@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Eye, UploadCloud, X } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref } from 'vue'
 import * as z from 'zod'
+import { cn } from '@/lib/utils'
 import { toast } from '~/components/ui/toast'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const accessToken = useCookie('accessToken')
+const accessToken = useCookie<any>('accessToken')
 const token = accessToken.value?.token
 
-const currentUser = useCookie('currentUser')
+const currentUser = useCookie<any>('currentUser')
 
 const avatarPreview = ref(
   currentUser.value?.avatarUrl
     ? `${baseUrl}${currentUser.value.avatarUrl}`
-    : '/avatar-placeholder.png'
+    : '/avatar-placeholder.png',
 )
 
 const selectedFile = ref<File | null>(null)
@@ -44,13 +44,16 @@ const profileFormSchema = toTypedSchema(
       message: 'Nama lengkap minimal 2 karakter.',
     }),
     // phoneNumber: z.string().optional(),
+    email: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    bio: z.string().optional(),
     // bio: z
     //   .string()
     //   .max(160, {
     //     message: 'Bio maksimal 160 karakter.',
     //   })
     //   .optional(),
-  })
+  }),
 )
 
 const { handleSubmit, resetForm, values } = useForm({
@@ -59,6 +62,9 @@ const { handleSubmit, resetForm, values } = useForm({
     username: currentUser.value?.username || '',
     // email: currentUser.value?.email || '',
     nama: currentUser.value?.nama || '',
+    email: currentUser.value?.email || '',
+    phoneNumber: currentUser.value?.phoneNumber || '',
+    bio: currentUser.value?.bio || '',
     // phoneNumber: currentUser.value?.phoneNumber || '',
     // bio: currentUser.value?.bio || '',
   },
@@ -77,7 +83,8 @@ const initials = computed(() => {
 function handleFileChange(event: Event) {
   const target = event.target as HTMLInputElement
 
-  if (!target.files?.length) return
+  if (!target.files?.length)
+    return
 
   const file = target.files[0]
 
@@ -108,7 +115,7 @@ function removeAvatar() {
   avatarPreview.value = '/avatar-placeholder.png'
 }
 
-const onSubmit = handleSubmit(async values => {
+const onSubmit = handleSubmit(async (values) => {
   try {
     const formData = new FormData()
 
@@ -134,7 +141,8 @@ const onSubmit = handleSubmit(async values => {
       title: 'Success',
       description: 'Profile berhasil diperbarui.',
     })
-  } catch (error: any) {
+  }
+  catch (error: any) {
     console.error('Update profile error:', error)
 
     toast({
@@ -148,21 +156,25 @@ const onSubmit = handleSubmit(async values => {
 
 <template>
   <div>
-    <h3 class="text-lg font-medium">Profile Akun</h3>
-    <p class="text-sm text-muted-foreground">Informasi profile dan foto akun Anda.</p>
+    <h3 class="text-lg font-medium">
+      Profile Akun
+    </h3>
+    <p class="text-sm text-muted-foreground">
+      Informasi profile dan foto akun Anda.
+    </p>
   </div>
 
   <Separator />
 
-  <div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+  <div class="grid gap-4 lg:grid-cols-[240px_1fr]">
     <Card>
-      <CardHeader>
+      <CardHeader class="p-4">
         <CardTitle>Foto Profile</CardTitle>
         <CardDescription> Foto profile akun anda </CardDescription>
       </CardHeader>
 
-      <CardContent class="flex flex-col items-center gap-4">
-        <Avatar class="h-32 w-32">
+      <CardContent class="flex flex-col items-center gap-3 p-4">
+        <Avatar class="h-24 w-24">
           <AvatarImage :src="avatarPreview" />
           <AvatarFallback class="text-2xl">
             {{ initials }}
@@ -207,7 +219,7 @@ const onSubmit = handleSubmit(async values => {
       </CardContent>
     </Card>
 
-    <form class="space-y-8" @submit="onSubmit">
+    <form class="space-y-4" @submit="onSubmit">
       <FormField v-slot="{ componentField }" name="username">
         <FormItem>
           <FormLabel>Username</FormLabel>

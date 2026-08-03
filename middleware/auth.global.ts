@@ -1,24 +1,13 @@
-// export default defineNuxtRouteMiddleware(to => {
-//   const user = useCookie('currentUser')
-
-//   if (!user.value && to.path !== '/login') {
-//     return navigateTo('/login')
-//   }
-
-//   if (user.value && to.path === '/login') {
-//     return navigateTo('/')
-//   }
-// })
-
-export default defineNuxtRouteMiddleware(to => {
-  const userCookie = useCookie('currentUser')
+export default defineNuxtRouteMiddleware((to) => {
+  const userCookie = useCookie<any>('currentUser')
 
   // Parse cookie jika masih string
-  let user = userCookie.value
+  let user: any = userCookie.value
   if (typeof user === 'string') {
     try {
       user = JSON.parse(user)
-    } catch {
+    }
+    catch {
       user = null
     }
   }

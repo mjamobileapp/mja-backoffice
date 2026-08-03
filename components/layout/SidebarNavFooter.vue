@@ -14,10 +14,10 @@ const role = computed(() => dataLogin.value?.role || 'System Admin')
 // const avatar = computed(() => dataLogin.value?.avatar || '')
 
 function handleLogout() {
-  const userCookie = useCookie('currentUser')
+  const userCookie = useCookie<any>('currentUser')
   userCookie.value = null
 
-  const tokenCookie = useCookie('accessToken')
+  const tokenCookie = useCookie<any>('accessToken')
   tokenCookie.value = null
   navigateTo('/login')
 }
@@ -42,14 +42,14 @@ const showModalTheme = ref(false)
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
-            class="h-auto rounded-none border-t border-[#dfe4eb] px-3 py-4 data-[state=open]:bg-[#e9edf3]"
+            class="h-auto border-t border-[#dfe4eb] rounded-none px-3 py-4 data-[state=open]:bg-[#e9edf3]"
           >
             <Avatar class="h-12 w-12 overflow-hidden rounded-full">
               <AvatarImage src="/avatars/avatartion.png" :alt="name" />
               <AvatarFallback>{{ name.charAt(0) }}</AvatarFallback>
             </Avatar>
             <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-semibold text-[#111827]">{{ name }}</span>
+              <span class="truncate text-[#111827] font-semibold">{{ name }}</span>
               <span class="truncate text-xs text-[#6b7280]">{{ role }}</span>
             </div>
             <Icon name="i-lucide-chevrons-up-down" class="ml-auto size-4" />
@@ -89,7 +89,7 @@ const showModalTheme = ref(false)
 
           <DropdownMenuItem @click="goToChangePassword">
             <Icon name="i-lucide-lock-keyhole" />
-            Change Password
+            Ubah Password
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
