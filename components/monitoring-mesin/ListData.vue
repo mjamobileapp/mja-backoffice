@@ -275,7 +275,7 @@ onMounted(() => {
             class="h-9 w-[200px] border border-input rounded-md bg-background px-3 py-1 text-sm shadow-sm disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-1 focus:ring-primary"
           >
             <option :value="null" disabled selected>
-              {{ listCabang.length === 0 ? 'Belum ada cabang' : '-- Pilih Cabang --' }}
+              {{ listCabang.length === 0 ? 'Pilih Mitra dahulu' : '-- Pilih Cabang --' }}
             </option>
             <option v-for="cabang in listCabang" :key="cabang.id" :value="cabang.id">
               {{ cabang.namaCabang }}
