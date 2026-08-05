@@ -1,4 +1,5 @@
 <script setup>
+const error = useError()
 const { theme, radius } = useCustomize()
 
 useHead({
@@ -15,9 +16,11 @@ const router = useRouter()
   <div class="h-svh">
     <div class="m-auto h-full w-full flex flex-col items-center justify-center gap-2">
       <h1 class="text-[7rem] font-bold leading-tight">
-        404
+        {{ error?.statusCode || 500 }}
       </h1>
-      <span class="font-medium">Oops! Page Not Found!</span>
+      <span class="font-medium">
+        {{ error?.statusCode === 404 ? 'Oops! Page Not Found!' : 'Oops! Something went wrong!' }}
+      </span>
       <p class="text-center text-muted-foreground">
         It seems like the page you're looking for <br>
         does not exist or might have been removed.

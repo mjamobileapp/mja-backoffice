@@ -103,7 +103,7 @@ async function fetchLogs() {
       startDate: startDate.value,
       endDate: endDate.value,
     })
-    const response = await apiFetch<{ data?: { items?: AuditLog[], meta?: AuditMeta } }>(`/api/report/audit-logs?${query.toString()}`)
+    const response = await apiFetch<{ data?: { items?: AuditLog[], meta?: AuditMeta } }>(`/api/backoffice/report/audit-logs?${query.toString()}`)
     items.value = response.data?.items || []
     meta.value = response.data?.meta || { totalItems: 0, itemsPerPage: limit.value, currentPage: page.value, totalPages: 0 }
   }
