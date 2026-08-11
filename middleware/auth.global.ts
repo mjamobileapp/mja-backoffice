@@ -76,6 +76,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return navigateTo('/access-denied')
     }
     catch (error) {
+      if (isTokenExpiredError(error))
+        return redirectToLogin()
+
       console.error('Gagal memvalidasi hak akses menu:', error)
       return navigateTo('/access-denied')
     }

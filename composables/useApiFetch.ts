@@ -29,6 +29,30 @@ export function getAuthHeaders(): Record<string, string> {
   return headers
 }
 
+function getErrorData(error: any) {
+  return error?.data || error?.response?._data || error?.response?.data
+}
+
+export function isTokenExpiredError(error: unknown): boolean {
+  const data = getErrorData(error)
+  const code = data?.code || data?.error || data?.message || (error as any)?.message
+
+  return typeof code === 'string' && code.toUpperCase().includes('TOKEN_EXPIRED')
+}
+
+export function clearAuthSession() {
+  const userCookie = useCookie<any>('currentUser', { path: '/' })
+  userCookie.value = null
+
+  const tokenCookie = useCookie<any>('accessToken', { path: '/' })
+  tokenCookie.value = null
+}
+
+export function redirectToLogin() {
+  clearAuthSession()
+  return navigateTo('/login')
+}
+
 /**
  * Wrapper for $fetch with base URL and Auth headers automatically injected.
  */
@@ -39,10 +63,18 @@ export async function apiFetch<T = any>(request: string, options: any = {}): Pro
     ...getAuthHeaders(),
     ...(options.headers || {}),
   }
-  return $fetch<T>(url, {
-    ...options,
-    headers,
-  })
+  try {
+    return await $fetch<T>(url, {
+      ...options,
+      headers,
+    })
+  }
+  catch (error) {
+    if (isTokenExpiredError(error))
+      await redirectToLogin()
+
+    throw error
+  }
 }
 
 /**
@@ -65,5 +97,11 @@ export function useApiFetch<T = any>(request: string | (() => string), options: 
   return useFetch<T>(url, {
     ...options,
     headers,
+    async onResponseError(context) {
+      await options.onResponseError?.(context)
+
+      if (isTokenExpiredError(context.error || context.response))
+        await redirectToLogin()
+    },
   })
 }
