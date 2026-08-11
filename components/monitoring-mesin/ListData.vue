@@ -160,8 +160,8 @@ async function executeToggleStatus() {
 
   try {
     const targetUrl = isTurningOn
-      ? `${baseUrl}/dev/api/transaksi/startmesinbyowner`
-      : `${baseUrl}/dev/api/transaksi/stopmesinbyowner`
+      ? `${baseUrl}/api/transaksi/startmesinbyowner`
+      : `${baseUrl}/api/transaksi/stopmesinbyowner`
 
     const response = await fetch(targetUrl, {
       method: 'POST',
@@ -206,7 +206,27 @@ function getPowerTooltip(unit: any, jenis: 'dryer' | 'washer') {
   if (!unit)
     return `${label} tidak tersedia`
 
+  if (unit.status === 'OFFLINE')
+    return `${label} sedang Offline`
+
   return unit.status === 'READY' ? `Nyalakan ${label}` : `Matikan ${label}`
+}
+
+function isMachineControlDisabled(unit: any) {
+  return !unit || unit.status === 'OFFLINE'
+}
+
+function getMachineStatusColor(unit: any) {
+  if (!unit)
+    return 'bg-[#9aa0a6]'
+
+  if (unit.status === 'READY')
+    return 'bg-[#e63946]'
+
+  if (unit.status === 'IN_USE')
+    return 'bg-[#4caf50]'
+
+  return 'bg-[#9aa0a6]'
 }
 
 onMounted(() => {
@@ -338,7 +358,7 @@ onMounted(() => {
               <div class="flex min-w-0 items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
-                  :class="!mesin.dryer ? 'bg-[#9aa0a6]' : (mesin.dryer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                  :class="getMachineStatusColor(mesin.dryer)"
                 />
                 <span class="truncate text-xs font-bold">Dryer</span>
               </div>
@@ -347,10 +367,10 @@ onMounted(() => {
                   <TooltipTrigger as-child>
                     <span class="inline-flex">
                       <button
-                        :disabled="!mesin.dryer"
+                        :disabled="isMachineControlDisabled(mesin.dryer)"
                         :aria-label="getPowerTooltip(mesin.dryer, 'dryer')"
                         class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
-                        :class="!mesin.dryer ? 'bg-[#9aa0a6]' : (mesin.dryer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                        :class="getMachineStatusColor(mesin.dryer)"
                         @click="toggleStatus(mesin.espId, 'dryer')"
                       >
                         <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
@@ -369,7 +389,7 @@ onMounted(() => {
               <div class="flex min-w-0 items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
-                  :class="!mesin.washer ? 'bg-[#9aa0a6]' : (mesin.washer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                  :class="getMachineStatusColor(mesin.washer)"
                 />
                 <span class="truncate text-xs font-bold">Washer</span>
               </div>
@@ -378,10 +398,10 @@ onMounted(() => {
                   <TooltipTrigger as-child>
                     <span class="inline-flex">
                       <button
-                        :disabled="!mesin.washer"
+                        :disabled="isMachineControlDisabled(mesin.washer)"
                         :aria-label="getPowerTooltip(mesin.washer, 'washer')"
                         class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
-                        :class="!mesin.washer ? 'bg-[#9aa0a6]' : (mesin.washer.status === 'READY' ? 'bg-[#4caf50]' : 'bg-[#e63946]')"
+                        :class="getMachineStatusColor(mesin.washer)"
                         @click="toggleStatus(mesin.espId, 'washer')"
                       >
                         <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
