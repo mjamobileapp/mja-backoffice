@@ -160,8 +160,8 @@ async function executeToggleStatus() {
 
   try {
     const targetUrl = isTurningOn
-      ? `${baseUrl}/api/transaksi/startmesinbyowner`
-      : `${baseUrl}/api/transaksi/stopmesinbyowner`
+      ? `${baseUrl}/api/transaksi/startmesinbybackoffice`
+      : `${baseUrl}/api/transaksi/stopmesinbybackoffice`
 
     const response = await fetch(targetUrl, {
       method: 'POST',
@@ -171,6 +171,7 @@ async function executeToggleStatus() {
       },
       body: JSON.stringify({
         mesinId: unitMesin.idDb,
+        idMitra: selectedMitraId.value, // Menggunakan ID Mitra terpilih dari filter aktif
         cabangId: selectedCabangId.value, // Menggunakan ID Cabang terpilih dari filter aktif
       }),
     })
