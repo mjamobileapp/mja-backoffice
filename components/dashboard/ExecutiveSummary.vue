@@ -185,7 +185,6 @@ const formatCurrency = (value: number) => `Rp ${new Intl.NumberFormat('id-ID').f
 const formatNumber = (value: number) => new Intl.NumberFormat('id-ID').format(Math.round(value))
 const periodLabel = computed(() => ({
   'today': 'Omset hari ini',
-  'yesterday': 'Omset kemarin',
   'this-week': 'Omset minggu ini',
   'this-month': 'Omset bulan ini',
   'last-month': 'Omset bulan lalu',
@@ -265,7 +264,6 @@ onMounted(loadReport)
           <label class="text-[11px] text-slate-500 font-bold tracking-wide uppercase">Pilih Periode</label>
           <select v-model="selectedPeriod" class="h-10 border border-slate-200 rounded-lg bg-white px-3 text-sm shadow-sm outline-none focus:border-blue-500">
             <option value="today">Hari ini</option>
-            <option value="yesterday">Kemarin</option>
             <option value="this-week">Minggu ini</option>
             <option value="this-month">Bulan ini</option>
             <option value="last-month">Bulan lalu</option>
