@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatDate } from 'date-fns'
 import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
@@ -37,7 +37,16 @@ const mitraOptions = computed(() => {
 })
 
 const cabangOptions = computed(() => {
-  return [...new Set(data.value.map((item: any) => item.namaCabang).filter(Boolean))] as string[]
+  const sourceData = filter.value.namaMitra === 'all'
+    ? data.value
+    : data.value.filter((item: any) => item.namaMitra === filter.value.namaMitra)
+
+  return [...new Set(sourceData.map((item: any) => item.namaCabang).filter(Boolean))] as string[]
+})
+
+watch(() => filter.value.namaMitra, () => {
+  filter.value.namaCabang = 'all'
+  currentPage.value = 1
 })
 
 const filteredData = computed(() => {
