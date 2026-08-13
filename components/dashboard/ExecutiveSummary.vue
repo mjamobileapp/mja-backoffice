@@ -109,27 +109,51 @@ function buildReportQuery() {
   return params.toString()
 }
 
+function isApiError404(reason: any): boolean {
+  return reason?.statusCode === 404 || reason?.status === 404 || reason?.response?.status === 404
+}
+
 async function fetchReportData() {
   const query = buildReportQuery()
-  const [summaryResponse, trendResponse] = await Promise.all([
+  const [summaryResult, trendResult] = await Promise.allSettled([
     apiFetch<{ data?: { summary?: Partial<SummaryData> } }>(`/api/backoffice/report/summary?${query}`),
     apiFetch<{ data?: { trend?: any[] } }>(`/api/backoffice/report/trend?${query}`),
   ])
 
-  const summaryData = summaryResponse?.data?.summary ?? {}
-  summary.value = {
-    totalOmset: getNumber(summaryData, ['totalOmset']),
-    totalPengeluaran: getNumber(summaryData, ['totalPengeluaran']),
-    pendapatanBersih: getNumber(summaryData, ['pendapatanBersih']),
-    jumlahOrder: getNumber(summaryData, ['jumlahOrder']),
+  // Handle summary response
+  if (summaryResult.status === 'fulfilled') {
+    const summaryData = summaryResult.value?.data?.summary ?? {}
+    summary.value = {
+      totalOmset: getNumber(summaryData, ['totalOmset']),
+      totalPengeluaran: getNumber(summaryData, ['totalPengeluaran']),
+      pendapatanBersih: getNumber(summaryData, ['pendapatanBersih']),
+      jumlahOrder: getNumber(summaryData, ['jumlahOrder']),
+    }
+  }
+  else if (isApiError404(summaryResult.reason)) {
+    // 404: reset semua nilai card ke nol
+    summary.value = { totalOmset: 0, totalPengeluaran: 0, pendapatanBersih: 0, jumlahOrder: 0 }
+  }
+  else {
+    throw summaryResult.reason
   }
 
-  trend.value = Array.isArray(trendResponse?.data?.trend)
-    ? trendResponse.data.trend.map(item => ({
-        date: String(getValue(item, ['date', 'tanggal'])),
-        omset: getNumber(item, ['omset', 'omzet']),
-      }))
-    : []
+  // Handle trend response
+  if (trendResult.status === 'fulfilled') {
+    trend.value = Array.isArray(trendResult.value?.data?.trend)
+      ? trendResult.value.data.trend.map(item => ({
+          date: String(getValue(item, ['date', 'tanggal'])),
+          omset: getNumber(item, ['omset', 'omzet']),
+        }))
+      : []
+  }
+  else if (isApiError404(trendResult.reason)) {
+    // 404: kosongkan trend agar pesan 'belum tersedia' tampil di area chart
+    trend.value = []
+  }
+  else {
+    throw trendResult.reason
+  }
 }
 
 async function loadReport() {
@@ -143,10 +167,7 @@ async function loadReport() {
 
     if (reportResult.status === 'rejected') {
       console.error('Gagal mengambil data executive summary:', reportResult.reason)
-      const is404 = reportResult.reason?.statusCode === 404 || reportResult.reason?.status === 404 || reportResult.reason?.response?.status === 404
-      errorMessage.value = is404
-        ? 'Data report belum tersedia untuk periode dan filter yang dipilih.'
-        : 'Data report belum dapat dimuat. Silakan coba lagi.'
+      errorMessage.value = 'Data report belum dapat dimuat. Silakan coba lagi.'
     }
     else {
       errorMessage.value = ''
@@ -166,10 +187,7 @@ async function refreshReport() {
   }
   catch (error: any) {
     console.error('Gagal memperbarui executive summary:', error)
-    const is404 = error?.statusCode === 404 || error?.status === 404 || error?.response?.status === 404
-    errorMessage.value = is404
-      ? 'Data report belum tersedia untuk periode dan filter yang dipilih.'
-      : 'Data report belum dapat diperbarui.'
+    errorMessage.value = 'Data report belum dapat diperbarui.'
   }
   finally {
     refreshing.value = false
