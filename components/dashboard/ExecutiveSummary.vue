@@ -143,7 +143,10 @@ async function loadReport() {
 
     if (reportResult.status === 'rejected') {
       console.error('Gagal mengambil data executive summary:', reportResult.reason)
-      errorMessage.value = 'Data report belum dapat dimuat. Silakan coba lagi.'
+      const is404 = reportResult.reason?.statusCode === 404 || reportResult.reason?.status === 404 || reportResult.reason?.response?.status === 404
+      errorMessage.value = is404
+        ? 'Data report belum tersedia untuk periode dan filter yang dipilih.'
+        : 'Data report belum dapat dimuat. Silakan coba lagi.'
     }
     else {
       errorMessage.value = ''
@@ -161,9 +164,12 @@ async function refreshReport() {
     await fetchReportData()
     errorMessage.value = ''
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Gagal memperbarui executive summary:', error)
-    errorMessage.value = 'Data report belum dapat diperbarui.'
+    const is404 = error?.statusCode === 404 || error?.status === 404 || error?.response?.status === 404
+    errorMessage.value = is404
+      ? 'Data report belum tersedia untuk periode dan filter yang dipilih.'
+      : 'Data report belum dapat diperbarui.'
   }
   finally {
     refreshing.value = false
