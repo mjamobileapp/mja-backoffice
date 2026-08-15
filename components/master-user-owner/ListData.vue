@@ -6,6 +6,8 @@ import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 import ResetDeviceIdData from './ResetDeviceIdData.vue'
+import ResetPasswordData from './ResetPasswordData.vue'
+import DetailData from './DetailData.vue'
 
 const isLoading = ref(false)
 const searchQuery = ref('')
@@ -68,6 +70,12 @@ function handleDeviceIdReset() {
     fetchData()
   }, 500)
 }
+
+function handlePasswordReset() {
+  setTimeout(() => {
+    fetchData()
+  }, 500)
+}
 </script>
 
 <template>
@@ -107,7 +115,7 @@ function handleDeviceIdReset() {
                 {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
-                {{ item.username }}
+                <DetailData :id="item.id" :username="item.username" />
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.role }}
@@ -127,6 +135,10 @@ function handleDeviceIdReset() {
                     v-if="item.deviceId"
                     :item="item"
                     @device-id-reset="handleDeviceIdReset"
+                  />
+                  <ResetPasswordData
+                    :item="item"
+                    @password-reset="handlePasswordReset"
                   />
                 </div>
               </TableCell>
