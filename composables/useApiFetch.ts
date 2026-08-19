@@ -62,6 +62,14 @@ export function isTokenExpiredError(error: unknown): boolean {
     || normalized.includes('EXPIRED')
 }
 
+export function isAuthSessionError(error: unknown): boolean {
+  const status = getErrorStatus(error)
+  if (status === 401 || status === 403)
+    return true
+
+  return isTokenExpiredError(error)
+}
+
 export function clearAuthSession() {
   const userCookie = useCookie<any>('currentUser', { path: '/' })
   userCookie.value = null
