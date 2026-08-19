@@ -314,7 +314,7 @@ onMounted(() => {
           <table class="w-full border-collapse text-left">
             <thead>
               <tr class="border-b border-slate-100 bg-white text-[11px] text-slate-500 font-semibold tracking-wider uppercase">
-                <th class="w-48 whitespace-nowrap p-4">
+                <th class="w-28 whitespace-nowrap p-4">
                   Waktu
                 </th>
                 <th class="whitespace-nowrap p-4">
@@ -326,9 +326,9 @@ onMounted(() => {
                 <th class="whitespace-nowrap p-4">
                   Aktor
                 </th>
-                <th class="w-48 whitespace-nowrap p-4">
+                <!-- <th class="w-48 whitespace-nowrap p-4">
                   Referensi Order
-                </th>
+                </th> -->
                 <th class="whitespace-nowrap p-4 text-center">
                   Status
                 </th>
@@ -347,7 +347,7 @@ onMounted(() => {
               </tr>
               <template v-for="item in pagedItems" v-else :key="item.id">
                 <tr class="transition-colors hover:bg-slate-50" :class="{ 'bg-rose-50/30': !item.status.isSuccess }">
-                  <td class="w-48 whitespace-nowrap p-4 align-top">
+                  <td class="w-28 whitespace-nowrap p-4 align-top">
                     <div class="font-code text-slate-700 font-medium">
                       {{ formatTime(item.waktuLog) }} WIB
                     </div>
@@ -360,7 +360,6 @@ onMounted(() => {
                       <span class="border rounded px-2 py-0.5 text-[10px] font-bold tracking-wide" :class="commandBadgeClass(item.instruksi.command)">
                         {{ item.instruksi.command }}
                       </span>
-                      <span class="text-[10px] text-slate-400 font-medium">via {{ item.instruksi.jenis }}</span>
                     </div>
                     <div class="flex flex-col gap-1 text-[11px] text-slate-500">
                       <span>{{ item.mesin.nama }} - <span class="font-code border border-slate-200 rounded bg-slate-100 px-1 py-0.5">{{ item.mesin.jenis }}</span></span>
@@ -374,7 +373,7 @@ onMounted(() => {
                       {{ item.cabang.nama }}
                     </div>
                   </td>
-                  <td class="p-4 align-top">
+                  <!-- <td class="p-4 align-top">
                     <div class="flex items-start gap-2">
                       <div class="mt-0.5 h-7 w-7 flex shrink-0 items-center justify-center rounded" :class="aktorIconClass(item.aktor.type)">
                         <component :is="aktorIcon(item.aktor.type)" class="h-3.5 w-3.5" />
@@ -388,7 +387,7 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                  </td>
+                  </td> -->
                   <td class="w-48 p-4 align-top">
                     <template v-if="item.referensi.invoiceNumber">
                       <div class="font-code text-sm text-blue-600 font-bold">
