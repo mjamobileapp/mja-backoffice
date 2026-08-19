@@ -373,7 +373,7 @@ onMounted(() => {
                       {{ item.cabang.nama }}
                     </div>
                   </td>
-                  <!-- <td class="p-4 align-top">
+                  <td class="p-4 align-top">
                     <div class="flex items-start gap-2">
                       <div class="mt-0.5 h-7 w-7 flex shrink-0 items-center justify-center rounded" :class="aktorIconClass(item.aktor.type)">
                         <component :is="aktorIcon(item.aktor.type)" class="h-3.5 w-3.5" />
@@ -387,8 +387,8 @@ onMounted(() => {
                         </div>
                       </div>
                     </div>
-                  </td> -->
-                  <td class="w-48 p-4 align-top">
+                  </td>
+                  <!-- <td class="w-48 p-4 align-top">
                     <template v-if="item.referensi.invoiceNumber">
                       <div class="font-code text-sm text-blue-600 font-bold">
                         {{ item.referensi.invoiceNumber }}
@@ -401,7 +401,7 @@ onMounted(() => {
                       </div>
                       <span class="mt-1 block text-[11px] text-rose-500">Tanpa Transaksi POS</span>
                     </template>
-                  </td>
+                  </td> -->
                   <td class="p-4 text-center align-top">
                     <span class="inline-flex items-center gap-1.5 border rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm" :class="item.status.isSuccess ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-rose-100 bg-rose-50 text-rose-600'">
                       <CircleCheck v-if="item.status.isSuccess" class="h-3.5 w-3.5" />
