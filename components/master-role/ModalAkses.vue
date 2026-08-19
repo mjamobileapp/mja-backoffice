@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
 import { ScanEyeIcon } from 'lucide-vue-next'
-import { useForm } from 'vee-validate'
-import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { toast } from '~/components/ui/toast'
 
 const props = defineProps({
@@ -25,48 +21,31 @@ const props = defineProps({
 
 const emit = defineEmits(['dataAkses'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isDialogOpen = ref(false)
 const isLoading = ref(true)
 const menus: any = ref([])
 
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 async function fetchGetAkses() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/akses/role/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    // console.log(data)
-    const results = data
-    menus.value = results.map(menu => ({
+    const res = await apiFetch(`/api/backoffice/akses/role/${props.id}`)
+    const list = Array.isArray(res) ? res : (res?.data || [])
+    menus.value = list.map(menu => ({
       ...menu,
 
       children: menu.children?.map(child => ({ ...child })) || [],
     }))
-    isLoading.value = false
   }
   catch (error) {
     console.error('Gagal mengambil data:', error)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 async function openDialog() {
   isDialogOpen.value = true
   isLoading.value = true
   await fetchGetAkses()
-  // console.log(props.id)
 }
 
 function closeDialog() {
@@ -109,15 +88,10 @@ async function onSubmit() {
   })
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/akses/role/${props.id}`, {
+    await apiFetch(`/api/backoffice/akses/role/${props.id}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(selectedMenus),
+      body: selectedMenus,
     })
-
-    if (!response.ok) {
-      throw new Error(`Gagal menyimpan akses role. Status: ${response.status}`)
-    }
 
     toast({ title: 'Berhasil', description: 'Akses role berhasil diperbarui' })
     setTimeout(() => {
@@ -127,7 +101,7 @@ async function onSubmit() {
   }
   catch (error) {
     console.error('Error saat simpan:', error)
-    toast({ title: 'Error', description: 'Gagal menyimpan data', variant: 'destructive' })
+    toast({ title: 'Gagal', description: 'Gagal menyimpan data', variant: 'destructive' })
   }
 }
 </script>

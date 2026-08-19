@@ -37,7 +37,7 @@ watch(
   (newVal, oldVal) => {
     if (!isMounted.value)
       return
-    if (newVal == null || isNaN(Number(newVal)))
+    if (newVal == null || Number.isNaN(Number(newVal)))
       return
     if (Number(newVal) === Number(oldVal))
       return
@@ -64,7 +64,7 @@ watch(
 )
 
 const formattedValue = computed(() => {
-  if (!isMounted.value || isNaN(displayValue.value))
+  if (!isMounted.value || Number.isNaN(displayValue.value))
     return '-'
   const formatted = new Intl.NumberFormat(props.locale, {
     minimumFractionDigits: props.showDecimal ? 2 : 0,

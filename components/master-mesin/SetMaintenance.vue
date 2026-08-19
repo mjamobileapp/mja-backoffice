@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { SettingsIcon, Trash2Icon, TrashIcon } from 'lucide-vue-next'
+import { SettingsIcon } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -16,50 +15,25 @@ import { toast } from '~/components/ui/toast'
 const props = defineProps(['item'])
 const emit = defineEmits(['dataMaintenance'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 async function maintenanceItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/maintenance/${props.item.id}`, {
+    await apiFetch(`/api/backoffice/mesin/maintenance/${props.item.id}`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     })
-
-    if (response.ok) {
-      emit('dataMaintenance', props.item.id)
-      toast({
-        title: 'Success',
-        description: 'Data berhasil dimaintenance.',
-      })
-    }
-    else {
-      // Ambil pesan dari response body
-      const errorData = await response.json()
-      const message = errorData?.message || 'Gagal Maintenance Data'
-
-      // Tampilkan toast error
-      toast({
-        title: 'Gagal',
-        description: message,
-        variant: 'destructive',
-      })
-      console.error('Gagal menghapus:', message)
-    }
-  }
-  catch (error) {
+    emit('dataMaintenance', props.item.id)
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat menghapus data.',
+      title: 'Success',
+      description: 'Data berhasil dimaintenance.',
+    })
+  }
+  catch (error: any) {
+    const message = error?.data?.message || error?.message || 'Gagal Maintenance Data'
+    toast({
+      title: 'Gagal',
+      description: message,
       variant: 'destructive',
     })
-    console.error('Error:', error)
+    console.error('Gagal menghapus:', message)
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Trash2Icon, TrashIcon } from 'lucide-vue-next'
+import { TrashIcon } from 'lucide-vue-next'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,34 +16,20 @@ import { toast } from '~/components/ui/toast'
 const props = defineProps(['item'])
 const emit = defineEmits(['dataDeleted'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 async function deleteItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/menus/${props.item.id}`, {
+    await apiFetch(`/api/backoffice/menus/${props.item.id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     })
 
-    if (response.ok) {
-      emit('dataDeleted', props.item.id)
-      toast({
-        title: 'Success',
-        description: 'Data berhasil dihapus.',
-      })
-    }
-    else {
-      console.error('Gagal menghapus data')
-    }
+    emit('dataDeleted', props.item.id)
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil dihapus.',
+    })
   }
-  catch (error) {
+  catch (error: any) {
+    console.error('Gagal menghapus data')
     console.error('Error:', error)
   }
 }

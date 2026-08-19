@@ -1,26 +1,15 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-vue-next'
+import { Eye, Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import * as z from 'zod'
 import { toast } from '~/components/ui/toast'
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value?.token
-console.log(token)
-
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
-const email = computed(() => currentUser.value?.username || 'no-email@example.com')
 const idUser = computed(() => currentUser.value?.id || 0)
 
 const isLoading = ref(false)
-const showOldPassword = ref(false)
-const showNewPassword = ref(false)
-const showConfirmPassword = ref(false)
 
 // Daftarkan template refs untuk menangkap elemen Input Shadcn
 const oldPasswordInput = ref<any>(null)
@@ -76,37 +65,21 @@ const { handleSubmit, resetForm } = useForm({
   },
 })
 
-function getErrorMessage(error: any) {
-  const data = error?.data || error?.response?._data
-
-  const message = data?.message || error?.message || 'Gagal mengubah password.'
-
-  const missingFields
-    = Array.isArray(data?.missingFields) && data.missingFields.length
-      ? ` (${data.missingFields.join(', ')})`
-      : ''
-
-  return `${message}${missingFields}`
-}
-
 const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
   try {
-    await $fetch(`${baseUrl}/api/backoffice/users/${idUser.value}/changepassword`, {
+    await apiFetch(`/api/backoffice/users/${idUser.value}/changepassword`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: {
         oldPassword: values.oldPassword,
         newPassword: values.newPassword,
-        ConfirmNewPassword: values.confirmPassword,
+        confirmNewPassword: values.confirmPassword,
       },
     })
 
     toast({
-      title: 'Success',
+      title: 'Berhasil',
       description: 'Password berhasil diubah.',
     })
 
@@ -123,7 +96,7 @@ const onSubmit = handleSubmit(async (values) => {
         : ''
 
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: `${message}${missingFields}`,
       variant: 'destructive',
     })

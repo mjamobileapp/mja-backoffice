@@ -2,7 +2,7 @@
 import { toTypedSchema } from '@vee-validate/zod'
 import { ChevronsUpDown, Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -21,15 +21,6 @@ import { cn } from '@/lib/utils'
 import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
-
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-const currentUser = useCookie<any>('currentUser')
-const username = computed(() => currentUser.value?.username || 'no-username@example.com')
-
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
   z.object({
@@ -74,13 +65,10 @@ function closeDialog() {
 
 async function fetchDataMitra() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const fetched = await apiFetch('/api/backoffice/mitra')
+    const list = Array.isArray(fetched?.data) ? fetched.data : []
 
-    const fetchedData = await response.json()
-
-    mitraList.value = fetchedData.data.map((item: any) => ({
+    mitraList.value = list.map((item: any) => ({
       ...item,
       idMitra: item.idRap || item.id,
       kodeMitra: item.kodeMitra,
@@ -95,13 +83,10 @@ async function fetchDataMitra() {
 
 async function fetchDataCabangByMitra(idMitra: number) {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/mitra/${idMitra}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const fetched = await apiFetch(`/api/backoffice/cabang/mitra/${idMitra}`)
+    const list = Array.isArray(fetched?.data) ? fetched.data : []
 
-    const fetchedData = await response.json()
-
-    cabangList.value = fetchedData.data.map((item: any) => ({
+    cabangList.value = list.map((item: any) => ({
       ...item,
       cabangId: item.id,
       kodeCabang: item.kodeCabang,
@@ -142,40 +127,27 @@ const onSubmit = handleSubmit(async (values: any) => {
     dryer: values.dryer ? 1 : 0,
   }
 
-  console.log(JSON.stringify(dataForm))
-
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin`, {
+    await apiFetch('/api/backoffice/mesin', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil disimpan.',
-      })
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil disimpan.',
+    })
 
-      emit('dataAdded')
-      resetForm()
-      isDialogOpen.value = false
-    }
-    else {
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data. Silakan coba lagi.',
-      })
-    }
+    emit('dataAdded')
+    resetForm()
+    isDialogOpen.value = false
   }
   catch (error) {
     console.error('Error submitting data:', error)
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: 'Terjadi kesalahan saat mengirim data.',
+      variant: 'destructive',
     })
   }
   finally {

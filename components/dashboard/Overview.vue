@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRuntimeConfig } from '#app' // jika kamu pakai Nuxt 3
 import { onMounted, ref, watch } from 'vue'
 import CustomChartTooltip from './CustomChartTooltip.vue'
 
@@ -11,29 +10,13 @@ const props = defineProps({
   },
 })
 
-// console.log(props.idProyek)
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 // Reaktif data chart
 const dataBarchart = ref<{ name: string, total: number }[]>([])
-
-// Ambil base URL dari runtime config (Nuxt) atau bisa juga langsung string
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase || 'http://localhost:4000'
 
 // Fungsi ambil data dari API
 async function fetchDataBarchart() {
   try {
-    const response = await fetch(`${baseUrl}/getDataBarChart/${props.idProyek}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    const result = await response.json()
+    const result = await apiFetch(`/getDataBarChart/${props.idProyek}`)
 
     if (!result.success)
       throw new Error(result.message || 'Gagal mengambil data')

@@ -27,7 +27,7 @@ async function handleResetPassword(emailData: { email: string }) {
   try {
     // Menggunakan useFetch atau $fetch dari Nuxt 3
     // Mengganti ':email' di URL dengan email yang diinput user
-    const response = await $fetch(
+    await $fetch(
       `${baseUrl}/api/backoffice/users/${encodeURIComponent(emailData.email)}/resetpassword`,
       {
         method: 'POST',

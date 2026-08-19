@@ -123,12 +123,6 @@ function goToChangePassword() {
   setOpenMobile(false)
   navigateTo('/settings/change-password')
 }
-
-function goToAppVersion() {
-  setOpenMobile(false)
-  navigateTo('/settings/app-version')
-}
-
 </script>
 
 <template>

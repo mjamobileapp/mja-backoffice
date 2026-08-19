@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { Eye, EyeOff, Loader2, PencilIcon } from 'lucide-vue-next'
+import { Loader2, PencilIcon } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,12 +25,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 
-const props = defineProps<{
-  id: {
-    type: number
-    required: true
-  }
-}>()
+const props = defineProps<{ id: number }>()
 
 const emit = defineEmits(['dataUpdated'])
 
@@ -49,13 +44,6 @@ const formSchema = toTypedSchema(
 const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: formSchema,
 })
-
-
-// Fitur Toggle View Password
-const showPassword = ref(false)
-function togglePassword() {
-  showPassword.value = !showPassword.value
-}
 
 async function fetchUserData() {
   try {
@@ -117,7 +105,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'PUT',
       body: dataForm,
     })
-    toast({ title: 'Success', description: 'Data berhasil diupdate.' })
+    toast({ title: 'Berhasil', description: 'Data berhasil diupdate.' })
     setTimeout(() => {
       emit('dataUpdated')
       isDialogOpen.value = false
@@ -125,7 +113,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   }
   catch (error) {
     console.error('Error update:', error)
-    toast({ title: 'Error', description: 'Gagal mengupdate data.' })
+    toast({ title: 'Gagal', description: 'Gagal mengupdate data.', variant: 'destructive' })
   }
   finally {
     isSubmitting.value = false

@@ -8,39 +8,11 @@ import {
 } from 'lucide-vue-next'
 
 const jumlahMitra = ref(0)
-const jumlahMesin = ref(0)
 const jumlahMesinWasher = ref(0)
 const jumlahMesinDryer = ref(0)
 const jumlahCabang = ref(0)
 
 const topMitra = ref<any[]>([])
-
-const machineOnline = computed(() => Math.max(jumlahMesin.value - 2, 0))
-const machineOffline = computed(() => (jumlahMesin.value > 0 ? 1 : 0))
-const machineRepair = computed(() => (jumlahMesin.value > 1 ? 1 : 0))
-
-const machineStatusSegments = computed(() => {
-  const total = Math.max(jumlahMesin.value, 1)
-  const circumference = 251.2
-  const gap = 3
-  let offset = 0
-
-  return [
-    { label: 'On', value: machineOnline.value, color: '#22c55e' },
-    { label: 'Off', value: machineOffline.value, color: '#f59e0b' },
-    { label: 'Maintenance', value: machineRepair.value, color: '#ef4444' },
-  ].map((segment) => {
-    const length = (segment.value / total) * circumference
-    const dashLength = Math.max(length - gap, 0)
-    const result = {
-      ...segment,
-      dasharray: `${dashLength} ${circumference}`,
-      dashoffset: -offset,
-    }
-    offset += length
-    return result
-  })
-})
 
 function getTransactionRecords(responseData: any) {
   if (Array.isArray(responseData))
@@ -128,7 +100,6 @@ async function fetchDataCabang() {
 async function fetchDataMesin() {
   try {
     const fetchedData = await apiFetch('/api/backoffice/dashboard/getmesin')
-    jumlahMesin.value = fetchedData.total || 0
     const mesinData = fetchedData.data || fetchedData.mesin || []
     jumlahMesinWasher.value = getMachineCountFromResponse(fetchedData, mesinData, 'washer')
     jumlahMesinDryer.value = getMachineCountFromResponse(fetchedData, mesinData, 'dryer')
@@ -261,7 +232,7 @@ onMounted(async () => {
       </Card>
     </section>
 
-    <section class="grid mt-5 gap-5 xl:grid-cols-[1.65fr_1fr] xl:min-h-0 xl:flex-1">
+    <section class="grid mt-5 gap-5 xl:min-h-0 xl:flex-1">
       <Card class="dashboard-card bottom-card">
         <CardHeader class="flex shrink-0 flex-row items-center justify-between border-b border-slate-100 p-5 pb-4 space-y-0">
           <div>
@@ -294,58 +265,6 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card class="dashboard-card bottom-card">
-        <CardHeader class="shrink-0 p-4 pb-1">
-          <CardTitle class="text-lg text-slate-900 font-bold">
-            Status Operasional Mesin
-          </CardTitle>
-        </CardHeader>
-        <CardContent class="flex flex-1 flex-col items-center justify-center px-4 pb-3 pt-1">
-          <div v-if="!jumlahMesin" class="flex flex-1 items-center justify-center">
-            <p class="border border-slate-200 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 font-medium">
-              Data mesin belum tersedia.
-            </p>
-          </div>
-          <div v-else class="relative h-36 w-36 drop-shadow-md">
-            <svg viewBox="0 0 100 100" class="h-full w-full" aria-hidden="true">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#f1f5f9" stroke-width="12" />
-              <circle
-                v-for="segment in machineStatusSegments"
-                :key="segment.label"
-                class="donut-segment"
-                cx="50"
-                cy="50"
-                r="40"
-                fill="none"
-                :stroke="segment.color"
-                stroke-linecap="round"
-                stroke-width="12"
-                :stroke-dasharray="segment.dasharray"
-                :stroke-dashoffset="segment.dashoffset"
-              />
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="text-4xl text-slate-900 font-extrabold">
-                <NumberFlow :value="jumlahMesin" />
-              </div>
-              <div class="mt-0.5 text-[10px] text-slate-500 font-semibold tracking-wider uppercase">
-                Total Mesin
-              </div>
-            </div>
-          </div>
-          <div v-if="jumlahMesin" class="grid grid-cols-3 mt-1.5 w-full gap-1 border border-slate-100 rounded-xl bg-slate-50 py-1 text-center text-[11px] text-[#4b5563]">
-            <div v-for="(segment, index) in machineStatusSegments" :key="segment.label" class="grid justify-items-center gap-0" :class="{ 'border-r border-slate-200': index < 2 }">
-              <span class="h-2 w-2 rounded-full shadow-sm" :style="{ backgroundColor: segment.color }" />
-              <strong class="text-sm text-slate-800">{{ segment.value }}</strong>
-              <span class="text-[10px] text-slate-500 font-bold">{{ segment.label }}</span>
-            </div>
-          </div>
-          <!-- <p class="mt-1 border border-slate-200 rounded-full bg-white px-3 py-0.5 text-xs text-slate-500 font-semibold shadow-sm">
-            {{ activePercent }}% mesin aktif beroperasi
-          </p> -->
         </CardContent>
       </Card>
     </section>
@@ -496,29 +415,6 @@ onMounted(async () => {
 
 .bar-muted {
   background: #94a3b8;
-}
-
-.donut-segment {
-  transform-origin: center;
-  transform: rotate(-90deg);
-  transition: stroke-dashoffset 1s ease-out;
-}
-
-.status-stat {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-}
-
-.status-stat strong {
-  color: #0f172a;
-  font-size: 1rem;
-}
-
-.status-dot {
-  height: 8px;
-  width: 8px;
-  border-radius: 9999px;
 }
 
 @media (min-width: 1280px) {

@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { Eye, UploadCloud, X } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref } from 'vue'
 import * as z from 'zod'
-import { cn } from '@/lib/utils'
 import { toast } from '~/components/ui/toast'
 
 const config = useRuntimeConfig()
 const baseUrl = config.public.apiBase
 
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value?.token
+const token = getAuthToken()
 
 const currentUser = useCookie<any>('currentUser')
 
@@ -56,7 +53,7 @@ const profileFormSchema = toTypedSchema(
   }),
 )
 
-const { handleSubmit, resetForm, values } = useForm({
+const { handleSubmit, values } = useForm({
   validationSchema: profileFormSchema,
   initialValues: {
     username: currentUser.value?.username || '',
@@ -80,41 +77,6 @@ const initials = computed(() => {
     .toUpperCase()
 })
 
-function handleFileChange(event: Event) {
-  const target = event.target as HTMLInputElement
-
-  if (!target.files?.length)
-    return
-
-  const file = target.files[0]
-
-  if (!file.type.startsWith('image/')) {
-    toast({
-      title: 'Error',
-      description: 'File harus berupa gambar.',
-      variant: 'destructive',
-    })
-    return
-  }
-
-  if (file.size > 2 * 1024 * 1024) {
-    toast({
-      title: 'Error',
-      description: 'Ukuran gambar maksimal 2MB.',
-      variant: 'destructive',
-    })
-    return
-  }
-
-  selectedFile.value = file
-  avatarPreview.value = URL.createObjectURL(file)
-}
-
-function removeAvatar() {
-  selectedFile.value = null
-  avatarPreview.value = '/avatar-placeholder.png'
-}
-
 const onSubmit = handleSubmit(async (values) => {
   try {
     const formData = new FormData()
@@ -131,14 +93,12 @@ const onSubmit = handleSubmit(async (values) => {
 
     await $fetch(`${baseUrl}/api/backoffice/profile`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     })
 
     toast({
-      title: 'Success',
+      title: 'Berhasil',
       description: 'Profile berhasil diperbarui.',
     })
   }
@@ -146,7 +106,7 @@ const onSubmit = handleSubmit(async (values) => {
     console.error('Update profile error:', error)
 
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: error.data?.message || 'Gagal memperbarui profile.',
       variant: 'destructive',
     })

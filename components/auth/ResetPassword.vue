@@ -100,7 +100,6 @@ async function handleSubmit(event: Event) {
     confirmPassword: confirmPassword.value,
   }
 
-  console.log(JSON.stringify(formSubmit))
   try {
     // Menembak API dengan menyisipkan email dan password baru
     await $fetch(`${baseUrl}/api/mobile/activateaccount`, {

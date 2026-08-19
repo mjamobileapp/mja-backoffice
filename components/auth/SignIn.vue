@@ -40,11 +40,11 @@ async function onSubmit(event: Event) {
     })
     userCookie.value = userData
 
-    const accessToken = useCookie('accessToken', {
+    const accessToken = useCookie<any>('accessToken', {
       maxAge: 60 * 60 * 24,
       sameSite: 'strict',
     })
-    accessToken.value = userData
+    accessToken.value = { token: userData.token }
 
     navigateTo('/')
   }

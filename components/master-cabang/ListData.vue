@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
-import { formatDate } from '~/lib/utils'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
@@ -24,10 +22,6 @@ const {
   searchFields: ['namaCabang', 'kodeCabang', 'namaMitra', 'alamatCabang'],
 })
 
-function formatTanggal(tanggal: any) {
-  return formatDate(tanggal)
-}
-
 async function fetchData() {
   isLoading.value = true
   try {
@@ -47,19 +41,10 @@ onMounted(() => {
   fetchData()
 })
 
-const editItem = ref(null)
 function handleDataEdited() {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
   setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
     fetchData()
   }, 500)
-}
-
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
 function handleDataDeleted(deletedItemId: any) {

@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
 import { toTypedSchema } from '@vee-validate/zod'
-import { toDate } from 'date-fns'
 import { PencilIcon } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -27,23 +19,11 @@ import {
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-const props = defineProps<{
-  id: {
-    type: number
-    required: true
-  }
-}>()
+const props = defineProps<{ id: number }>()
 
 const emit = defineEmits<{
   (e: 'dataEdited'): void
 }>()
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 
 // onMounted(() => {
 //   fetchData()
@@ -73,25 +53,15 @@ const isDialogOpen = ref(false)
 
 async function fetchData() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/item/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const res = await apiFetch(`/api/backoffice/item/${props.id}`)
+    const data = res?.data
 
-    if (response.ok) {
-      const { data } = await response.json()
-      console.log(data)
-
+    if (data) {
       // --- 3. setValues ke VeeValidate ---
       setValues({
         namaItem: data.namaItem,
         tipeItem: data.tipeItem,
       })
-    }
-    else {
-      console.error('Gagal mengambil data. Status:', response.status)
     }
   }
   catch (error) {
@@ -111,9 +81,6 @@ function closeDialog() {
 }
 
 const isSubmitting = ref(false)
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 const onSubmit = handleSubmit(async () => {
   isSubmitting.value = true
@@ -124,25 +91,15 @@ const onSubmit = handleSubmit(async () => {
       updatedBy: username.value,
     }
 
-    console.log(JSON.stringify(dataForm))
-    const response = await fetch(`${baseUrl}/api/backoffice/item/${props.id}`, {
+    await apiFetch(`/api/backoffice/item/${props.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      emit('dataEdited')
-      toast.success('Data Berhasil Di Update')
-      closeDialog()
-      resetForm()
-    }
-    else {
-      console.error('Gagal mengedit data')
-    }
+    emit('dataEdited')
+    toast.success('Data Berhasil Di Update')
+    closeDialog()
+    resetForm()
   }
   catch (error) {
     console.error('Error:', error)

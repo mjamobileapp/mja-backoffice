@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const currentUser = useCookie<any>('currentUser')
@@ -27,10 +26,6 @@ const currentUser = useCookie<any>('currentUser')
           Anda tidak memiliki akses ke Dashboard Admin. Silakan gunakan menu navigasi yang tersedia
           sesuai hak akses Anda.
         </p>
-
-        <Button class="mt-4" @click="navigateTo('/')">
-          Kembali
-        </Button>
       </CardContent>
     </Card>
   </div>

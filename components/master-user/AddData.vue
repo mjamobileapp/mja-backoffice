@@ -92,7 +92,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       method: 'POST',
       body: dataForm,
     })
-    toast({ title: 'Success', description: 'Data berhasil disimpan.' })
+    toast({ title: 'Berhasil', description: 'Data berhasil disimpan.' })
     setTimeout(() => {
       emit('dataAdded')
       isDialogOpen.value = false
@@ -101,7 +101,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   }
   catch (error) {
     console.error('Error submitting data:', error)
-    toast({ title: 'Error', description: 'Gagal menyimpan data.' })
+    toast({ title: 'Gagal', description: 'Gagal menyimpan data.', variant: 'destructive' })
   }
   finally {
     isSubmitting.value = false

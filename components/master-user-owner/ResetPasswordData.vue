@@ -16,11 +16,6 @@ import { toast } from '~/components/ui/toast'
 const props = defineProps(['item'])
 const emit = defineEmits(['passwordReset'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-const accessToken = useCookie<{ token: string }>('accessToken')
-const token = accessToken.value?.token
 const isSubmitting = ref(false)
 const isDialogOpen = ref(false)
 
@@ -70,45 +65,30 @@ async function handleResetPassword() {
   isSubmitting.value = true
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/userowner/${props.item.id}/forceresetpassword`, {
+    await apiFetch(`/api/backoffice/userowner/${props.item.id}/forceresetpassword`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      body: {
         newPassword: password.value,
-        ConfirmNewPassword: confirmPassword.value,
-      }),
+        confirmNewPassword: confirmPassword.value,
+      },
     })
 
-    if (response.ok) {
-      emit('passwordReset', props.item.id)
-      toast({
-        title: 'Success',
-        description: 'Password berhasil direset.',
-      })
-      closeDialog()
-    }
-    else {
-      const errorData = await response.json()
-      const message = errorData?.message || 'Gagal reset password'
-
-      toast({
-        title: 'Gagal',
-        description: message,
-        variant: 'destructive',
-      })
-      console.error('Gagal reset password:', message)
-    }
+    emit('passwordReset', props.item.id)
+    toast({
+      title: 'Berhasil',
+      description: 'Password berhasil direset.',
+    })
+    closeDialog()
   }
   catch (error) {
+    const message = error?.data?.message || error?.message || 'Gagal reset password'
+
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat reset password.',
+      title: 'Gagal',
+      description: message,
       variant: 'destructive',
     })
-    console.error('Error:', error)
+    console.error('Gagal reset password:', message)
   }
   finally {
     isSubmitting.value = false
@@ -138,7 +118,7 @@ async function handleResetPassword() {
           <DialogTitle>Force Reset Password</DialogTitle>
         </DialogHeader>
 
-        <div class="space-y-3 py-2">
+        <div class="py-2 space-y-3">
           <div class="space-y-1">
             <Label for="new-password">Password Baru</Label>
             <PasswordInput

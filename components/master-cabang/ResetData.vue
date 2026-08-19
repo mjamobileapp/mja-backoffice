@@ -24,12 +24,6 @@ import { toast } from '~/components/ui/toast'
 const props = defineProps(['item'])
 const emit = defineEmits(['dataReset'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-const accessToken = useCookie<{ token: string }>('accessToken')
-const token = accessToken.value?.token
-
 const isConfirmOpen = ref(false)
 const isInputOpen = ref(false)
 const confirmationText = ref('')
@@ -60,43 +54,26 @@ async function resetItem() {
   isSubmitting.value = true
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/${props.item.id}/reset`, {
+    await apiFetch(`/api/backoffice/cabang/${props.item.id}/reset`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        konfirmasi: confirmationText.value,
-      }),
+      body: { konfirmasi: confirmationText.value },
     })
 
-    if (response.ok) {
-      emit('dataReset', props.item.id)
-      closeInputDialog()
-      toast({
-        title: 'Success',
-        description: 'Data cabang berhasil direset.',
-      })
-    }
-    else {
-      const errorData = await response.json()
-      const message = errorData?.message || 'Gagal reset data cabang'
-
-      toast({
-        title: 'Gagal',
-        description: message,
-        variant: 'destructive',
-      })
-      console.error('Gagal reset data cabang:', message)
-    }
-  }
-  catch (error) {
+    emit('dataReset', props.item.id)
+    closeInputDialog()
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat reset data cabang.',
+      title: 'Success',
+      description: 'Data cabang berhasil direset.',
+    })
+  }
+  catch (error: any) {
+    const message = error?.data?.message || error?.message || 'Gagal reset data cabang'
+    toast({
+      title: 'Gagal',
+      description: message,
       variant: 'destructive',
     })
+    console.error('Gagal reset data cabang:', message)
     console.error('Error:', error)
   }
   finally {

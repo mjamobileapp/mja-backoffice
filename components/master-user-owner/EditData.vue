@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
 import { toTypedSchema } from '@vee-validate/zod'
-import Datepicker from '@vuepic/vue-datepicker'
-import { toDate } from 'date-fns'
 import { PencilIcon } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -30,30 +21,12 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-const props = defineProps<{
-  id: {
-    type: number
-    required: true
-  }
-}>()
+const props = defineProps<{ id: number }>()
 
 const emit = defineEmits<{
   (e: 'dataEdited'): void
 }>()
 
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// const editedItem = ref({ ...props.item })
-// console.log(props.id)
-// onMounted(() => {
-//   fetchData()
-//   // console.log(props.item.code)
-// })
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
 
@@ -84,29 +57,17 @@ const isDialogOpen = ref(false)
 
 async function fetchData() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/userowner/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await apiFetch(`/api/backoffice/userowner/${props.id}`)
+    const data = res?.data
+
+    setValues({
+      namaLengkap: data.namaLengkap,
+      username: data.username,
+      email: data.email,
+      noTelp: data.noTelp,
+      idMitra: data.idMitra,
+      // role: data.role,
     })
-
-    if (response.ok) {
-      const { data } = await response.json()
-      console.log(data)
-
-      setValues({
-        namaLengkap: data.namaLengkap,
-        username: data.username,
-        email: data.email,
-        noTelp: data.noTelp,
-        idMitra: data.idMitra,
-        // role: data.role,
-      })
-    }
-    else {
-      console.error('Gagal mengambil data. Status:', response.status)
-    }
   }
   catch (error) {
     console.error('Fetch error:', error.message)
@@ -129,17 +90,12 @@ const mitraList = ref<any[]>([])
 const openMitra = ref(false)
 
 const isSubmitting = ref(false)
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 async function fetchDataMitra() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    const fetchedData = await response.json()
-    mitraList.value = fetchedData.data.map(item => ({
+    const fetchedData = await apiFetch('/api/backoffice/mitra')
+    const list = Array.isArray(fetchedData?.data) ? fetchedData.data : []
+    mitraList.value = list.map(item => ({
       ...item,
       idMitra: item.idRap || item.id, // Normalisasi agar template tidak bingung
       kodeMitra: item.kodeMitra, // Normalisasi agar template tidak bingung
@@ -170,24 +126,15 @@ const onSubmit = handleSubmit(async () => {
       updatedBy: username.value,
     }
 
-    const response = await fetch(`${baseUrl}/api/backoffice/userowner/${props.id}`, {
+    await apiFetch(`/api/backoffice/userowner/${props.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      emit('dataEdited')
-      toast.success('Data Berhasil Di Update')
-      closeDialog()
-      resetForm()
-    }
-    else {
-      console.error('Gagal mengedit data')
-    }
+    emit('dataEdited')
+    toast.success('Data Berhasil Di Update')
+    closeDialog()
+    resetForm()
   }
   catch (error) {
     console.error('Error:', error)

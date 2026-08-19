@@ -15,48 +15,25 @@ import { toast } from '~/components/ui/toast'
 const props = defineProps(['item'])
 const emit = defineEmits(['dataReady'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<{ token: string }>('accessToken')
-const token = accessToken.value?.token
-
 async function readyItem() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/ready/${props.item.id}`, {
+    await apiFetch(`/api/backoffice/mesin/ready/${props.item.id}`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     })
-
-    if (response.ok) {
-      emit('dataReady', props.item.id)
-      toast({
-        title: 'Success',
-        description: 'Status mesin berhasil diubah menjadi READY.',
-      })
-    }
-    else {
-      const errorData = await response.json()
-      const message = errorData?.message || 'Gagal mengubah status mesin menjadi READY'
-
-      toast({
-        title: 'Gagal',
-        description: message,
-        variant: 'destructive',
-      })
-      console.error('Gagal set ready:', message)
-    }
-  }
-  catch (error) {
+    emit('dataReady', props.item.id)
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat mengubah status mesin menjadi READY.',
+      title: 'Success',
+      description: 'Status mesin berhasil diubah menjadi READY.',
+    })
+  }
+  catch (error: any) {
+    const message = error?.data?.message || error?.message || 'Gagal mengubah status mesin menjadi READY'
+    toast({
+      title: 'Gagal',
+      description: message,
       variant: 'destructive',
     })
-    console.error('Error:', error)
+    console.error('Gagal set ready:', message)
   }
 }
 </script>

@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { formatDate } from 'date-fns'
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onMounted, ref, watch } from 'vue'
 import AddData from './AddData.vue'
-import DeleteData from './DeleteData.vue'
-import EditData from './EditData.vue'
 import SetMaintenance from './SetMaintenance.vue'
 import SetReady from './SetReady.vue'
 
@@ -16,12 +12,7 @@ const filter = ref({
   namaCabang: 'all',
 })
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isLoading = ref(false)
-// console.log(baseUrl)
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
 const data = ref<any[]>([]) // Define the type for fetched data
 
 const tipeMesinOptions = computed(() => {
@@ -46,23 +37,10 @@ const cabangOptions = computed(() => {
 
 watch(() => filter.value.namaMitra, () => {
   filter.value.namaCabang = 'all'
-  currentPage.value = 1
 })
 
-const filteredData = computed(() => {
+const filteredBySelect = computed(() => {
   return data.value.filter((item: any) => {
-    const keyword = filter.value.keyword.toLowerCase()
-
-    const matchKeyword
-      = item.namaMesin?.toLowerCase().includes(keyword)
-        || item.tipeMesin?.toLowerCase().includes(keyword)
-      // item.kapasitas?.toLowerCase().includes(keyword) ||
-        || item.espId?.toLowerCase().includes(keyword)
-      // item.macAddress?.toLowerCase().includes(keyword) ||
-        || item.status?.toLowerCase().includes(keyword)
-        || item.namaMitra?.toLowerCase().includes(keyword)
-        || item.namaCabang?.toLowerCase().includes(keyword)
-
     const matchTipe = filter.value.tipeMesin === 'all' || item.tipeMesin === filter.value.tipeMesin
 
     const matchStatus = filter.value.status === 'all' || item.status === filter.value.status
@@ -72,8 +50,22 @@ const filteredData = computed(() => {
     const matchCabang
       = filter.value.namaCabang === 'all' || item.namaCabang === filter.value.namaCabang
 
-    return matchKeyword && matchTipe && matchStatus && matchMitra && matchCabang
+    return matchTipe && matchStatus && matchMitra && matchCabang
   })
+})
+
+const {
+  paginatedData,
+  totalPages,
+  currentPage,
+  itemsPerPage,
+  filteredData,
+  nextPage,
+  prevPage,
+} = usePagination({
+  data: filteredBySelect,
+  searchQuery: computed(() => filter.value.keyword),
+  searchFields: ['namaMesin', 'tipeMesin', 'espId', 'status', 'namaMitra', 'namaCabang'],
 })
 
 function resetFilter() {
@@ -84,60 +76,13 @@ function resetFilter() {
     namaMitra: 'all',
     namaCabang: 'all',
   }
-
-  currentPage.value = 1
 }
-const totalPages = computed(() => {
-  return Math.ceil(filteredData.value.length / itemsPerPage.value)
-})
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return filteredData.value.slice(start, start + itemsPerPage.value)
-})
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
-function formatTanggal(tanggal: any) {
-  return formatDate(tanggal, 'dd/M/yyyy')
-}
-
-// get token=====
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 async function fetchData() {
   isLoading.value = true
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    console.log('Data yang diterima dari server:', fetchedData)
-
-    if (Array.isArray(fetchedData.data)) {
-      data.value = fetchedData.data
-    }
-    else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      data.value = []
-    }
+    const fetched = await apiFetch('/api/backoffice/mesin')
+    data.value = Array.isArray(fetched?.data) ? fetched.data : []
   }
   catch (error) {
     console.error('Gagal mengambil data:', error)
@@ -152,24 +97,6 @@ onMounted(() => {
   fetchData()
 })
 
-const editItem = ref(null)
-function handleDataEdited() {
-  console.log('Event dataEdited diterima, menunggu 500ms sebelum refresh data...')
-
-  setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
-    fetchData()
-  }, 500)
-}
-
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
-}
-
-function handleDataDeleted(deletedItemId: any) {
-  data.value = data.value.filter((item: any) => item.id !== deletedItemId)
-}
 function handleDataMaintenance(_deletedItemId: any) {
   setTimeout(() => {
     // console.log('Melakukan fetch data setelah edit...')

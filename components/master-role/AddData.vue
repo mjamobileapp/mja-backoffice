@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -18,12 +17,6 @@ import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 const formSchema = toTypedSchema(
   z.object({
     namaRole: z.string().min(2).max(50),
@@ -58,42 +51,30 @@ const onSubmit = handleSubmit(async (values: any) => {
     createdDate: new Date(),
   }
 
-  isDialogOpen.value = false
-  // console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/roles`, {
+    await apiFetch('/api/backoffice/roles', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil disimpan.',
-      })
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil disimpan.',
+    })
 
-      setTimeout(() => {
-        emit('dataAdded')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
-    }
-    else {
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data. Silakan coba lagi.',
-      })
-    }
+    setTimeout(() => {
+      emit('dataAdded')
+      isDialogOpen.value = false
+      resetForm()
+    }, 300)
   }
-  catch (error) {
+  catch (error: any) {
+    const message = error?.data?.message || error?.message || 'Terjadi kesalahan saat mengirim data.'
     console.error('Error submitting data:', error)
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat mengirim data.',
+      title: 'Gagal',
+      description: message,
+      variant: 'destructive',
     })
   }
   finally {

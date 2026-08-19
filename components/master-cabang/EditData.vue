@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
 import { toTypedSchema } from '@vee-validate/zod'
-import Datepicker from '@vuepic/vue-datepicker'
-import { toDate } from 'date-fns'
 import { PencilIcon } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -30,23 +21,11 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-const props = defineProps<{
-  id: {
-    type: number
-    required: true
-  }
-}>()
+const props = defineProps<{ id: number }>()
 
 const emit = defineEmits<{
   (e: 'dataEdited'): void
 }>()
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
-
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 
 // const editedItem = ref({ ...props.item })
 // console.log(props.id)
@@ -76,35 +55,18 @@ const { handleSubmit, resetForm, setValues, values, setFieldValue } = useForm({
 
 const isDialogOpen = ref(false)
 
-// Asumsi: dateMulai dan dateSelesai adalah ref() untuk Calendar
-// Asumsi: toDate adalah fungsi untuk konversi ke objek Date JS
-// Asumsi: setValues adalah fungsi dari VeeValidate useForm
-
-const dateMulai = ref(null)
-const dateSelesai = ref(null)
-
 async function fetchData() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const res = await apiFetch(`/api/backoffice/cabang/${props.id}`)
+    const data = res?.data
 
-    if (response.ok) {
-      const { data } = await response.json()
-      console.log(data)
-
+    if (data) {
       // --- 3. setValues ke VeeValidate ---
       setValues({
         namaCabang: data.namaCabang,
         alamatCabang: data.alamatCabang,
         idMitra: data.idMitra,
       })
-    }
-    else {
-      console.error('Gagal mengambil data. Status:', response.status)
     }
   }
   catch (error) {
@@ -128,17 +90,10 @@ const mitraList = ref<any[]>([])
 const openMitra = ref(false)
 
 const isSubmitting = ref(false)
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 async function fetchDataMitra() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    const fetchedData = await response.json()
-    mitraList.value = fetchedData.data.map(item => ({
+    const fetchedData = await apiFetch('/api/backoffice/mitra')
+    mitraList.value = (fetchedData?.data || []).map(item => ({
       ...item,
       idMitra: item.idRap || item.id, // Normalisasi agar template tidak bingung
       kodeMitra: item.kodeMitra, // Normalisasi agar template tidak bingung
@@ -165,24 +120,15 @@ const onSubmit = handleSubmit(async () => {
       updatedBy: username.value,
     }
 
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/${props.id}`, {
+    await apiFetch(`/api/backoffice/cabang/${props.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      emit('dataEdited')
-      toast.success('Data Berhasil Di Update')
-      closeDialog()
-      resetForm()
-    }
-    else {
-      console.error('Gagal mengedit data')
-    }
+    emit('dataEdited')
+    toast.success('Data Berhasil Di Update')
+    closeDialog()
+    resetForm()
   }
   catch (error) {
     console.error('Error:', error)

@@ -1,18 +1,8 @@
 <script setup lang="ts">
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-
 import { toTypedSchema } from '@vee-validate/zod'
-import Datepicker from '@vuepic/vue-datepicker'
-import { toDate } from 'date-fns'
-import { Loader2, Notebook } from 'lucide-vue-next'
-import { FieldArray, useForm } from 'vee-validate'
-import { h, ref } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,23 +15,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 import { toast } from '~/components/ui/toast'
 import Textarea from '../ui/textarea/Textarea.vue'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const emit = defineEmits(['dataAdded'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
 
 const profileFormSchema = toTypedSchema(
   z.object({
@@ -52,7 +33,7 @@ const profileFormSchema = toTypedSchema(
 
 const isSubmitting = ref(false)
 
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, resetForm } = useForm({
   validationSchema: profileFormSchema,
 })
 
@@ -67,10 +48,6 @@ function closeDialog() {
   resetForm()
 }
 
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
 
@@ -80,40 +57,28 @@ const onSubmit = handleSubmit(async (values: any) => {
     createdBy: username.value,
   }
 
-  // console.log(dataForm)
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
+    await apiFetch('/api/backoffice/mitra', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
       body: JSON.stringify(dataForm),
     })
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil disimpan.',
-      })
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil disimpan.',
+    })
 
-      emit('dataAdded')
-      resetForm()
-      isDialogOpen.value = false
-    }
-    else {
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data. Silakan coba lagi.',
-      })
-    }
+    emit('dataAdded')
+    resetForm()
+    isDialogOpen.value = false
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error submitting data:', error)
 
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat mengirim data.',
+      title: 'Gagal',
+      description: error?.data?.message || error?.message || 'Terjadi kesalahan saat mengirim data.',
+      variant: 'destructive',
     })
   }
   finally {

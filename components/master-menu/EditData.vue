@@ -25,8 +25,6 @@ const props = defineProps({
 
 const emit = defineEmits(['dataUpdated'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const formSchema = toTypedSchema(
   z.object({
     namaMenu: z.string(),
@@ -91,20 +89,8 @@ const isLoading = ref(false)
 
 async function fetchMenuHeader() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/getMenuHeader`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (response.ok) {
-      const data = await response.json()
-      listMenuHeader.value = data.data
-      // console.log(data)
-    }
-    else {
-      console.error('Failed to fetch Menu Header')
-    }
+    const res = await apiFetch('/api/backoffice/getMenuHeader')
+    listMenuHeader.value = Array.isArray(res?.data) ? res.data : []
   }
   catch (error) {
     console.error('Fetch roles error:', error)
@@ -115,7 +101,6 @@ async function openDialog() {
   isDialogOpen.value = true
   await fetchData()
   await fetchMenuHeader()
-  console.log(props.id)
 }
 
 function closeDialog() {
@@ -123,44 +108,30 @@ function closeDialog() {
   resetForm()
 }
 
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 async function fetchData() {
   try {
     isLoading.value = true
-    const response = await fetch(`${baseUrl}/api/backoffice/menus/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const res = await apiFetch(`/api/backoffice/menus/${props.id}`)
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch data')
-    }
-
-    const res = await response.json()
-    // console.log(res.data)
     setValues({
-      namaMenu: res.data.namaMenu,
-      url: res.data.url,
-      parentId: res.data.parentId,
-      noUrut: res.data.noUrut,
+      namaMenu: res?.data?.namaMenu,
+      url: res?.data?.url,
+      parentId: res?.data?.parentId,
+      noUrut: res?.data?.noUrut,
       // Radix Select menggunakan value string, sedangkan API mengembalikan
       // levelMenu sebagai angka. Normalisasi agar nilai langsung terpilih
       // saat form edit pertama kali dibuka.
-      levelMenu: Number(res.data.levelMenu),
-      tipeMenu: res.data.tipeMenu,
-      iconMenu: res.data.iconMenu,
+      levelMenu: Number(res?.data?.levelMenu),
+      tipeMenu: res?.data?.tipeMenu,
+      iconMenu: res?.data?.iconMenu,
     })
   }
   catch (error) {
     console.error('Error fetching data:', error)
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: 'Gagal mengambil data.',
+      variant: 'destructive',
     })
     closeDialog()
   }
@@ -185,36 +156,25 @@ const onSubmit = handleSubmit(async (values: any) => {
     levelMenu: values.levelMenu,
     tipeMenu: values.tipeMenu,
     iconMenu: values.iconMenu,
-    createdBy: email.value,
-    createdDate: new Date(),
+    updatedBy: email.value,
   }
-  // console.log(dataForm)
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/menus/${props.id}`, {
+    await apiFetch(`/api/backoffice/menus/${props.id}`, {
       method: 'PUT', // atau PATCH
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
       body: JSON.stringify(dataForm),
     })
 
-    if (response.ok) {
-      toast({ title: 'Success', description: 'Data berhasil diupdate.' })
+    toast({ title: 'Berhasil', description: 'Data berhasil diupdate.' })
 
-      setTimeout(() => {
-        emit('dataUpdated')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
-    }
-    else {
-      toast({ title: 'Error', description: 'Gagal Update data.' })
-    }
+    setTimeout(() => {
+      emit('dataUpdated')
+      isDialogOpen.value = false
+      resetForm()
+    }, 300)
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error submitting data:', error)
-    toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
+    toast({ title: 'Gagal', description: error?.data?.message || error?.message || 'Terjadi kesalahan saat mengirim data.', variant: 'destructive' })
   }
   finally {
     isSubmitting.value = false

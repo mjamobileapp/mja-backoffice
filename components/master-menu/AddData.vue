@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,15 +27,8 @@ import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const email = computed(() => currentUser.value?.username || 'no-email@example.com')
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 const formSchema = toTypedSchema(
   z.object({
@@ -102,20 +95,8 @@ const isDialogOpen = ref(false)
 
 async function fetchMenuHeader() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/getMenuHeader`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (response.ok) {
-      const data = await response.json()
-      listMenuHeader.value = data.data
-      // console.log(data)
-    }
-    else {
-      console.error('Failed to fetch Menu Header')
-    }
+    const res = await apiFetch('/api/backoffice/getMenuHeader')
+    listMenuHeader.value = Array.isArray(res?.data) ? res.data : []
   }
   catch (error) {
     console.error('Fetch roles error:', error)
@@ -148,30 +129,23 @@ const onSubmit = handleSubmit(async (values: any) => {
     createdBy: email.value,
     createdDate: new Date(),
   }
-  console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/menus`, {
+    await apiFetch('/api/backoffice/menus', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(dataForm),
     })
 
-    if (response.ok) {
-      toast({ title: 'Success', description: 'Data berhasil disimpan.' })
+    toast({ title: 'Berhasil', description: 'Data berhasil disimpan.' })
 
-      setTimeout(() => {
-        emit('dataAdded')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
-    }
-    else {
-      toast({ title: 'Error', description: 'Gagal menyimpan data.' })
-    }
+    setTimeout(() => {
+      emit('dataAdded')
+      isDialogOpen.value = false
+      resetForm()
+    }, 300)
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error submitting data:', error)
-    toast({ title: 'Error', description: 'Terjadi kesalahan saat mengirim data.' })
+    toast({ title: 'Gagal', description: error?.data?.message || error?.message || 'Terjadi kesalahan saat mengirim data.', variant: 'destructive' })
   }
   finally {
     isSubmitting.value = false

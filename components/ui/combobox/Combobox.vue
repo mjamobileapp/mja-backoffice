@@ -10,7 +10,7 @@ import {
   ComboboxTrigger,
 } from 'radix-vue'
 
-import { computed, ref, toRef, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(
@@ -28,7 +28,7 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits(['update:modelValue'])
+defineEmits(['update:modelValue'])
 
 const selectedValue = ref(props.modelValue || props.defaultValue)
 const open = ref(false)
@@ -39,17 +39,6 @@ watch(
     selectedValue.value = value
   },
 )
-
-const filteredOptions = computed(() =>
-  props.options.filter(option =>
-    option.label.toLowerCase().includes(selectedValue.value?.toLowerCase() || ''),
-  ),
-)
-
-function handleSelect(option: { label: string, value: string }) {
-  emit('update:modelValue', option.value)
-  open.value = false
-}
 </script>
 
 <template>

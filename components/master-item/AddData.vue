@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import {
-  CalendarDate,
-  DateFormatter,
-  type DateValue,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-
 import { toTypedSchema } from '@vee-validate/zod'
-import { toDate } from 'date-fns'
-import { Loader2, Notebook } from 'lucide-vue-next'
-import { FieldArray, useForm } from 'vee-validate'
-import { h, ref } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
+import { ref } from 'vue'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,21 +15,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 import { toast } from '~/components/ui/toast'
 
 const emit = defineEmits(['dataAdded'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'long',
-})
 
 const profileFormSchema = toTypedSchema(
   z.object({
@@ -49,17 +31,9 @@ const profileFormSchema = toTypedSchema(
   }),
 )
 
-const displayharga = ref('')
-
-// Gunakan NumberFormat sekali, bukan setiap ketik
-const formatter = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-})
-
 const isSubmitting = ref(false)
 
-const { handleSubmit, resetForm, setFieldValue } = useForm({
+const { handleSubmit, resetForm } = useForm({
   validationSchema: profileFormSchema,
 })
 
@@ -74,10 +48,6 @@ function closeDialog() {
   resetForm()
 }
 
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 const onSubmit = handleSubmit(async (values: any) => {
   isSubmitting.value = true
   const dataForm = {
@@ -85,43 +55,27 @@ const onSubmit = handleSubmit(async (values: any) => {
     tipeItem: values.tipeItem,
     createdBy: username.value,
   }
-  isDialogOpen.value = false
-  console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/item`, {
+    await apiFetch('/api/backoffice/item', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    // console.log(await response.json())
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil disimpan.',
+    })
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil disimpan.',
-      })
-
-      console.log('[AddData] Emitting dataAdded...')
-      emit('dataAdded') // kirim emit dulu
-      resetForm() // reset form
-      isDialogOpen.value = false // baru tutup dialog
-    }
-    else {
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data. Silakan coba lagi.',
-      })
-    }
+    emit('dataAdded') // kirim emit dulu
+    resetForm() // reset form
+    isDialogOpen.value = false // baru tutup dialog
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error submitting data:', error)
     toast({
-      title: 'Error',
-      description: 'Terjadi kesalahan saat mengirim data.',
+      title: 'Gagal',
+      variant: 'destructive',
+      description: error?.data?.message || error?.message || 'Terjadi kesalahan saat mengirim data.',
     })
   }
   finally {

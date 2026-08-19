@@ -25,13 +25,6 @@ const props = defineProps({
 
 const emit = defineEmits(['dataUpdated'])
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
-// get token====================
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
-
 const currentUser = useCookie<any>('currentUser') // diasumsikan cookie bernilai object stringified
 const username = computed(() => currentUser.value?.username || 'no-username@example.com')
 
@@ -62,29 +55,18 @@ function closeDialog() {
 async function fetchData() {
   try {
     isLoading.value = true
-    const response = await fetch(`${baseUrl}/api/backoffice/roles/${props.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch data')
-    }
-
-    const res = await response.json()
-    // console.log(data)
+    const res = await apiFetch(`/api/backoffice/roles/${props.id}`)
     setValues({
-      namaRole: res.data.namaRole,
-      description: res.data.description,
+      namaRole: res?.data?.namaRole,
+      description: res?.data?.description,
     })
   }
   catch (error) {
     console.error('Error fetching data:', error)
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: 'Gagal mengambil data.',
+      variant: 'destructive',
     })
     closeDialog()
   }
@@ -100,41 +82,29 @@ const onSubmit = handleSubmit(async (values: any) => {
     description: values.description,
     updatedBy: username.value,
   }
-  console.log(JSON.stringify(dataForm))
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/roles/${props.id}`, {
+    await apiFetch(`/api/backoffice/roles/${props.id}`, {
       method: 'PUT', // atau PATCH
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      toast({
-        title: 'Success',
-        description: 'Data berhasil diperbarui.',
-      })
+    toast({
+      title: 'Berhasil',
+      description: 'Data berhasil diperbarui.',
+    })
 
-      setTimeout(() => {
-        emit('dataUpdated')
-        isDialogOpen.value = false
-        resetForm()
-      }, 300)
-    }
-    else {
-      toast({
-        title: 'Error',
-        description: 'Gagal memperbarui data. Silakan coba lagi.',
-      })
-    }
+    setTimeout(() => {
+      emit('dataUpdated')
+      isDialogOpen.value = false
+      resetForm()
+    }, 300)
   }
   catch (error) {
     console.error('Error updating data:', error)
     toast({
-      title: 'Error',
+      title: 'Gagal',
       description: 'Terjadi kesalahan saat mengirim data.',
+      variant: 'destructive',
     })
   }
   finally {

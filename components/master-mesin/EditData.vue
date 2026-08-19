@@ -29,14 +29,8 @@ const emit = defineEmits<{
   (e: 'dataEdited'): void
 }>()
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
-
 const currentUser = useCookie<any>('currentUser')
 const username = computed(() => currentUser.value?.username || 'no-email@example.com')
-
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 const profileFormSchema = toTypedSchema(
   z.object({
@@ -73,13 +67,10 @@ const cabangList = ref<any[]>([])
 
 async function fetchDataMitra() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const fetched = await apiFetch('/api/backoffice/mitra')
+    const list = Array.isArray(fetched?.data) ? fetched.data : []
 
-    const fetchedData = await response.json()
-
-    mitraList.value = fetchedData.data.map((item: any) => ({
+    mitraList.value = list.map((item: any) => ({
       ...item,
       idMitra: item.idRap || item.id,
       kodeMitra: item.kodeMitra,
@@ -94,13 +85,10 @@ async function fetchDataMitra() {
 
 async function fetchDataCabangByMitra(idMitra: number) {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/mitra/${idMitra}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const fetched = await apiFetch(`/api/backoffice/cabang/mitra/${idMitra}`)
+    const list = Array.isArray(fetched?.data) ? fetched.data : []
 
-    const fetchedData = await response.json()
-
-    cabangList.value = fetchedData.data.map((item: any) => ({
+    cabangList.value = list.map((item: any) => ({
       ...item,
       cabangId: item.id,
       kodeCabang: item.kodeCabang,
@@ -115,31 +103,19 @@ async function fetchDataCabangByMitra(idMitra: number) {
 
 async function fetchData() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/esp/${props.espId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await apiFetch(`/api/backoffice/mesin/esp/${props.espId}`)
+    const data = res?.data || {}
+
+    setValues({
+      masterId: Number(data.masterId),
+      cabangId: data.cabangId,
+      idMitra: data.idMitra,
+      espId: data.espId,
+      washer: data.washer === 1 || data.washer === true,
+      dryer: data.dryer === 1 || data.dryer === true,
     })
 
-    if (response.ok) {
-      const { data } = await response.json()
-
-      setValues({
-        masterId: Number(data.masterId),
-        cabangId: data.cabangId,
-        idMitra: data.idMitra,
-        espId: data.espId,
-        washer: data.washer === 1 || data.washer === true,
-        dryer: data.dryer === 1 || data.dryer === true,
-      })
-
-      console.log(JSON.stringify(data))
-      await fetchDataCabangByMitra(Number(data.idMitra))
-    }
-    else {
-      console.error('Gagal mengambil data. Status:', response.status)
-    }
+    await fetchDataCabangByMitra(Number(data.idMitra))
   }
   catch (error: any) {
     console.error('Fetch error:', error.message)
@@ -177,24 +153,15 @@ const onSubmit = handleSubmit(async () => {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/${values.masterId}`, {
+    await apiFetch(`/api/backoffice/mesin/${values.masterId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(dataForm),
+      body: dataForm,
     })
 
-    if (response.ok) {
-      emit('dataEdited')
-      toast.success('Data Berhasil Di Update')
-      closeDialog()
-      resetForm()
-    }
-    else {
-      toast.error('Gagal mengedit data')
-    }
+    emit('dataEdited')
+    toast.success('Data Berhasil Di Update')
+    closeDialog()
+    resetForm()
   }
   catch (error) {
     console.error('Error:', error)

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
-import { formatDate } from '~/lib/utils'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
+import DetailData from './DetailData.vue'
 import EditData from './EditData.vue'
 import ResetDeviceIdData from './ResetDeviceIdData.vue'
 import ResetPasswordData from './ResetPasswordData.vue'
-import DetailData from './DetailData.vue'
 
 const isLoading = ref(false)
 const searchQuery = ref('')
@@ -25,10 +23,6 @@ const {
   searchQuery,
   searchFields: ['namaLengkap', 'username', 'noTelp', 'email'],
 })
-
-function formatTanggal(tanggal: any) {
-  return formatDate(tanggal)
-}
 
 async function fetchData() {
   isLoading.value = true
@@ -49,16 +43,10 @@ onMounted(() => {
   fetchData()
 })
 
-const editItem = ref(null)
 function handleDataEdited() {
   setTimeout(() => {
     fetchData()
   }, 500)
-}
-
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
 }
 
 function handleDataDeleted(deletedItemId: any) {

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Power } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
+import { toast } from '~/components/ui/toast'
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isLoading = ref(false)
 
 // State data dropdown filter
@@ -25,24 +24,11 @@ const pendingToggle = ref<{
   isTurningOn: boolean
 } | null>(null)
 
-// Mengambil Token dari Cookie
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value?.token
-
 // 1. FETCH DAFTAR MITRA (Dijalankan sekali saat onMounted)
 async function fetchAllMitra() {
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mitra`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-    const result = await response.json()
-    if (response.ok) {
-      listMitra.value = result.data || []
-    }
+    const result = await apiFetch('/api/backoffice/mitra')
+    listMitra.value = result?.data || []
   }
   catch (error) {
     console.error('Gagal mengambil data mitra:', error)
@@ -56,17 +42,8 @@ async function fetchCabangByMitra(idMitra: number) {
   dataMesin.value = [] // Reset tampilan mesin lama
 
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/cabang/mitra/${idMitra}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-    const result = await response.json()
-    if (response.ok) {
-      listCabang.value = result.data || []
-    }
+    const result = await apiFetch(`/api/backoffice/cabang/mitra/${idMitra}`)
+    listCabang.value = result?.data || []
   }
   catch (error) {
     console.error('Gagal mengambil data cabang:', error)
@@ -80,21 +57,7 @@ async function fetchMesinList() {
 
   isLoading.value = true
   try {
-    const response = await fetch(`${baseUrl}/api/backoffice/mesin/list/cabang/${selectedCabangId.value}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      // Jika HTTP status error (404, 500, dll), kosongkan list mesin
-      dataMesin.value = []
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const result = await response.json()
+    const result = await apiFetch(`/api/backoffice/mesin/list/cabang/${selectedCabangId.value}`)
 
     if (result.success) {
       dataMesin.value = result.data || []
@@ -102,7 +65,6 @@ async function fetchMesinList() {
     else {
       // PERBAIKAN: Jika sukses false (MESIN_NOT_FOUND), kosongkan list mesin agar tidak menimbun data lama
       dataMesin.value = []
-      console.log('Info:', result.message || 'Gagal memuat status mesin.')
     }
   }
   catch (error) {
@@ -155,40 +117,46 @@ async function executeToggleStatus() {
 
   isConfirmOpen.value = false
 
-  const { unitMesin, isTurningOn, mesinTarget } = pending
+  const { unitMesin, isTurningOn } = pending
   const tindakanTeks = isTurningOn ? 'MENYALAKAN' : 'MENGHENTIKAN'
 
   try {
     const targetUrl = isTurningOn
-      ? `${baseUrl}/api/transaksi/startmesinbybackoffice`
-      : `${baseUrl}/api/transaksi/stopmesinbybackoffice`
+      ? '/api/transaksi/startmesinbybackoffice'
+      : '/api/transaksi/stopmesinbybackoffice'
 
-    const response = await fetch(targetUrl, {
+    const result = await apiFetch(targetUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      body: {
         mesinId: unitMesin.idDb,
         idMitra: selectedMitraId.value, // Menggunakan ID Mitra terpilih dari filter aktif
         cabangId: selectedCabangId.value, // Menggunakan ID Cabang terpilih dari filter aktif
-      }),
+      },
     })
 
-    const result = await response.json()
+    fetchMesinList() // Segarkan data mesin IoT
 
-    if (response.ok) {
-      fetchMesinList() // Segarkan data mesin IoT
-      alert(result.success || `Perintah ${tindakanTeks.toLowerCase()} mesin sukses dijalankan!`)
+    if (result.success) {
+      toast({
+        title: 'Berhasil',
+        description: result.message || `Perintah ${tindakanTeks.toLowerCase()} mesin sukses dijalankan!`,
+      })
     }
     else {
-      alert(result.message || 'Gagal memproses kontrol ke unit mesin.')
+      toast({
+        title: 'Gagal',
+        description: result.message || `Perintah ${tindakanTeks.toLowerCase()} mesin gagal dijalankan.`,
+        variant: 'destructive',
+      })
     }
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Gagal kontrol mesin:', error)
-    alert('Tidak dapat terhubung ke server kontrol mesin.')
+    toast({
+      title: 'Gagal',
+      description: error?.data?.message || error?.message || 'Tidak dapat terhubung ke server kontrol mesin.',
+      variant: 'destructive',
+    })
   }
 }
 
@@ -356,7 +324,7 @@ onMounted(() => {
           <div class="h-full w-[136px] flex flex-col overflow-hidden border border-white/40 rounded-xl bg-white/10">
             <!-- SEKSI DRYER -->
             <div class="flex flex-1 items-center justify-between border-b border-white/30 px-3">
-              <div class="flex min-w-0 items-center gap-1.5">
+              <div class="min-w-0 flex items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
                   :class="getMachineStatusColor(mesin.dryer)"
@@ -387,7 +355,7 @@ onMounted(() => {
 
             <!-- SEKSI WASHER -->
             <div class="flex flex-1 items-center justify-between px-3">
-              <div class="flex min-w-0 items-center gap-1.5">
+              <div class="min-w-0 flex items-center gap-1.5">
                 <span
                   class="h-2 w-2 rounded-full"
                   :class="getMachineStatusColor(mesin.washer)"

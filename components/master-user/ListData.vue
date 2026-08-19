@@ -12,6 +12,7 @@ const {
   paginatedData,
   totalPages,
   currentPage,
+  itemsPerPage,
   nextPage,
   prevPage,
 } = usePagination({
@@ -72,7 +73,7 @@ onMounted(() => {
           <TableBody>
             <TableRow v-for="(item, index) in paginatedData" :key="item.id">
               <TableCell>
-                {{ index + 1 }}
+                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
               </TableCell>
               <TableCell class="font-medium">
                 {{ item.nama }}

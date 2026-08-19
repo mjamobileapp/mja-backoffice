@@ -1,79 +1,31 @@
 <script setup lang="ts">
-import { formatDate } from 'date-fns'
-import { DownloadCloud, PencilIcon, Trash2Icon } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import AddData from './AddData.vue'
 import DeleteData from './DeleteData.vue'
 import EditData from './EditData.vue'
 
-const config = useRuntimeConfig()
-const baseUrl = config.public.apiBase
 const isLoading = ref(false)
-// console.log(baseUrl)
 const searchQuery = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
 const data = ref<any[]>([]) // Define the type for fetched data
 
-const filteredData = computed(() => {
-  return data.value.filter((item: any) =>
-    item.namaItem.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  )
+const {
+  paginatedData,
+  totalPages,
+  currentPage,
+  itemsPerPage,
+  nextPage,
+  prevPage,
+} = usePagination({
+  data,
+  searchQuery,
+  searchFields: ['namaItem', 'tipeItem'],
 })
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredData.value.length / itemsPerPage.value)
-})
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return filteredData.value.slice(start, start + itemsPerPage.value)
-})
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
-function formatRupiah(value: number | Ref<number>) {
-  const val = typeof value === 'object' ? value.value : value
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val || 0)
-}
-
-// get token=====
-const accessToken = useCookie<any>('accessToken')
-const token = accessToken.value.token
 
 async function fetchData() {
   isLoading.value = true
   try {
-    const timestamp = new Date().getTime()
-    const response = await fetch(`${baseUrl}/api/backoffice/item`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const fetchedData = await response.json()
-    console.log('Data yang diterima dari server:', fetchedData)
-
-    if (Array.isArray(fetchedData.data)) {
-      data.value = fetchedData.data
-    }
-    else {
-      console.error('Data yang diterima bukan array:', fetchedData)
-      data.value = []
-    }
+    const fetchedData = await apiFetch('/api/backoffice/item')
+    data.value = Array.isArray(fetchedData?.data) ? fetchedData.data : []
   }
   catch (error) {
     console.error('Gagal mengambil data:', error)
@@ -90,7 +42,6 @@ onMounted(() => {
 
 function handleDataEdited() {
   setTimeout(() => {
-    console.log('Melakukan fetch data setelah edit...')
     fetchData()
   }, 500)
 }
