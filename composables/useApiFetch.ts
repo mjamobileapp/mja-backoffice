@@ -33,11 +33,33 @@ function getErrorData(error: any) {
   return error?.data || error?.response?._data || error?.response?.data
 }
 
+function getErrorStatus(error: any): number | undefined {
+  return error?.statusCode
+    || error?.status
+    || error?.response?.status
+    || error?.response?._data?.statusCode
+}
+
 export function isTokenExpiredError(error: unknown): boolean {
+  if (getErrorStatus(error) === 401)
+    return true
+
   const data = getErrorData(error)
   const code = data?.code || data?.error || data?.message || (error as any)?.message
 
-  return typeof code === 'string' && code.toUpperCase().includes('TOKEN_EXPIRED')
+  if (typeof code !== 'string')
+    return false
+
+  const normalized = code.toUpperCase()
+  return normalized.includes('TOKEN_EXPIRED')
+    || normalized.includes('UNAUTHORIZED')
+    || normalized.includes('INVALID TOKEN')
+    || normalized.includes('TOKEN INVALID')
+    || normalized.includes('NOT_AUTHENTICATED')
+    || normalized.includes('JWT_EXPIRED')
+    || normalized.includes('JWT_MALFORMED')
+    || normalized.includes('LOGIN_REQUIRED')
+    || normalized.includes('EXPIRED')
 }
 
 export function clearAuthSession() {
