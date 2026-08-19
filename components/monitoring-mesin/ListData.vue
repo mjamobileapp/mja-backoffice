@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Power } from 'lucide-vue-next'
+import { Loader2, Power } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
 import { toast } from '~/components/ui/toast'
 
@@ -16,6 +16,7 @@ const selectedCabangId = ref<number | null>(null)
 // State data mesin hasil fetch
 const dataMesin = ref<any[]>([])
 const isConfirmOpen = ref(false)
+const loadingToggleKey = ref<string | null>(null)
 const pendingToggle = ref<{
   espId: string
   jenis: 'dryer' | 'washer'
@@ -116,6 +117,7 @@ async function executeToggleStatus() {
     return
 
   isConfirmOpen.value = false
+  loadingToggleKey.value = `${pending.espId}:${pending.jenis}`
 
   const { unitMesin, isTurningOn } = pending
   const tindakanTeks = isTurningOn ? 'MENYALAKAN' : 'MENGHENTIKAN'
@@ -158,6 +160,9 @@ async function executeToggleStatus() {
       variant: 'destructive',
     })
   }
+  finally {
+    loadingToggleKey.value = null
+  }
 }
 
 const pendingMachineLabel = computed(() => {
@@ -183,6 +188,10 @@ function getPowerTooltip(unit: any, jenis: 'dryer' | 'washer') {
 
 function isMachineControlDisabled(unit: any) {
   return !unit || unit.status === 'OFFLINE'
+}
+
+function isToggleLoading(espId: string, jenis: 'dryer' | 'washer') {
+  return loadingToggleKey.value === `${espId}:${jenis}`
 }
 
 function getMachineStatusColor(unit: any) {
@@ -336,13 +345,14 @@ onMounted(() => {
                   <TooltipTrigger as-child>
                     <span class="inline-flex">
                       <button
-                        :disabled="isMachineControlDisabled(mesin.dryer)"
+                        :disabled="isMachineControlDisabled(mesin.dryer) || isToggleLoading(mesin.espId, 'dryer')"
                         :aria-label="getPowerTooltip(mesin.dryer, 'dryer')"
                         class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
                         :class="getMachineStatusColor(mesin.dryer)"
                         @click="toggleStatus(mesin.espId, 'dryer')"
                       >
-                        <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
+                        <Loader2 v-if="isToggleLoading(mesin.espId, 'dryer')" class="h-4 w-4 animate-spin" />
+                        <Power v-else class="h-4 w-4 text-white" :stroke-width="2.5" />
                       </button>
                     </span>
                   </TooltipTrigger>
@@ -367,13 +377,14 @@ onMounted(() => {
                   <TooltipTrigger as-child>
                     <span class="inline-flex">
                       <button
-                        :disabled="isMachineControlDisabled(mesin.washer)"
+                        :disabled="isMachineControlDisabled(mesin.washer) || isToggleLoading(mesin.espId, 'washer')"
                         :aria-label="getPowerTooltip(mesin.washer, 'washer')"
                         class="h-9 w-9 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-40"
                         :class="getMachineStatusColor(mesin.washer)"
                         @click="toggleStatus(mesin.espId, 'washer')"
                       >
-                        <Power class="h-4 w-4 text-white" :stroke-width="2.5" />
+                        <Loader2 v-if="isToggleLoading(mesin.espId, 'washer')" class="h-4 w-4 animate-spin" />
+                        <Power v-else class="h-4 w-4 text-white" :stroke-width="2.5" />
                       </button>
                     </span>
                   </TooltipTrigger>

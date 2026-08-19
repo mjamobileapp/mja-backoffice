@@ -32,6 +32,7 @@ const initialVersions = reactive<Record<Platform, PlatformVersion>>({
 const errors = reactive<Record<string, string>>({})
 const isLoading = ref(true)
 const isSaving = ref(false)
+const isConfirmOpen = ref(false)
 
 function isValidVersion(version: string) {
   return /^\d+\.\d+\.\d+$/.test(version.trim())
@@ -149,6 +150,24 @@ onMounted(fetchVersions)
 
 <template>
   <div class="mx-auto h-[calc(100svh-6.5rem)] max-w-6xl w-full overflow-hidden space-y-2">
+    <AlertDialog v-model:open="isConfirmOpen">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Konfirmasi Simpan Konfigurasi
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin menyimpan konfigurasi versi aplikasi? Perubahan akan langsung berlaku pada aplikasi mobile.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction @click="saveVersions">
+            Simpan
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     <div class="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
       <div>
         <h1 class="flex items-center gap-2 text-2xl text-slate-900 font-extrabold">
@@ -161,7 +180,7 @@ onMounted(fetchVersions)
           <RotateCcw class="h-4 w-4" />
           Reset Form
         </Button>
-        <Button class="w-full gap-2 bg-blue-600 shadow-blue-600/30 sm:w-auto hover:bg-blue-700" :disabled="isLoading || isSaving" @click="saveVersions">
+        <Button class="w-full gap-2 bg-blue-600 shadow-blue-600/30 sm:w-auto hover:bg-blue-700" :disabled="isLoading || isSaving" @click="isConfirmOpen = true">
           <Loader2 v-if="isSaving" class="h-4 w-4 animate-spin" />
           <CloudUpload v-else class="h-4 w-4" />
           {{ isSaving ? 'Menyimpan...' : 'Simpan Konfigurasi' }}

@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Code2,
   FileSpreadsheet,
+  Filter,
   Globe2,
   Loader2,
   RefreshCw,
@@ -168,8 +169,8 @@ onMounted(fetchLogs)
         <div class="w-full flex gap-2 lg:w-72">
           <label class="min-w-0 w-1/2"><span class="mb-1 block text-xs text-slate-500 font-semibold">Tanggal Mulai</span><input v-model="draftStartDate" type="date" class="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm text-slate-600 outline-none focus:border-blue-500"></label><label class="min-w-0 w-1/2"><span class="mb-1 block text-xs text-slate-500 font-semibold">Tanggal Akhir</span><input v-model="draftEndDate" type="date" class="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm text-slate-600 outline-none focus:border-blue-500"></label>
         </div>
-        <button class="w-full border border-blue-200 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700 font-semibold transition lg:w-auto hover:bg-blue-100" @click="applyFilter">
-          Filter
+        <button class="w-full flex items-center justify-center gap-2 border border-blue-200 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700 font-semibold transition-colors lg:w-auto hover:bg-blue-100" @click="applyFilter">
+          <Filter class="h-4 w-4" /> Filter
         </button>
       </div>
 

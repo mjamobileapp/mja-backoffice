@@ -247,7 +247,7 @@ onMounted(loadReport)
   <div class="mx-auto max-w-[1440px] space-y-5">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <div>
-        <h1 class="text-2xl text-slate-900 font-bold tracking-tight md:text-3xl">
+        <h1 class="flex items-center gap-3 text-2xl text-slate-900 font-bold tracking-tight">
           Ringkasan Finansial & Analitik
         </h1>
         <p class="mt-1 text-sm text-slate-500">
@@ -300,9 +300,9 @@ onMounted(loadReport)
             </option>
           </select>
         </div>
-        <Button variant="outline" class="h-10 gap-2" :disabled="refreshing" @click="refreshReport">
+        <button class="inline-flex items-center justify-center gap-2 border border-blue-200 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700 font-semibold transition-colors disabled:cursor-not-allowed hover:bg-blue-100 disabled:opacity-60" :disabled="refreshing" @click="refreshReport">
           <Filter class="h-4 w-4" :class="refreshing ? 'animate-pulse' : ''" /> Filter
-        </Button>
+        </button>
       </div>
     </div>
 

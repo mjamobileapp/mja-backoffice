@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Log Eksekusi Mesin (IoT) - Backoffice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc; 
+            color: #0f172a; 
+        }
+        
+        /* Font monospace khusus untuk data teknis seperti MAC Address dan Payload */
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Animasi Ping untuk status Live */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-live { animation: subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto w-full">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                    <i class="fa-solid fa-server text-blue-600"></i>
+                    Audit Log Mesin Laundry (IoT)
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                <span class="flex h-2.5 w-2.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-sm font-semibold text-slate-700">Live Feed Active</span>
+            </div>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <!-- Filter Mitra -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Pilih Mitra</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="all">Semua Mitra</option>
+                    <option value="1" selected>PT Cahaya Mandiri</option>
+                    <option value="2">Laundry Kilat Bersih</option>
+                </select>
+            </div>
+            
+            <!-- Filter Cabang -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Pilih Cabang</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white disabled:bg-slate-100">
+                    <option value="all">Semua Cabang</option>
+                    <option value="3" selected>Cabang Sudirman</option>
+                    <option value="4">Cabang Tebet</option>
+                </select>
+            </div>
+
+            <!-- Filter Status Perintah -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Tipe Perintah</label>
+                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="all">Semua Instruksi</option>
+                    <option value="START">ON</option>
+                    <option value="STOP">OFF</option>
+                </select>
+            </div>
+
+            <!-- Filter Tanggal -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Tanggal Eksekusi</label>
+                <input type="date" value="2026-08-11" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+                <button class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Terapkan
+                </button>
+                <button class="bg-white text-slate-600 hover:bg-slate-50 border border-slate-300 px-4 py-2 rounded-lg text-sm transition-colors" title="Export Log ke CSV">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Log List (Feed Style) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+                <div class="text-xs text-slate-400 font-code">Menampilkan data per 11 Agt 2026, 04:18 WIB</div>
+            </div>
+
+            <div class="overflow-x-auto custom-scroll">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-white border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+                            <th class="p-4 whitespace-nowrap w-48">Waktu</th>
+                            <th class="p-4 whitespace-nowrap">Instruksi & Target</th>
+                            <th class="p-4 whitespace-nowrap">Lokasi</th>
+                            <th class="p-4 whitespace-nowrap">Aktor</th>
+                            <th class="p-4 whitespace-nowrap w-48">Referensi Order</th>
+                            <th class="p-4 whitespace-nowrap text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-sm">
+                        
+                        <!-- Row 1: START Normal (Kasir) -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 align-top">
+                                <div class="font-code font-medium text-slate-700">04:01:44</div>
+                                <div class="text-xs text-slate-400 mt-0.5">11 Agt 2026</div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 tracking-wide border border-emerald-200">START</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-[11px] text-slate-500">
+                                    <span>Mesin Laundry 1 - <span class="font-code bg-slate-100 px-1 py-0.5 rounded border border-slate-200">DRYER</span></span>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div>
+                                    <div class="font-semibold text-slate-800 text-sm">PT Cahaya Mandiri</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">Cabang Sudirman</div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-7 h-7 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-mobile-screen-button text-xs"></i></div>
+                                    <div>
+                                        <div class="font-semibold text-slate-800 text-sm">aden12</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">KASIR</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <a href="#" class="font-code font-bold text-blue-600 hover:text-blue-800 text-sm hover:underline block">INV-23-20260811-0001</a>
+                                <span class="text-[11px] text-slate-400 mt-1 block">Sesuai transaksi</span>
+                            </td>
+                            <td class="p-4 align-top text-center">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                                    <i class="fa-solid fa-circle-check"></i> success
+                                </span>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: BYPASS_ON (Owner via App/Web) -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 align-top">
+                                <div class="font-code font-medium text-slate-700">07:44:23</div>
+                                <div class="text-xs text-slate-400 mt-0.5">10 Agt 2026</div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 tracking-wide border border-emerald-200">START</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-[11px] text-slate-500">
+                                    <span>Mesin Laundry 2 - <span class="font-code bg-slate-100 px-1 py-0.5 rounded border border-slate-200">DRYER</span></span>
+                                </div>                                
+                            </td>
+                            <td class="p-4 align-top">
+                                <div>
+                                    <div class="font-semibold text-slate-800 text-sm">PT Cahaya Mandiri</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">Cabang Sudirman</div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-7 h-7 rounded bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-user-tie text-xs"></i></div>
+                                    <div>
+                                        <div class="font-semibold text-slate-800 text-sm">ownermja</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">OWNER</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <span class="font-code font-medium text-slate-400 text-sm italic">NULL</span>
+                                <span class="text-[11px] text-rose-500 mt-1 block"><i class="fa-solid fa-triangle-exclamation"></i> Tanpa Transaksi POS</span>
+                            </td>
+                            <td class="p-4 align-top text-center">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                                    <i class="fa-solid fa-circle-check"></i> success
+                                </span>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: FAILED EXECUTION (Timeout) -->
+                        <tr class="hover:bg-slate-50 transition-colors bg-rose-50/30">
+                            <td class="p-4 align-top">
+                                <div class="font-code font-medium text-slate-700">04:01:00</div>
+                                <div class="text-xs text-slate-400 mt-0.5">11 Agt 2026</div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 tracking-wide border border-emerald-200">START</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-[11px] text-slate-500">
+                                    <span>Mesin Laundry 2 - <span class="font-code bg-slate-100 px-1 py-0.5 rounded border border-slate-200">WASHER</span></span>
+                                </div>                              
+                            </td>
+                            <td class="p-4 align-top">
+                                <div>
+                                    <div class="font-semibold text-slate-800 text-sm">PT Cahaya Mandiri</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">Cabang Tebet</div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-7 h-7 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-mobile-screen-button text-xs"></i></div>
+                                    <div>
+                                        <div class="font-semibold text-slate-800 text-sm">aden12</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">KASIR</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <a href="#" class="font-code font-bold text-blue-600 hover:text-blue-800 text-sm hover:underline block">INV-23-20260810-0010</a>
+                                <span class="text-[11px] text-slate-400 mt-1 block">Sesuai transaksi</span>
+                            </td>
+                            <td class="p-4 align-top text-center">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100 shadow-sm" title="ACK mesin tidak diterima">
+                                    <i class="fa-solid fa-xmark"></i> failed
+                                </span>
+                                <div class="text-[10px] text-rose-600 mt-1.5 font-medium leading-tight">ACK mesin tidak diterima</div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Row 4: BYPASS_OFF (Backoffice Admin) -->
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 align-top">
+                                <div class="font-code font-medium text-slate-700">03:53:23</div>
+                                <div class="text-xs text-slate-400 mt-0.5">11 Agt 2026</div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 tracking-wide border border-slate-300">STOP</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-[11px] text-slate-500">
+                                    <span>Mesin Laundry 2 - <span class="font-code bg-slate-100 px-1 py-0.5 rounded border border-slate-200">WASHER</span></span>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div>
+                                    <div class="font-semibold text-slate-800 text-sm">Laundry Kilat Bersih</div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">Cabang Sudirman</div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <div class="flex items-start gap-2">
+                                    <div class="w-7 h-7 rounded bg-slate-800 text-white flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-laptop text-xs"></i></div>
+                                    <div>
+                                        <div class="font-semibold text-slate-800 text-sm">hamdanfresh@gmail.com</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5 font-semibold uppercase tracking-wider">BACKOFFICE</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4 align-top">
+                                <span class="font-code font-medium text-slate-400 text-sm italic">NULL</span>
+                                <span class="text-[11px] text-slate-400 mt-1 block">Override Manual Internal</span>
+                            </td>
+                            <td class="p-4 align-top text-center">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                                    <i class="fa-solid fa-circle-check"></i> success
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
+                <div>Menampilkan 1 - 4 dari 845 log instruksi hari ini.</div>
+                <div class="flex gap-1">
+                    <button class="px-3 py-1.5 bg-white border border-slate-300 rounded-md hover:bg-slate-100 disabled:opacity-50" disabled>&lt; Prev</button>
+                    <button class="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold shadow-sm">1</button>
+                    <button class="px-3 py-1.5 bg-white border border-slate-300 rounded-md hover:bg-slate-100">2</button>
+                    <button class="px-3 py-1.5 bg-white border border-slate-300 rounded-md hover:bg-slate-100">3</button>
+                    <button class="px-3 py-1.5 bg-white border border-slate-300 rounded-md hover:bg-slate-100">Next &gt;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Architecture Note (Optional Info Box) -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-sm text-blue-800">
+            <i class="fa-solid fa-circle-info mt-0.5 text-blue-600"></i>
+            <div>
+                <strong>Cara membaca log:</strong> Setiap kali tombol mesin ditekan (baik dari Mobile Kasir maupun Web Backoffice), sistem NodeJS mencatatnya di sini sebelum mengirim sinyal MQTT ke modul ESP di lokasi. Jika kolom "Referensi Order" bernilai <span class="font-code bg-white px-1 py-0.5 rounded text-rose-500">NULL</span>, berarti mesin dipaksa menyala tanpa ada transaksi (indikasi <em>bypass</em> teknisi atau <em>fraud</em>).
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
